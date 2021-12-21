@@ -184,12 +184,13 @@ static int imx390_gmsl_serdes_setup(struct imx390 *priv)
 	int err = 0;
 	int des_err = 0;
 	struct device *dev;
+	
 
 	if (!priv || !priv->ser_dev || !priv->dser_dev || !priv->i2c_client)
 		return -EINVAL;
 
 	dev = &priv->i2c_client->dev;
-
+	dev_err(dev, "gmsl serdes setup \n");
 	mutex_lock(&serdes_lock__);
 
 	/* For now no separate power on required for serializer device */
@@ -292,6 +293,10 @@ static int imx390_power_get(struct tegracam_device *tc_dev)
 
 	mclk_name = pdata->mclk_name ?
 		    pdata->mclk_name : "cam_mclk1";
+
+	dev_err(dev, "mclk_name %s   pdata->mclk_name %s \n", mclk_name,pdata->mclk_name);
+
+
 	pw->mclk = devm_clk_get(dev, mclk_name);
 	if (IS_ERR(pw->mclk)) {
 		dev_err(dev, "unable to get clock %s\n", mclk_name);
@@ -579,12 +584,13 @@ static int imx390_board_setup(struct imx390 *priv)
 	const char *str_value1[2];
 	int  i;
 	int err;
-
+	dev_err(dev, "imx390 board setup init\n");
 	err = of_property_read_u32(node, "reg", &priv->g_ctx.sdev_reg);
 	if (err < 0) {
 		dev_err(dev, "reg not found\n");
 		goto error;
 	}
+	dev_err(dev, "je suis la reg = %d\n",priv->g_ctx.sdev_reg);
 
 	err = of_property_read_u32(node, "def-addr",
 					&priv->g_ctx.sdev_def);
@@ -614,9 +620,13 @@ static int imx390_board_setup(struct imx390 *priv)
 		dev_err(dev, "missing serializer dev handle\n");
 		goto error;
 	}
+	else{
+		dev_err(dev, "serializer address=%x\n",ser_i2c->addr );
+	}
+	
 	if (ser_i2c->dev.driver == NULL) {
 		dev_err(dev, "missing serializer driver\n");
-		//goto error;
+		goto error;
 	}
 
 	priv->ser_dev = &ser_i2c->dev;
@@ -746,7 +756,7 @@ static int imx390_board_setup(struct imx390 *priv)
 		}
 	}
 
-	goto error;
+	dev_err(dev, "imx390 board setup end\n");
 
 	priv->g_ctx.s_dev = dev;
 
@@ -760,12 +770,13 @@ error:
 static int imx390_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
+	
 	struct device *dev = &client->dev;
 	struct device_node *node = dev->of_node;
 	struct tegracam_device *tc_dev;
 	struct imx390 *priv;
 	int err;
-
+	dev_err(dev, "prob je rentre la !\n");
 	dev_info(dev, "probing v4l2 sensor.\n");
 
 	if (!IS_ENABLED(CONFIG_OF) || !node)

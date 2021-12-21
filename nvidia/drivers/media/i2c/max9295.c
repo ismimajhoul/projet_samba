@@ -273,6 +273,61 @@ error:
 }
 EXPORT_SYMBOL(max9295_setup_streaming);
 
+
+#define MAX9271_DEFAULT_ADDR  0x40
+
+static int max9271_test_write(struct i2c_client* client, u8 reg, u8 val)
+{
+	int ret;
+	dev_dbg(&client->dev, "%s(0x%02x, 0x%02x)\n", __func__, reg, val);
+	ret = i2c_smbus_write_byte_data(client, reg, val);
+	dev_err(&client->dev,"%s: register 0x%02x write failed (%d)\n",__func__, reg, ret);
+	return ret;
+}
+
+void max9295_wake_up(struct i2c_client* client)
+{
+/*
+* Use the chip default address as this function has to be called
+* before any other one.
+*/
+	int status;
+	//client->addr = MAX9271_DEFAULT_ADDR;
+	client->addr = client->addr << 1;
+	max9271_test_write(client,0,MAX9271_DEFAULT_ADDR);
+	usleep_range(5000, 8000);
+	usleep_range(5000, 8000);
+	client->addr = MAX9271_DEFAULT_ADDR;
+	status = i2c_smbus_read_byte(client);
+	usleep_range(5000, 8000);
+	dev_err(&client->dev, "wakeup => addr: %x",client->addr);
+	dev_err(&client->dev, "wakeup => status: %d\n",(unsigned int) status);
+}
+
+
+void max9295_wake_up_loop(struct i2c_client* client)
+{
+	/*
+	 * Use the chip default address as this function has to be called
+	 * before any other one.
+	 */
+
+	int status, i;//,j;
+	for (i = 0; i < 255; i++)
+	{
+		//if((i==0xc8)||(i==0xf2)||(i==0x48))
+		//{
+			//for(j=0;j<35;j++)
+			//{
+				client->addr = (unsigned short)i;
+				status = i2c_smbus_read_byte_data(client, 0);
+				usleep_range(5000, 8000);
+				dev_err(&client->dev, "wake_up i2c:=0x%x reg=0x%x data= %x\n",i,0, (unsigned int)status);
+			//}
+		//}
+	}
+}
+
 int max9295_setup_control(struct device *dev)
 {
 	struct max9295 *priv = dev_get_drvdata(dev);
@@ -505,6 +560,8 @@ static int max9295_probe(struct i2c_client *client,
 	}
 
 	dev_set_drvdata(&client->dev, priv);
+	//max9295_wake_up_loop(client);
+	max9295_wake_up(client);	
 
 	/* dev communication gets validated when GMSL link setup is done */
 	dev_info(&client->dev, "%s:  success\n", __func__);

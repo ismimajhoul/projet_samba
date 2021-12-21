@@ -146,6 +146,31 @@ static int max9296_write_reg(struct device *dev,
 	return err;
 }
 
+static int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
+{
+	struct max9296 *priv;
+	unsigned int reg_val;
+	int err;
+
+
+
+	priv = dev_get_drvdata(dev);
+
+
+
+	err = regmap_read(priv->regmap, addr, &reg_val);
+	*val = reg_val;
+	dev_err(dev,"%s: i2c reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+
+	/* delay before next i2c command as required for SERDES link */
+	usleep_range(100, 110);
+
+
+
+	return err;
+}
+EXPORT_SYMBOL(max9296_read_reg);
+
 static int max9296_get_sdev_idx(struct device *dev,
 			struct device *s_dev, int *idx)
 {
@@ -860,6 +885,9 @@ static int max9296_probe(struct i2c_client *client,
 {
 	struct max9296 *priv;
 	int err = 0;
+	unsigned int val;
+	unsigned int i;
+
 
 	dev_info(&client->dev, "[MAX9296]: probing GMSL Deserializer\n");
 
@@ -893,6 +921,13 @@ static int max9296_probe(struct i2c_client *client,
 
 	/* dev communication gets validated when GMSL link setup is done */
 	dev_info(&client->dev, "%s:  success\n", __func__);
+
+	for(i=0;i<32;i++)
+	{
+		//client->addr = 0x48;
+		dev_err(&client->dev,"%s: i2c addr = 0x%x",__func__, i);
+		max9296_read_reg(&client->dev,i, &val);
+	}
 
 	return err;
 }
