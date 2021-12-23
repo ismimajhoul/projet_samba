@@ -29,4 +29,6 @@ int max9295_sdev_unpair(struct device *dev, struct device *s_dev);
 
 int max9295_setup_streaming(struct device *dev);
 
+int samba_max9271_setup_control(struct device *dev);
+
 #endif  /* __MAX9295_H__ */

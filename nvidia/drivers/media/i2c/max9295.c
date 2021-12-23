@@ -19,6 +19,7 @@
 #include <media/camera_common.h>
 #include <linux/module.h>
 #include <media/max9295.h>
+#include <media/max9271.h>
 
 /* register specifics */
 #define MAX9295_MIPI_RX0_ADDR 0x330
@@ -103,7 +104,8 @@ struct max9295_client_ctx {
 	bool st_done;
 };
 
-struct max9295 {
+struct max9295
+{
 	struct i2c_client *i2c_client;
 	struct regmap *regmap;
 	struct max9295_client_ctx g_client;
@@ -115,12 +117,66 @@ struct max9295 {
 
 static struct max9295 *prim_priv__;
 
+struct samba_max9271
+{
+	struct i2c_client *i2c_client;
+	struct regmap *regmap;
+	struct max9295_client_ctx g_client;
+	struct mutex lock;
+	/* primary serializer properties */
+	__u32 def_addr;
+	__u32 pst2_ref;
+};
+
+//static struct samba_max9271 *samba_prim_priv__;
+
+
+
 struct map_ctx {
 	u8 dt;
 	u16 addr;
 	u8 val;
 	u8 st_id;
 };
+
+static int samba_max9271_write(struct i2c_client* client, u8 reg, u8 val)
+{
+	int ret;
+	dev_dbg(&client->dev, "%s(0x%02x, 0x%02x)\n", __func__, reg, val);
+	ret = i2c_smbus_write_byte_data(client, reg, val);
+	dev_err(&client->dev,"%s: register 0x%02x write failed (%d)\n",__func__, reg, ret);
+	return ret;
+}
+
+static int samba_max9271_read(struct i2c_client* client, u8 reg)
+{
+	int ret;
+
+	dev_dbg(&client->dev, "%s(0x%02x)\n", __func__, reg);
+
+	ret = i2c_smbus_read_byte_data(client, reg);
+	if (ret < 0)
+		dev_dbg(&client->dev,
+			"%s: register 0x%02x read failed (%d)\n",
+			__func__, reg, ret);
+
+	return ret;
+}
+
+
+
+void max9295_wake_up(struct i2c_client* client)
+{
+	/*
+	 * Use the chip default address as this function has to be called
+	 * before any other one.
+	 */
+
+	int status;
+	status = i2c_smbus_read_byte_data(client,0);
+	usleep_range(5000, 8000);
+	dev_err(&client->dev, "wake_up data/status: %x\n",(unsigned int) status);
+}
 
 static int max9295_write_reg(struct device *dev, u16 addr, u8 val)
 {
@@ -136,6 +192,35 @@ static int max9295_write_reg(struct device *dev, u16 addr, u8 val)
 	usleep_range(100, 110);
 
 	return err;
+}
+
+/*
+ * max9271_pclk_detect() - Detect valid pixel clock from image sensor
+ *
+ * Wait up to 10ms for a valid pixel clock.
+ *
+ * Returns 0 for success, < 0 for pixel clock not properly detected
+ */
+static int samba_max9271_pclk_detect(struct i2c_client *client)
+{
+	unsigned int i;
+	int ret;
+
+	for (i = 0; i < 100; i++)
+	{
+		ret = samba_max9271_read(client, 0x15);
+		if (ret < 0)
+			return ret;
+
+		if (ret & MAX9271_PCLKDET)
+			return 0;
+
+		usleep_range(50, 100);
+	}
+
+	dev_err(&client->dev, "Unable to detect valid pixel clock\n");
+
+	return -EIO;
 }
 
 int max9295_setup_streaming(struct device *dev)
@@ -274,59 +359,209 @@ error:
 EXPORT_SYMBOL(max9295_setup_streaming);
 
 
-#define MAX9271_DEFAULT_ADDR  0x40
 
-static int max9271_test_write(struct i2c_client* client, u8 reg, u8 val)
+
+int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
 {
-	int ret;
-	dev_dbg(&client->dev, "%s(0x%02x, 0x%02x)\n", __func__, reg, val);
-	ret = i2c_smbus_write_byte_data(client, reg, val);
-	dev_err(&client->dev,"%s: register 0x%02x write failed (%d)\n",__func__, reg, ret);
+	int ret = 0;
+	// Reg 0x2:
+	//- PRNG=11 => Automatically detect the pixel clock range.
+	//- SRNG=00=>Automatically detect the pixel clock range.
+	ret = samba_max9271_write(client,0x02,0x1C);
+
+	// Reg 0x3
+	//- AUTOFM=00=> Calibrate spread-modulation rate only once after locking.
+	//- SDIV=00000=>Autocalibrate sawtooth divider.
+	ret = samba_max9271_write(client,0x03,0x00);
+
+	// Reg 0x4
+	//- SEREN=1=>Disable serial link. Reverse control-channel communication remains
+	//unavailable for 350Fs after the serializer starts/stops the serial link.
+	//- CLINKEN=0
+	//- PRBSEN=0
+	//- SLEEP=0
+	//- INTTYPE=00
+	//- REVCCEN=1=>Enable reverse control channel from deserializer (receiving)
+	//- FWDCCEN=1=>Enable forward control channel to deserializer (sending)
+	ret = samba_max9271_write(client,0x04, 0x83);
+
+	// Reg 0x5
+	//- I2CMETHOD=1 =>Disable sending of I2C register address when converting
+	//UART to I2C (command-byte-only mode).
+	//- ENJITFILT=0
+	//- PRBSLEN=00
+	//- ENWAKEN=0
+	//- ENWAKEP=0
+	ret = samba_max9271_write(client,0x05, 0x80);
+
+	// Reg 0x6
+	//- CMLLVL=0101 =>250mV output level.
+	//- PREEMP=0000=>Preemphasis off.
+	ret = samba_max9271_write(client,0x06,0x50);
+
+	// Reg 0x7
+	//- DBL=0
+	//- DRS=0
+	//- BWS=0
+	//- ES=0
+	//- HVEN=1=>HS/VS encoding enabled. Power-up default when LCCEN = low and
+	//MS/HVEN = high.
+	//- EDC=10=>6-bit hamming code (single-bit error correct, double-bit error detect)
+	//and 16 word interleaving. Power-up default when LCCEN = low and
+	//RX/SDA/EDC = high.
+	ret = samba_max9271_write(client,0x07, 0x06); // perd le lock, car Hamming code enable
+
+	//sleep(0.020); // DS : tLock 2ms (link start time), serializer delay ~ 17ms
+
+	// DESER
+	//=> mwrite (i2cport, 0x48, 0x07, 0x0E); // retrouve le lock !!!!! atention ceci \E9crit dans le max 9272 DESER
+	//=> ret = max9271_write(dev,0x07, 0x0E);
+
+	usleep_range(200000,300000);
+
+	// Reg 0x8
+	//- INVVS =0=>No VS or DIN0 inversion.
+	//- INVHS=0 =>No HS or DIN1 inversion.
+	//ret = max9271_write(client,0x08,0x00);
+	ret = samba_max9271_write(client, 0x08, 0x00);
+	ret = samba_max9271_write(client, 0x09, 0x00);
+	ret = samba_max9271_write(client, 0x0A, 0x00);
+	ret = samba_max9271_write(client, 0x0B, 0x00);
+	ret = samba_max9271_write(client, 0x0C, 0x00);
+	ret = samba_max9271_write(client, 0x0D, 0x6E); // Lien I2C serialiseur \E0 105KHz
+	ret = samba_max9271_write(client, 0x0E, 0x42);
+	ret = samba_max9271_write(client, 0x0F, 0xC2);
+
+	// Faire ici l'init du deser max 9296 \E0 la place de l'inits du max9272
+
+	//mwrite (i2cport, 0x48, 0x02, 0x1C);
+	//mwrite (i2cport, 0x48, 0x03, 0x00);
+	//mwrite (i2cport, 0x48, 0x04, 0x03);
+	//mwrite (i2cport, 0x48, 0x05, 0xA9);
+	//mwrite (i2cport, 0x48, 0x08, 0x00);
+	//mwrite (i2cport, 0x48, 0x09, 0x00);
+	//mwrite (i2cport, 0x48, 0x0A, 0x00);
+	//mwrite (i2cport, 0x48, 0x0B, 0x00);
+	//mwrite (i2cport, 0x48, 0x0C, 0x00);
+	//mwrite (i2cport, 0x48, 0x0D, 0x36); //
+	//mwrite (i2cport, 0x48, 0x0E, 0x60);
+	//mwrite (i2cport, 0x48, 0x0F, 0x00);
 	return ret;
 }
 
-void max9295_wake_up(struct i2c_client* client)
+
+
+
+
+
+
+
+int samba_max9271_set_serial_link(struct i2c_client *client, bool enable)
 {
-/*
-* Use the chip default address as this function has to be called
-* before any other one.
-*/
-	int status;
-	//client->addr = MAX9271_DEFAULT_ADDR;
-	client->addr = client->addr << 1;
-	max9271_test_write(client,0,MAX9271_DEFAULT_ADDR);
-	usleep_range(5000, 8000);
-	usleep_range(5000, 8000);
-	client->addr = MAX9271_DEFAULT_ADDR;
-	status = i2c_smbus_read_byte(client);
-	usleep_range(5000, 8000);
-	dev_err(&client->dev, "wakeup => addr: %x",client->addr);
-	dev_err(&client->dev, "wakeup => status: %d\n",(unsigned int) status);
-}
+	int ret;
+	u8 val = MAX9271_REVCCEN | MAX9271_FWDCCEN;
 
-
-void max9295_wake_up_loop(struct i2c_client* client)
-{
-	/*
-	 * Use the chip default address as this function has to be called
-	 * before any other one.
-	 */
-
-	int status, i;//,j;
-	for (i = 0; i < 255; i++)
+	if (enable)
 	{
-		//if((i==0xc8)||(i==0xf2)||(i==0x48))
-		//{
-			//for(j=0;j<35;j++)
-			//{
-				client->addr = (unsigned short)i;
-				status = i2c_smbus_read_byte_data(client, 0);
-				usleep_range(5000, 8000);
-				dev_err(&client->dev, "wake_up i2c:=0x%x reg=0x%x data= %x\n",i,0, (unsigned int)status);
-			//}
-		//}
+		ret = samba_max9271_pclk_detect(client);
+		if (ret)
+			return ret;
+
+		val |= MAX9271_SEREN;
 	}
+	else
+	{
+		val |= MAX9271_CLINKEN;
+	}
+
+	/*
+	 * The serializer temporarily disables the reverse control channel for
+	 * 350µs after starting/stopping the forward serial link, but the
+	 * deserializer synchronization time isn't clearly documented.
+	 *
+	 * According to the serializer datasheet we should wait 3ms, while
+	 * according to the deserializer datasheet we should wait 5ms.
+	 *
+	 * Short delays here appear to show bit-errors in the writes following.
+	 * Therefore a conservative delay seems best here.
+	 */
+	ret = samba_max9271_write(client, 0x04, val);
+	if (ret < 0)
+		return ret;
+
+	usleep_range(5000, 8000);
+
+	return 0;
 }
+EXPORT_SYMBOL_GPL(samba_max9271_set_serial_link);
+
+static int samba_max9271_verify_id(struct i2c_client* client)
+{
+	int ret;
+
+	ret = samba_max9271_read(client, 0x1e);
+	if (ret < 0) {
+		dev_err(&client->dev, "MAX9271 ID read failed (%d)\n",
+			ret);
+		return ret;
+	}
+
+	if (ret != MAX9271_ID) {
+		dev_err(&client->dev, "MAX9271 ID mismatch (0x%02x)\n",
+			ret);
+		return -ENXIO;
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(samba_max9271_verify_id);
+
+static int samba_std_max9271_init(struct device *dev)
+{
+	int ret = 0;
+	struct samba_max9271 *priv = dev_get_drvdata(dev);
+
+	/* Serial link disabled during config as it needs a valid pixel clock. */
+	ret = samba_max9271_set_serial_link(priv->i2c_client, false);
+
+
+	ret = samba_max9271_verify_id(priv->i2c_client);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(samba_std_max9271_init);
+
+
+int samba_max9271_setup_control(struct device *dev)
+{
+	struct samba_max9271 *priv = dev_get_drvdata(dev);
+	int err = 0, ret = 0;
+	struct gmsl_link_ctx *g_ctx;
+
+
+
+		mutex_lock(&priv->lock);
+
+		if (!priv->g_client.g_ctx)
+		{
+			dev_err(dev, "%s: no sensor dev client found\n", __func__);
+			err = -EINVAL;
+			goto error;
+		}
+
+		g_ctx = priv->g_client.g_ctx;
+
+		/* Serial link disabled during config as it needs a valid pixel clock. */
+		ret = samba_max9271_set_serial_link(priv->i2c_client, false);
+		if (ret)
+			return ret;
+
+error:
+			mutex_unlock(&priv->lock);
+			return err;
+
+}
+
+
 
 int max9295_setup_control(struct device *dev)
 {
@@ -366,9 +601,12 @@ int max9295_setup_control(struct device *dev)
 
 	g_ctx = priv->g_client.g_ctx;
 
-	/* update address reassingment */
-	max9295_write_reg(&prim_priv__->i2c_client->dev,
-			MAX9295_DEV_ADDR, (g_ctx->ser_reg << 1));
+	if (prim_priv__)
+	{
+		/* update address reassingment */
+		max9295_write_reg(&prim_priv__->i2c_client->dev,
+				MAX9295_DEV_ADDR, (g_ctx->ser_reg << 1));
+	}
 
 	if (g_ctx->serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
 		err = max9295_write_reg(dev, MAX9295_CTRL0_ADDR, 0x21);
@@ -376,7 +614,8 @@ int max9295_setup_control(struct device *dev)
 		err = max9295_write_reg(dev, MAX9295_CTRL0_ADDR, 0x22);
 
 	/* check if serializer device exists */
-	if (err) {
+	if (err)
+	{
 		dev_err(dev, "%s: ERROR: ser device not found\n", __func__);
 		goto error;
 	}
@@ -398,19 +637,21 @@ int max9295_setup_control(struct device *dev)
 		goto error;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(i2c_ovrd); i += 2) {
+	for (i = 0; i < ARRAY_SIZE(i2c_ovrd); i += 2)
+	{
 		/* update address overrides */
 		i2c_ovrd[i+1] += (i < 4) ? offset1 : offset2;
 
 		/* i2c passthrough2 must be configured once for all devices */
-		if ((i2c_ovrd[i] == 0x8B) && prim_priv__->pst2_ref)
+		if ((i2c_ovrd[i] == 0x8B) && prim_priv__ && prim_priv__->pst2_ref)
 			continue;
 
 		max9295_write_reg(dev, i2c_ovrd[i], i2c_ovrd[i+1]);
 	}
 
 	/* dev addr pass-through2 ref */
-	prim_priv__->pst2_ref++;
+	if (prim_priv__)
+		prim_priv__->pst2_ref++;
 
 	max9295_write_reg(dev, MAX9295_I2C4_ADDR, (g_ctx->sdev_reg << 1));
 	max9295_write_reg(dev, MAX9295_I2C5_ADDR, (g_ctx->sdev_def << 1));
@@ -425,6 +666,7 @@ error:
 	mutex_unlock(&priv->lock);
 	return err;
 }
+
 EXPORT_SYMBOL(max9295_setup_control);
 
 int max9295_reset_control(struct device *dev)
@@ -439,19 +681,26 @@ int max9295_reset_control(struct device *dev)
 		goto error;
 	}
 
-	prim_priv__->pst2_ref--;
 	priv->g_client.st_done = false;
 
-	max9295_write_reg(dev, MAX9295_DEV_ADDR, (prim_priv__->def_addr << 1));
+	if (prim_priv__) {
+		prim_priv__->pst2_ref--;
 
-	max9295_write_reg(&prim_priv__->i2c_client->dev,
-				MAX9295_CTRL0_ADDR, MAX9295_RESET_ALL);
+		max9295_write_reg(dev, MAX9295_DEV_ADDR, (prim_priv__->def_addr << 1));
+
+		max9295_write_reg(&prim_priv__->i2c_client->dev,
+					MAX9295_CTRL0_ADDR, MAX9295_RESET_ALL);
+	}
 
 error:
 	mutex_unlock(&priv->lock);
 	return err;
 }
 EXPORT_SYMBOL(max9295_reset_control);
+
+
+
+
 
 int max9295_sdev_pair(struct device *dev, struct gmsl_link_ctx *g_ctx)
 {
@@ -543,7 +792,8 @@ static int max9295_probe(struct i2c_client *client,
 
 	mutex_init(&priv->lock);
 
-	if (of_get_property(node, "is-prim-ser", NULL)) {
+	if (of_get_property(node, "is-prim-ser", NULL))
+	{
 		if (prim_priv__) {
 			dev_err(&client->dev,
 				"prim-ser already exists\n");
@@ -560,11 +810,13 @@ static int max9295_probe(struct i2c_client *client,
 	}
 
 	dev_set_drvdata(&client->dev, priv);
-	//max9295_wake_up_loop(client);
-	max9295_wake_up(client);	
+	//client->addr = priv->def_addr;
+	//max9295_wake_up(client);
 
 	/* dev communication gets validated when GMSL link setup is done */
 	dev_info(&client->dev, "%s:  success\n", __func__);
+
+
 
 	return err;
 }
