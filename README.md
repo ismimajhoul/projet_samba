@@ -11,10 +11,33 @@ nvidia/drivers/media/i2c/
 
 
 
+le compilateur  ce trouve dans le dossier compilator executer les commander suivante :
+
+tar xf gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
+mkdir $HOME/l4t-gcc
+cp gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu $HOME/l4t-gcc
+
 
 afin de compiler le kernel et de genrer l'image et les modules associer suivre le lien suivant:
 
-https://docs.nvidia.com/jetson/archives/l4t-archived/l4t-322/index.html#page/Tegra%2520Linux%2520Driver%2520Package%2520Development%2520Guide%2Fkernel_custom.html%23
+a la racine du depot executer les commande suivante :
+
+- mkdir build
+- TEGRA_KERNEL_OUT=$(pwd)/build/
+- export CROSS_COMPILE=$HOME/l4t-gcc/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+- export LOCALVERSION=-tegra
+- cd kernel-4.9
+- make ARCH=arm64 O=$TEGRA_KERNEL_OUT tegra_defconfig
+- make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j<n>
+
+
+
+
+
+
+
+
+------------------------------ BSP SDKManager -----------------------------------------
 
 ensuite il faut installer le BSP voici le lien pour l'installer:
 
