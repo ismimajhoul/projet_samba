@@ -39,4 +39,7 @@ int max9296_power_on(struct device *dev);
 
 void max9296_power_off(struct device *dev);
 
+int max9296_write_reg(struct device *dev,
+	u16 addr, u8 val);
+
 #endif  /* __MAX9296_H__ */

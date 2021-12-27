@@ -126,7 +126,7 @@ struct max9296 {
 	struct regulator *vdd_cam_1v2;
 };
 
-static int max9296_write_reg(struct device *dev,
+int max9296_write_reg(struct device *dev,
 	u16 addr, u8 val)
 {
 	struct max9296 *priv;
@@ -472,6 +472,10 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 			err = -EINVAL;
 			goto error;
 		}
+		else{
+			dev_err(dev,
+				"%s: serdes csi link is not in use\n", __func__);
+		}
 		/*
 		 * All sdevs should have same num-csi-lanes regardless of
 		 * dst csi port selected.
@@ -485,6 +489,10 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 				"%s: csi num lanes mismatch\n", __func__);
 			err = -EINVAL;
 			goto error;
+		}
+		else{
+			dev_err(dev,
+				"%s: ok : csi num lanesno mismatch\n", __func__);
 		}
 	}
 
@@ -885,8 +893,8 @@ static int max9296_probe(struct i2c_client *client,
 {
 	struct max9296 *priv;
 	int err = 0;
-	unsigned int val;
-	unsigned int i;
+	// unsigned int val;
+	// unsigned int i;
 
 
 	dev_info(&client->dev, "[MAX9296]: probing GMSL Deserializer\n");
@@ -922,12 +930,12 @@ static int max9296_probe(struct i2c_client *client,
 	/* dev communication gets validated when GMSL link setup is done */
 	dev_info(&client->dev, "%s:  success\n", __func__);
 
-	for(i=0;i<32;i++)
-	{
-		//client->addr = 0x48;
-		dev_err(&client->dev,"%s: i2c addr = 0x%x",__func__, i);
-		max9296_read_reg(&client->dev,i, &val);
-	}
+	// for(i=0;i<32;i++)
+	// {
+	// 	//client->addr = 0x48;
+	// 	dev_err(&client->dev,"%s: i2c addr = 0x%x",__func__, i);
+	// 	max9296_read_reg(&client->dev,i, &val);
+	// }
 
 	return err;
 }

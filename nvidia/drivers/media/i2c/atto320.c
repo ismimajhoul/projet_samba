@@ -205,14 +205,17 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	//err = max9295_setup_control(priv->ser_dev);
 
 	// Implémenter le setup control du max 9271
-	err = samba_max9271_setup_control(priv->ser_dev);
-
+	//err = samba_max9271_setup_control(priv->ser_dev);
+	samba_max9271_set_serial_link(priv->ser_dev,true);
+	
+	InitSerdes(priv->dser_dev,priv->ser_dev);
 	/* proceed even if ser setup failed, to setup deser correctly */
 	if (err)
 		dev_err(dev, "gmsl serializer setup failed\n");
 
 	des_err = max9296_setup_control(priv->dser_dev, &priv->i2c_client->dev);
-	if (des_err) {
+	if (des_err) 
+	{
 		dev_err(dev, "gmsl deserializer setup failed\n");
 		/* overwrite err only if deser setup also failed */
 		err = des_err;

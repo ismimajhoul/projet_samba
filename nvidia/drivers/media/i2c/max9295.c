@@ -20,6 +20,7 @@
 #include <linux/module.h>
 #include <media/max9295.h>
 #include <media/max9271.h>
+#include <media/max9296.h>
 
 /* register specifics */
 #define MAX9295_MIPI_RX0_ADDR 0x330
@@ -128,7 +129,7 @@ struct samba_max9271
 	__u32 pst2_ref;
 };
 
-//static struct samba_max9271 *samba_prim_priv__;
+static struct samba_max9271 *samba_prim_priv__;
 
 
 
@@ -210,11 +211,23 @@ static int samba_max9271_pclk_detect(struct i2c_client *client)
 	{
 		ret = samba_max9271_read(client, 0x15);
 		if (ret < 0)
+		{
+			dev_err(&client->dev, "unable to read register 15 KO\n");
 			return ret;
+		}
 
 		if (ret & MAX9271_PCLKDET)
-			return 0;
+		{
 
+			dev_err(&client->dev, "OK MAX9271_PCLKDET\n");
+			return 0;
+		}
+
+		else
+		{
+			dev_err(&client->dev, "ON GOING\n");
+		}
+		
 		usleep_range(50, 100);
 	}
 
@@ -361,18 +374,35 @@ EXPORT_SYMBOL(max9295_setup_streaming);
 
 
 
-int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
+//int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
+
+int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 {
 	int ret = 0;
+	struct samba_max9271 *priv = dev_get_drvdata(ser_dev);
+// For lock priv->dser_dev
+	//max9296_write_reg(dser_dev, 0x07, 0x0C); // retrouve le lock quand le M1-mini est eteint
+    //usleep_range(200000,300000);
+    //// verifications
+    //ok, val = max.read (i2cport,0x48,0x1e,1);
+    //assert ((ok ==1) and (val == 10), "0x48 is not MAX9272")
+    //ok, val = max.read (i2cport,0x40,0x1e,1);
+    //assert ((ok == 1) and (val == 9), "0x40 is not MAX9271")
+
+// inits distantes sur max9271
+// INTTYPE=00 Local control channel uses i2c when i2csel=0
+    ret = samba_max9271_write(priv->i2c_client,4,0x83); // distant
+    //max9296_write_reg(dser_dev,4,0x03); // local
+
 	// Reg 0x2:
 	//- PRNG=11 => Automatically detect the pixel clock range.
 	//- SRNG=00=>Automatically detect the pixel clock range.
-	ret = samba_max9271_write(client,0x02,0x1C);
+	ret = samba_max9271_write(priv->i2c_client,0x02,0x1C);
 
 	// Reg 0x3
 	//- AUTOFM=00=> Calibrate spread-modulation rate only once after locking.
 	//- SDIV=00000=>Autocalibrate sawtooth divider.
-	ret = samba_max9271_write(client,0x03,0x00);
+	ret = samba_max9271_write(priv->i2c_client,0x03,0x00);
 
 	// Reg 0x4
 	//- SEREN=1=>Disable serial link. Reverse control-channel communication remains
@@ -383,7 +413,7 @@ int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
 	//- INTTYPE=00
 	//- REVCCEN=1=>Enable reverse control channel from deserializer (receiving)
 	//- FWDCCEN=1=>Enable forward control channel to deserializer (sending)
-	ret = samba_max9271_write(client,0x04, 0x83);
+	ret = samba_max9271_write(priv->i2c_client,0x04, 0x83);
 
 	// Reg 0x5
 	//- I2CMETHOD=1 =>Disable sending of I2C register address when converting
@@ -392,12 +422,12 @@ int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
 	//- PRBSLEN=00
 	//- ENWAKEN=0
 	//- ENWAKEP=0
-	ret = samba_max9271_write(client,0x05, 0x80);
+	ret = samba_max9271_write(priv->i2c_client,0x05, 0x80);
 
 	// Reg 0x6
 	//- CMLLVL=0101 =>250mV output level.
 	//- PREEMP=0000=>Preemphasis off.
-	ret = samba_max9271_write(client,0x06,0x50);
+	ret = samba_max9271_write(priv->i2c_client,0x06,0x50);
 
 	// Reg 0x7
 	//- DBL=0
@@ -409,28 +439,28 @@ int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
 	//- EDC=10=>6-bit hamming code (single-bit error correct, double-bit error detect)
 	//and 16 word interleaving. Power-up default when LCCEN = low and
 	//RX/SDA/EDC = high.
-	ret = samba_max9271_write(client,0x07, 0x06); // perd le lock, car Hamming code enable
+	ret = samba_max9271_write(priv->i2c_client,0x07, 0x06); // perd le lock, car Hamming code enable
 
 	//sleep(0.020); // DS : tLock 2ms (link start time), serializer delay ~ 17ms
 
 	// DESER
 	//=> mwrite (i2cport, 0x48, 0x07, 0x0E); // retrouve le lock !!!!! atention ceci \E9crit dans le max 9272 DESER
 	//=> ret = max9271_write(dev,0x07, 0x0E);
-
-	usleep_range(200000,300000);
+	//max9296_write_reg(dser_dev,0x07, 0x0E);
+	//usleep_range(200000,300000);
 
 	// Reg 0x8
 	//- INVVS =0=>No VS or DIN0 inversion.
 	//- INVHS=0 =>No HS or DIN1 inversion.
 	//ret = max9271_write(client,0x08,0x00);
-	ret = samba_max9271_write(client, 0x08, 0x00);
-	ret = samba_max9271_write(client, 0x09, 0x00);
-	ret = samba_max9271_write(client, 0x0A, 0x00);
-	ret = samba_max9271_write(client, 0x0B, 0x00);
-	ret = samba_max9271_write(client, 0x0C, 0x00);
-	ret = samba_max9271_write(client, 0x0D, 0x6E); // Lien I2C serialiseur \E0 105KHz
-	ret = samba_max9271_write(client, 0x0E, 0x42);
-	ret = samba_max9271_write(client, 0x0F, 0xC2);
+	ret = samba_max9271_write(priv->i2c_client, 0x08, 0x00);
+	ret = samba_max9271_write(priv->i2c_client, 0x09, 0x00);
+	ret = samba_max9271_write(priv->i2c_client, 0x0A, 0x00);
+	ret = samba_max9271_write(priv->i2c_client, 0x0B, 0x00);
+	ret = samba_max9271_write(priv->i2c_client, 0x0C, 0x00);
+	ret = samba_max9271_write(priv->i2c_client, 0x0D, 0x6E); // Lien I2C serialiseur \E0 105KHz
+	ret = samba_max9271_write(priv->i2c_client, 0x0E, 0x42);
+	ret = samba_max9271_write(priv->i2c_client, 0x0F, 0xC2);
 
 	// Faire ici l'init du deser max 9296 \E0 la place de l'inits du max9272
 
@@ -448,6 +478,7 @@ int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
 	//mwrite (i2cport, 0x48, 0x0F, 0x00);
 	return ret;
 }
+EXPORT_SYMBOL_GPL(InitSerdes);
 
 
 
@@ -455,15 +486,19 @@ int max9271_configure_gmsl_link_samba_project(struct i2c_client* client)
 
 
 
-
-int samba_max9271_set_serial_link(struct i2c_client *client, bool enable)
+int samba_max9271_set_serial_link(struct device *ser, bool enable)
 {
+
+
 	int ret;
+	struct samba_max9271 *priv = dev_get_drvdata(ser); 
 	u8 val = MAX9271_REVCCEN | MAX9271_FWDCCEN;
+
+	dev_err(ser, "Set serial link max9271 \n");
 
 	if (enable)
 	{
-		ret = samba_max9271_pclk_detect(client);
+		ret = samba_max9271_pclk_detect(priv->i2c_client);
 		if (ret)
 			return ret;
 
@@ -485,7 +520,7 @@ int samba_max9271_set_serial_link(struct i2c_client *client, bool enable)
 	 * Short delays here appear to show bit-errors in the writes following.
 	 * Therefore a conservative delay seems best here.
 	 */
-	ret = samba_max9271_write(client, 0x04, val);
+	ret = samba_max9271_write(priv->i2c_client, 0x04, val);
 	if (ret < 0)
 		return ret;
 
@@ -522,7 +557,7 @@ static int samba_std_max9271_init(struct device *dev)
 	struct samba_max9271 *priv = dev_get_drvdata(dev);
 
 	/* Serial link disabled during config as it needs a valid pixel clock. */
-	ret = samba_max9271_set_serial_link(priv->i2c_client, false);
+	ret = samba_max9271_set_serial_link(dev, false);
 
 
 	ret = samba_max9271_verify_id(priv->i2c_client);
@@ -551,7 +586,7 @@ int samba_max9271_setup_control(struct device *dev)
 		g_ctx = priv->g_client.g_ctx;
 
 		/* Serial link disabled during config as it needs a valid pixel clock. */
-		ret = samba_max9271_set_serial_link(priv->i2c_client, false);
+		ret = samba_max9271_set_serial_link(dev, false);
 		if (ret)
 			return ret;
 
@@ -774,7 +809,7 @@ static  struct regmap_config max9295_regmap_config = {
 static int max9295_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
 {
-	struct max9295 *priv;
+	struct samba_max9271 *priv;
 	int err = 0;
 	struct device_node *node = client->dev.of_node;
 
@@ -794,7 +829,7 @@ static int max9295_probe(struct i2c_client *client,
 
 	if (of_get_property(node, "is-prim-ser", NULL))
 	{
-		if (prim_priv__) {
+		if (samba_prim_priv__) {
 			dev_err(&client->dev,
 				"prim-ser already exists\n");
 				return -EEXIST;
@@ -806,7 +841,7 @@ static int max9295_probe(struct i2c_client *client,
 			return -EINVAL;
 		}
 
-		prim_priv__ = priv;
+		samba_prim_priv__ = priv;
 	}
 
 	dev_set_drvdata(&client->dev, priv);
