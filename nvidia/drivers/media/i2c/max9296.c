@@ -50,7 +50,7 @@
 #define MAX9296_PWDN_PHYS_ADDR 0x332
 #define MAX9296_PHY1_CLK_ADDR 0x320
 #define MAX9296_CTRL0_ADDR 0x10
-
+#define MAX9296_SEL_I2C 0x10
 /* data defines */
 #define MAX9296_CSI_MODE_4X2 0x1
 #define MAX9296_CSI_MODE_2X4 0x4
@@ -249,6 +249,7 @@ int max9296_power_on(struct device *dev)
 
 		usleep_range(30, 50);
 
+
 		if (priv->vdd_cam_1v2) {
 			err = regulator_enable(priv->vdd_cam_1v2);
 			if (unlikely(err))
@@ -349,6 +350,7 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 	struct max9296 *priv = dev_get_drvdata(dev);
 	int err = 0;
 	int i;
+	int value_cr13;
 
 	err = max9296_get_sdev_idx(dev, s_dev, &i);
 	if (err)
@@ -374,6 +376,7 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x03);
 		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x23);
 
+		max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
 		priv->splitter_enabled = true;
 
 		/* delay to settle link */
@@ -397,6 +400,10 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 		priv->splitter_enabled = false;
 	}
 
+	msleep(1000);
+	max9296_read_reg(dev,0x13, &value_cr13);
+	dev_err(dev,
+			" MAX9296 value_cr13 = 0x%x\n",value_cr13 );
 error:
 	mutex_unlock(&priv->lock);
 	return err;
@@ -863,6 +870,9 @@ static int max9296_parse_dt(struct max9296 *priv,
 	if (priv->reset_gpio < 0) {
 		dev_err(&client->dev, "reset-gpios not found %d\n", err);
 		return err;
+	}
+	else{
+		dev_err(&client->dev, "value priv->reset_gpio = 0x%x\n", priv->reset_gpio);
 	}
 
 	/* digital 1.2v */

@@ -93,6 +93,7 @@ void max9271_wake_up(struct max9271_device *dev)
 	 */
 	dev->client->addr = MAX9271_DEFAULT_ADDR;
 	i2c_smbus_read_byte(dev->client);
+	//dev_err(&dev->client->dev," ret value");
 	usleep_range(5000, 8000);
 }
 EXPORT_SYMBOL_GPL(max9271_wake_up);

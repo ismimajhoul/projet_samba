@@ -206,6 +206,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 
 	// Implémenter le setup control du max 9271
 	//err = samba_max9271_setup_control(priv->ser_dev);
+	samba_max9271_wake_up(priv->ser_dev);
 	samba_max9271_set_serial_link(priv->ser_dev,true);
 	
 	InitSerdes(priv->dser_dev,priv->ser_dev);
@@ -220,6 +221,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
 	}
+	
 
 error:
 	mutex_unlock(&serdes_lock__);

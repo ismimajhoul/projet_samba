@@ -166,17 +166,19 @@ static int samba_max9271_read(struct i2c_client* client, u8 reg)
 
 
 
-void max9295_wake_up(struct i2c_client* client)
+void samba_max9271_wake_up(struct device *dev)
 {
 	/*
 	 * Use the chip default address as this function has to be called
 	 * before any other one.
 	 */
-
+	struct samba_max9271 *priv = dev_get_drvdata(dev);
 	int status;
-	status = i2c_smbus_read_byte_data(client,0);
+	//dev->client->addr = 0x40;
+	status = i2c_smbus_read_byte_data(priv->i2c_client,0x40);
 	usleep_range(5000, 8000);
-	dev_err(&client->dev, "wake_up data/status: %x\n",(unsigned int) status);
+	dev_err(dev," status addr =0x%x value = %d",priv->i2c_client->addr,status);
+	//dev_err(&client->dev, "wake_up data/status: %x\n",(unsigned int) status);
 }
 
 static int max9295_write_reg(struct device *dev, u16 addr, u8 val)
