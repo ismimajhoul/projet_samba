@@ -174,10 +174,10 @@ void samba_max9271_wake_up(struct device *dev)
 	 */
 	struct samba_max9271 *priv = dev_get_drvdata(dev);
 	int status;
-	//dev->client->addr = 0x40;
-	status = i2c_smbus_read_byte_data(priv->i2c_client,0x40);
+	//priv->i2c_client->addr = priv->i2c_client->addr << 1;
+	status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
 	usleep_range(5000, 8000);
-	dev_err(dev," status addr =0x%x value = %d",priv->i2c_client->addr,status);
+	dev_err(dev," Samba max9271 wakeup status addr =0x%x value = %d",priv->i2c_client->addr<< 1,status);
 	//dev_err(&client->dev, "wake_up data/status: %x\n",(unsigned int) status);
 }
 

@@ -221,7 +221,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
 	}
-	
+
 
 error:
 	mutex_unlock(&serdes_lock__);
@@ -622,6 +622,11 @@ static int atto320_board_setup(struct atto320 *priv)
 		dev_err(dev, "missing serializer dev handle\n");
 		goto error;
 	}
+	else{
+
+		dev_err(dev, "serializer addr 0x%X \n",ser_i2c->addr);
+	}
+
 	if (ser_i2c->dev.driver == NULL) {
 		dev_err(dev, "missing serializer driver\n");
 		goto error;
