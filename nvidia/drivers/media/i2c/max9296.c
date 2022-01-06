@@ -25,6 +25,10 @@
 #include <linux/module.h>
 #include <media/max9296.h>
 
+/* GMSL1 register specifics */
+#define MAX9296_GMSL1_7_ADDR 0xB07
+#define MAX9296_GMSL1_5_ADDR 0xB05
+
 /* register specifics */
 #define MAX9296_DST_CSI_MODE_ADDR 0x330
 #define MAX9296_LANE_MAP1_ADDR 0x333
@@ -170,6 +174,14 @@ static int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *
 	return err;
 }
 EXPORT_SYMBOL(max9296_read_reg);
+
+int max9296_samba_portage_9272(struct device *dev)
+{
+	max9296_write_reg(dev, MAX9296_GMSL1_7_ADDR, 0x04); /*DBL DRS DWL HVEN EVC*/
+	max9296_write_reg(dev, MAX9296_GMSL1_5_ADDR, 0x019); /* HVTRACK=HVTRMODE*/
+	return 0;
+}
+EXPORT_SYMBOL(max9296_samba_portage_9272);
 
 static int max9296_get_sdev_idx(struct device *dev,
 			struct device *s_dev, int *idx)

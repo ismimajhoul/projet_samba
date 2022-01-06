@@ -19,6 +19,8 @@
 
 #include <media/gmsl-link.h>
 
+int max9296_samba_portage_9272(struct device *dev);
+
 int max9296_setup_link(struct device *dev, struct device *s_dev);
 
 int max9296_setup_control(struct device *dev, struct device *s_dev);
