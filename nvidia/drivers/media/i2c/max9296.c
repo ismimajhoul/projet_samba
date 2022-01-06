@@ -26,8 +26,15 @@
 #include <media/max9296.h>
 
 /* GMSL1 register specifics */
-#define MAX9296_GMSL1_7_ADDR 0xB07
-#define MAX9296_GMSL1_5_ADDR 0xB05
+#define MAX9296_GMSL1_B07_ADDR 0xB07
+#define MAX9296_GMSL1_B05_ADDR 0xB05
+#define MAX9296_GMSL1_B02_ADDR 0xB02
+#define MAX9296_GMSL1_VIDEO_RX_103_ADDR 0x103
+#define MAX9296_GMSL1_B04_ADDR 0xB04
+#define MAX9296_GMSL1_42_ADDR 0x42
+#define MAX9296_GMSL1_43_ADDR 0x43
+#define MAX9296_GMSL1_44_ADDR 0x44
+#define MAX9296_GMSL1_45_ADDR 0x45
 
 /* register specifics */
 #define MAX9296_DST_CSI_MODE_ADDR 0x330
@@ -177,8 +184,60 @@ EXPORT_SYMBOL(max9296_read_reg);
 
 int max9296_samba_portage_9272(struct device *dev)
 {
-	max9296_write_reg(dev, MAX9296_GMSL1_7_ADDR, 0x04); /*DBL DRS DWL HVEN EVC*/
-	max9296_write_reg(dev, MAX9296_GMSL1_5_ADDR, 0x019); /* HVTRACK=HVTRMODE*/
+	int res;
+	//9272 reg 0x7 <= 0x0C 
+	max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0x04); /*DBL DRS DWL HVEN EVC*/
+	max9296_write_reg(dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
+	//mwrite (i2cport,0x40,4,0x83); // recriture serializer a reecrire
+	//9272 reg 0x4 <= 0x3
+	max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
+
+	// mwrite (i2cport, 0x40, 0x02, 0x1C); recriture serializer 
+    // mwrite (i2cport, 0x40, 0x03, 0x00); recriture serializer 
+    // mwrite (i2cport, 0x40, 0x05, 0x80); recriture serializer  
+    // mwrite (i2cport, 0x40, 0x06, 0x50); recriture serializer 
+	//mwrite (i2cport, 0x40, 0x07, 0x06); // perd le lock, car Hamming code enable
+    //sleep(0.020); // DS : tLock 2ms (link start time), serializer delay ~ 17ms
+
+	max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0xA0); // a clarifier !
+	//     sleep(0.020);
+	//  
+	//     mwrite (i2cport, 0x40, 0x08, 0x00);
+	//     mwrite (i2cport, 0x40, 0x09, 0x00);
+	//     mwrite (i2cport, 0x40, 0x0A, 0x00);
+	//     mwrite (i2cport, 0x40, 0x0B, 0x00);
+	//     mwrite (i2cport, 0x40, 0x0C, 0x00);
+	//     mwrite (i2cport, 0x40, 0x0D, 0x6E); // Lien I2C serialiseur à 105KHz
+	//     mwrite (i2cport, 0x40, 0x0E, 0x42);
+	//     mwrite (i2cport, 0x40, 0x0F, 0xC2);
+
+	max9296_write_reg(dev, MAX9296_GMSL1_B02_ADDR, 0x00); // a verifier ! 
+
+	//     mwrite (i2cport, 0x48, 0x03, 0x00);
+	max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
+	//     mwrite (i2cport, 0x48, 0x05, 0xA9);
+	//     mwrite (i2cport, 0x48, 0x08, 0x00);
+	max9296_write_reg(dev,MAX9296_GMSL1_42_ADDR,0x00);
+	max9296_write_reg(dev,MAX9296_GMSL1_43_ADDR,0x00);
+	max9296_write_reg(dev,MAX9296_GMSL1_44_ADDR,0x00);
+	max9296_write_reg(dev,MAX9296_GMSL1_45_ADDR,0x00);
+
+	//     mwrite (i2cport, 0x48, 0x0D, 0x36); 
+	//     mwrite (i2cport, 0x48, 0x0E, 0x60);
+	//     mwrite (i2cport, 0x48, 0x0F, 0x00);
+	//  
+	//     // i2c distant a 100kbps et 1046/496 ns
+	//     mwrite (i2cport, 0x40, 0x0D, 0x6E);
+
+
+	//test Lecture/Ecriture 
+	max9296_read_reg(dev, 0x172, &res);
+	dev_err(dev,"%s: test lecture 1 0x172 res = 0x%x",__func__, res);
+	max9296_write_reg(dev,0x172, ~res );
+	max9296_read_reg(dev, 0x172, &res);
+	dev_err(dev,"%s: test lecture 2 0x172 res = 0x%x",__func__, res);
+
+
 	return 0;
 }
 EXPORT_SYMBOL(max9296_samba_portage_9272);
@@ -312,6 +371,7 @@ void max9296_power_off(struct device *dev)
 
 static int max9296_write_link(struct device *dev, u32 link)
 {
+	//int val;
 	if (link == GMSL_SERDES_CSI_LINK_A) {
 		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x01);
 		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x21);
@@ -323,8 +383,11 @@ static int max9296_write_link(struct device *dev, u32 link)
 		return -EINVAL;
 	}
 
+
 	/* delay to settle link */
 	msleep(100);
+	// max9296_read_reg(dev,MAX9296_CTRL0_ADDR,&val);
+	// dev_err(dev, " value read  = %d at this addr = 0x%x\n", val,MAX9296_CTRL0_ADDR);
 
 	return 0;
 }

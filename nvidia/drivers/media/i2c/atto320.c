@@ -201,7 +201,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		dev_err(dev, "gmsl deserializer link config failed\n");
 		goto error;
 	}
-
+	
 	//err = max9295_setup_control(priv->ser_dev);
 
 	// Implémenter le setup control du max 9271
@@ -818,6 +818,8 @@ static int atto320_probe(struct i2c_client *client,
 		return err;
 	}
 
+	
+
 	/* Pair sensor to serializer dev */
 	err = max9295_sdev_pair(priv->ser_dev, &priv->g_ctx);
 	if (err) {
@@ -848,12 +850,14 @@ static int atto320_probe(struct i2c_client *client,
 	 * would be powered on always post boot, until 1.2v is supplied
 	 * to deserializer from CVB.
 	 */
+	//portage du max9272 -> max9296
 	err = atto320_gmsl_serdes_setup(priv);
 	if (err) {
 		dev_err(&client->dev,
 			"%s gmsl serdes setup failed\n", __func__);
 		return err;
 	}
+
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {
