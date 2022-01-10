@@ -4,6 +4,12 @@ sur chrome ouvrir le tutoriel d'installation du sdk et du bsp à l'adresse : htt
 ci-dessous un exemple de mise oeuvre du tutoriel:
 ================================================
 
+Si vous utiliser un Unbuntu 20.04, veuillez modifier le fichier suivant : 
+
+cd /etc
+sudo nano os-release
+
+et changer le champ Version_ID="18.04" 
 
 cliquer sur le lien:
 1- Open NVIDIA SDK Manager. For first time use, you must log in to your NVIDIA Developer account.
