@@ -6,7 +6,7 @@ un fichier .dts a été créé à partir d'un fichier .dtb avec la commande ci-d
 dtc -I dtb -O dts -f devicetree_file_name.dtb -o devicetree_file_name.dts
 
 devicetree_file_name.dtb: 
-./nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
+~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
 
 devicetree_file_name.dts:
 
