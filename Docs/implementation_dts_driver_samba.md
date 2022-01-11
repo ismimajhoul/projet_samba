@@ -9,13 +9,14 @@ devicetree_file_name.dtb:
 ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
 
 devicetree_file_name.dts:
+devicetree_second_version.dts
 
 
 implémentation dans le dts de l'atto320 à la place de imx390_a@1b
 ============================================================
 
 La caméra atto320 est implémentée dans le dts à la place de l'imx390_a@1b
-dans cette phase on ne modifie pas les propriétés existantes dans le dts de la caméra
+dans cette phase on ne modifie pas les propriétés existantes de la caméra
 
 
 
@@ -30,16 +31,18 @@ le driver atto320.c est un copy/paste de l'imx_390.c dans lequel on a:
 adaptation du driver max9296.c au projet SAMBA
 ==============================================
 
-- porté l'initialisation du deserializer max9272 dans le driver max9296.c, afin que le deserializer du projet SAMBA (max9296) effectue une
-  initialisation similaire à celle qui était faite pour le deserializer max9272 du projet xxxxxx.
-- porté l'initialisation du max9271 dans le driver du max9295.c
+- porter l'initialisation du deserializer max9272 dans le driver max9296.c, afin que le deserializer du projet SAMBA (max9296) effectue une
+  initialisation similaire à celle qui était faite pour le deserializer max9272 du projet antérieur à SAMBA.
+- porter l'initialisation du serializer max9271 dans le driver du max9295.c
 
 
 
 adaptation du driver max9295.c au projet SAMBA
 ==============================================
 Afin de minimiser les modifications dans le dts et dans linux on a conservé le fichier
-max9295.c. Puis on a rajouté dans le fichier max9295.c les fonctions propres au serializer max9271
+max9295.c
+On a également conservé les nodes propres au max9295 dans le dts. 
+Par la suite on a rajouté dans le fichier max9295.c les fonctions propres au serializer max9271
 permettant le wakeup, la lecture et l'écriture sur le bus i2c, etc...
 
 
