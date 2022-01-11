@@ -9,7 +9,7 @@ Si vous utiliser un Unbuntu 20.04, veuillez modifier le fichier suivant :
 cd /etc
 sudo nano os-release
 
-et changer le champ Version_ID="18.04" 
+et changer le champ Version_ID="20.04" en Version_ID="18.04" 
 
 cliquer sur le lien:
 1- Open NVIDIA SDK Manager. For first time use, you must log in to your NVIDIA Developer account.
@@ -43,10 +43,10 @@ cd ..
 lsusb /* check if the board nvidia is listed */
 ls
 
-Attention avant de flasaher se mettre ne mode recovery sur la carte nvidia:
-- mettre la carte nvivia hor tension
-- appuyer sur le bouton recovery avec une etiquette ....
-- puis lancer le script comm indiqué ci-dessous:
+Attention avant de flasher se mettre en mode recovery sur la carte nvidia:
+- mettre la carte nvidia hor tension
+- appuyer sur le bouton recovery ( le bouton est etiqueté)
+- puis lancer le script comme indiqué ci-dessous:
 
 sudo ./cti-flash.sh
 
