@@ -594,30 +594,49 @@ static int atto320_board_setup(struct atto320 *priv)
 	int err;
 
 	err = of_property_read_u32(node, "reg", &priv->g_ctx.sdev_reg);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "reg not found\n");
 		goto error;
 	}
+	else
+		dev_err(dev, "atto320 sensor reg i2c addr: 0x%x\n",priv->g_ctx.sdev_reg);
+
 
 	err = of_property_read_u32(node, "def-addr",
 					&priv->g_ctx.sdev_def);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "def-addr not found\n");
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "def-addr: 0x%x\n",priv->g_ctx.sdev_def);
+	}
 
 	ser_node = of_parse_phandle(node, "nvidia,gmsl-ser-device", 0);
-	if (ser_node == NULL) {
+	if (ser_node == NULL)
+	{
 		dev_err(dev,
 			"missing %s handle\n",
 				"nvidia,gmsl-ser-device");
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "ser_node name: %s\n",ser_node->name);
+	}
 
 	err = of_property_read_u32(ser_node, "reg", &priv->g_ctx.ser_reg);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "serializer reg not found\n");
 		goto error;
+	}
+	else
+	{
+		dev_err(dev, "ser_reg: 0x%x\n",priv->g_ctx.ser_reg);
 	}
 
 	ser_i2c = of_find_i2c_device_by_node(ser_node);
@@ -627,79 +646,131 @@ static int atto320_board_setup(struct atto320 *priv)
 		dev_err(dev, "missing serializer dev handle\n");
 		goto error;
 	}
-	else{
+	else
+	{
 
-		dev_err(dev, "serializer addr 0x%X \n",ser_i2c->addr);
+		dev_err(dev, "serializer addr 0x%x \n",ser_i2c->addr);
 	}
 
-	if (ser_i2c->dev.driver == NULL) {
+	if (ser_i2c->dev.driver == NULL)
+	{
 		dev_err(dev, "missing serializer driver\n");
 		goto error;
+	}
+	else
+	{
+		dev_err(dev, "serializer driver OK\n");
 	}
 
 	priv->ser_dev = &ser_i2c->dev;
 
 	dser_node = of_parse_phandle(node, "nvidia,gmsl-dser-device", 0);
-	if (dser_node == NULL) {
+	if (dser_node == NULL)
+	{
 		dev_err(dev,
 			"missing %s handle\n",
 				"nvidia,gmsl-dser-device");
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "deserializer node %s \n",dser_node->name);
+	}
 
 	dser_i2c = of_find_i2c_device_by_node(dser_node);
 	of_node_put(dser_node);
 
-	if (dser_i2c == NULL) {
+	if (dser_i2c == NULL)
+	{
 		dev_err(dev, "missing deserializer dev handle\n");
 		goto error;
 	}
-	if (dser_i2c->dev.driver == NULL) {
+	else
+	{
+		dev_err(dev, "deserializer dev handle OK\n");
+	}
+
+	if (dser_i2c->dev.driver == NULL)
+	{
 		dev_err(dev, "missing deserializer driver\n");
 		goto error;
+	}
+	else
+	{
+		dev_err(dev, "deserializer driver OK\n");
 	}
 
 	priv->dser_dev = &dser_i2c->dev;
 
 	/* populate g_ctx from DT */
 	gmsl = of_get_child_by_name(node, "gmsl-link");
-	if (gmsl == NULL) {
+	if (gmsl == NULL)
+	{
 		dev_err(dev, "missing gmsl-link device node\n");
 		err = -EINVAL;
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "gmsl-link device node OK\n");
+	}
 
 	err = of_property_read_string(gmsl, "dst-csi-port", &str_value);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "No dst-csi-port found\n");
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "dst-csi-port %s OK\n",str_value);
+	}
+
 	priv->g_ctx.dst_csi_port =
 		(!strcmp(str_value, "a")) ? GMSL_CSI_PORT_A : GMSL_CSI_PORT_B;
 
 	err = of_property_read_string(gmsl, "src-csi-port", &str_value);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "No src-csi-port found\n");
 		goto error;
+	}
+	else
+	{
+		dev_err(dev, "src-csi-port %s OK\n",str_value);
 	}
 	priv->g_ctx.src_csi_port =
 		(!strcmp(str_value, "a")) ? GMSL_CSI_PORT_A : GMSL_CSI_PORT_B;
 
 	err = of_property_read_string(gmsl, "csi-mode", &str_value);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "No csi-mode found\n");
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "csi-mode %s \n",str_value);
+	}
 
-	if (!strcmp(str_value, "1x4")) {
+	if (!strcmp(str_value, "1x4"))
+	{
 		priv->g_ctx.csi_mode = GMSL_CSI_1X4_MODE;
-	} else if (!strcmp(str_value, "2x4")) {
+	}
+	else if (!strcmp(str_value, "2x4"))
+	{
 		priv->g_ctx.csi_mode = GMSL_CSI_2X4_MODE;
-	} else if (!strcmp(str_value, "4x2")) {
+	}
+	else if (!strcmp(str_value, "4x2"))
+	{
 		priv->g_ctx.csi_mode = GMSL_CSI_4X2_MODE;
-	} else if (!strcmp(str_value, "2x2")) {
+	}
+	else if (!strcmp(str_value, "2x2"))
+	{
 		priv->g_ctx.csi_mode = GMSL_CSI_2X2_MODE;
-	} else {
+	}
+	else
+	{
 		dev_err(dev, "invalid csi mode\n");
 		goto error;
 	}
@@ -709,21 +780,35 @@ static int atto320_board_setup(struct atto320 *priv)
 		dev_err(dev, "No serdes-csi-link found\n");
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "serdes-csi-link %s found\n",str_value);
+	}
 	priv->g_ctx.serdes_csi_link =
 		(!strcmp(str_value, "a")) ?
 			GMSL_SERDES_CSI_LINK_A : GMSL_SERDES_CSI_LINK_B;
 
 	err = of_property_read_u32(gmsl, "st-vc", &value);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "No st-vc info\n");
 		goto error;
+	}
+	else
+	{
+		dev_err(dev, "st-vc info 0x%x\n",value);
 	}
 	priv->g_ctx.st_vc = value;
 
 	err = of_property_read_u32(gmsl, "vc-id", &value);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(dev, "No vc-id info\n");
 		goto error;
+	}
+	else
+	{
+		dev_err(dev, "vc-id info 0x%x\n",value);
 	}
 	priv->g_ctx.dst_vc = value;
 
@@ -732,33 +817,50 @@ static int atto320_board_setup(struct atto320 *priv)
 		dev_err(dev, "No num-lanes info\n");
 		goto error;
 	}
+	else
+	{
+		dev_err(dev, "num-lanes info %d\n",value);
+	}
 	priv->g_ctx.num_csi_lanes = value;
 
 	priv->g_ctx.num_streams =
 			of_property_count_strings(gmsl, "streams");
-	if (priv->g_ctx.num_streams <= 0) {
+	if (priv->g_ctx.num_streams <= 0)
+	{
 		dev_err(dev, "No streams found\n");
 		err = -EINVAL;
 		goto error;
 	}
 
-	for (i = 0; i < priv->g_ctx.num_streams; i++) {
+	for (i = 0; i < priv->g_ctx.num_streams; i++)
+	{
 		of_property_read_string_index(gmsl, "streams", i,
 						&str_value1[i]);
-		if (!str_value1[i]) {
+		if (!str_value1[i])
+		{
 			dev_err(dev, "invalid stream info\n");
 			goto error;
 		}
-		if (!strcmp(str_value1[i], "raw12")) {
+		if (!strcmp(str_value1[i], "raw12"))
+		{
 			priv->g_ctx.streams[i].st_data_type =
 							GMSL_CSI_DT_RAW_12;
-		} else if (!strcmp(str_value1[i], "embed")) {
+			dev_err(dev, "stream info %s\n",str_value1[i]);
+		}
+		else if (!strcmp(str_value1[i], "embed"))
+		{
 			priv->g_ctx.streams[i].st_data_type =
 							GMSL_CSI_DT_EMBED;
-		} else if (!strcmp(str_value1[i], "ued-u1")) {
+			dev_err(dev, "stream info %s\n",str_value1[i]);
+		}
+		else if (!strcmp(str_value1[i], "ued-u1"))
+		{
 			priv->g_ctx.streams[i].st_data_type =
 							GMSL_CSI_DT_UED_U1;
-		} else {
+			dev_err(dev, "stream info %s\n",str_value1[i]);
+		}
+		else
+		{
 			dev_err(dev, "invalid stream data type\n");
 			goto error;
 		}
