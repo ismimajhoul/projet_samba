@@ -35,6 +35,8 @@
 #define MAX9296_GMSL1_43_ADDR 0x43
 #define MAX9296_GMSL1_44_ADDR 0x44
 #define MAX9296_GMSL1_45_ADDR 0x45
+#define MAX9296_GMSL1_F07_ADDR 0xF07
+#define MAX9296_GMSL1_F08_ADDR 0xF08
 
 /* register specifics */
 #define MAX9296_DST_CSI_MODE_ADDR 0x330
@@ -185,6 +187,17 @@ EXPORT_SYMBOL(max9296_read_reg);
 int max9296_samba_portage_9272(struct device *dev)
 {
 	int res;
+
+
+	////////translationnnnn //////////////////////
+
+	max9296_write_reg(dev, MAX9296_GMSL1_F07_ADDR, 0x40);
+	max9296_write_reg(dev, MAX9296_GMSL1_F08_ADDR, 0x80);
+
+
+	//////////////////////////////////////////////
+
+
 	//9272 reg 0x7 <= 0x0C 
 	max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0x04); /*DBL DRS DWL HVEN EVC*/
 	max9296_write_reg(dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
@@ -197,7 +210,7 @@ int max9296_samba_portage_9272(struct device *dev)
     // mwrite (i2cport, 0x40, 0x05, 0x80); recriture serializer  
     // mwrite (i2cport, 0x40, 0x06, 0x50); recriture serializer 
 	//mwrite (i2cport, 0x40, 0x07, 0x06); // perd le lock, car Hamming code enable
-    //sleep(0.020); // DS : tLock 2ms (link start time), serializer delay ~ 17ms
+	
 
 	max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0xA0); // a clarifier !
 	//     sleep(0.020);
@@ -983,6 +996,8 @@ static int max9296_probe(struct i2c_client *client,
 
 
 	dev_info(&client->dev, "[MAX9296]: probing GMSL Deserializer\n");
+	
+
 
 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
 	priv->i2c_client = client;

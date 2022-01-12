@@ -166,7 +166,7 @@ static int samba_max9271_read(struct i2c_client* client, u8 reg)
 
 
 
-void samba_max9271_wake_up(struct device *dev)
+void samba_max9271_wake_up(struct device *dev, int addr_i2c)
 {
 	/*
 	 * Use the chip default address as this function has to be called
@@ -174,10 +174,11 @@ void samba_max9271_wake_up(struct device *dev)
 	 */
 	struct samba_max9271 *priv = dev_get_drvdata(dev);
 	int status;
-	//priv->i2c_client->addr = priv->i2c_client->addr << 1;
-	status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
+	//priv->i2c_client->addr = addr_i2c;
+	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
+	status = i2c_smbus_read_byte_data(priv->i2c_client,0);
 	usleep_range(5000, 8000);
-	dev_err(dev," Samba max9271 wakeup status addr =0x%x value = %d",priv->i2c_client->addr<< 1,status);
+	dev_err(dev," Samba max9271 wakeup status addr =0x%x value = %d\n",0,status);
 	//dev_err(&client->dev, "wake_up data/status: %x\n",(unsigned int) status);
 }
 
@@ -816,7 +817,6 @@ static int max9295_probe(struct i2c_client *client,
 	struct device_node *node = client->dev.of_node;
 
 	dev_info(&client->dev, "[MAX9295]: probing GMSL Serializer\n");
-
 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
 	priv->i2c_client = client;
 	priv->regmap = devm_regmap_init_i2c(priv->i2c_client,

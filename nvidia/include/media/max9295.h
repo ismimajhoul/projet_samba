@@ -37,7 +37,7 @@ int InitSerdes(struct device* dser_dev,struct device* ser_dev);
 
 int samba_max9271_set_serial_link(struct device *ser, bool enable);
 
-void samba_max9271_wake_up(struct device *dev);
+void samba_max9271_wake_up(struct device *dev,int i2c_addr);
 
 
 #endif  /* __MAX9295_H__ */

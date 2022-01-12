@@ -184,6 +184,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	int err = 0;
 	int des_err = 0;
 	struct device *dev;
+	int i=0;
 
 	if (!priv || !priv->ser_dev || !priv->dser_dev || !priv->i2c_client)
 		return -EINVAL;
@@ -206,7 +207,11 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 
 	// Implémenter le setup control du max 9271
 	//err = samba_max9271_setup_control(priv->ser_dev);
-	samba_max9271_wake_up(priv->ser_dev);
+	
+	//for (i = 0 ; i<255 ; i++)
+	samba_max9271_wake_up(priv->ser_dev,i);
+
+
 	samba_max9271_set_serial_link(priv->ser_dev,true);
 	
 	InitSerdes(priv->dser_dev,priv->ser_dev);
@@ -775,9 +780,10 @@ static int atto320_probe(struct i2c_client *client,
 	struct device_node *node = dev->of_node;
 	struct tegracam_device *tc_dev;
 	struct atto320 *priv;
-	int err;
+	int err=-1;
 
-	dev_info(dev, "probing v4l2 sensor.\n");
+	dev_info(dev, "atto320 probing v4l2 sensor.\n");
+	
 
 	if (!IS_ENABLED(CONFIG_OF) || !node)
 		return -EINVAL;
@@ -830,9 +836,11 @@ static int atto320_probe(struct i2c_client *client,
 	/* Register sensor to deserializer dev */
 	err = max9296_sdev_register(priv->dser_dev, &priv->g_ctx);
 	if (err) {
-		dev_err(&client->dev, "gmsl deserializer register failed\n");
-		return err;
+		dev_err(&client->dev, "gmsl deserializer register failed  \"max9296_sdev_register\" \n");
+		//return err;
 	}
+
+
 
 	max9296_samba_portage_9272(priv->dser_dev);
 
