@@ -568,6 +568,21 @@ static int samba_std_max9271_init(struct device *dev)
 }
 EXPORT_SYMBOL_GPL(samba_std_max9271_init);
 
+int samba_tstclock_max9271_init(struct device *dev)
+{
+	int ret = 0;
+	struct samba_max9271 *priv = dev_get_drvdata(dev);
+	while(1)
+	{
+		ret = samba_max9271_read(priv->i2c_client, 0x1e);
+		dev_err(dev,"%s: test lecture addr ser = 0x%x",__func__, ret);
+	}
+	return ret;
+}
+EXPORT_SYMBOL_GPL(samba_tstclock_max9271_init);
+
+
+
 
 int samba_max9271_setup_control(struct device *dev)
 {
