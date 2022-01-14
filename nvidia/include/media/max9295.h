@@ -39,5 +39,6 @@ int samba_max9271_set_serial_link(struct device *ser, bool enable);
 
 void samba_max9271_wake_up(struct device *dev,int i2c_addr);
 
+int samba_tstclock_max9271_init(struct device *dev);
 
 #endif  /* __MAX9295_H__ */

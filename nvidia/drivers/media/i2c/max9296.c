@@ -188,10 +188,13 @@ int max9296_samba_portage_9272(struct device *dev)
 {
 	int res;
 
-	while(1){
+	// test lecture i2c deser oscillo OK
+	/*while(1)
+	{
 		max9296_read_reg(dev, 0xD, &res);
 		dev_err(dev,"%s: test lecture addr = 0x%x",__func__, res);
-	}
+	}*/
+
 	////////translationnnnn //////////////////////
 
 	max9296_write_reg(dev, MAX9296_GMSL1_F07_ADDR, 0x40);
