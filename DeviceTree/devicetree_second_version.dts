@@ -2544,7 +2544,7 @@
 		scl-gpio = <0x2a 0x19 0x00>;
 		sda-gpio = <0x2a 0x1a 0x00>;
 		status = "okay";
-		clock-frequency = <0x61a80>;
+		clock-frequency = <0x186a0>;
 		clocks = <0x04 0x36 0x04 0x66>;
 		clock-names = "div-clk\0parent";
 		resets = <0x05 0x22>;
@@ -2595,13 +2595,13 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				cam0: atto320@11 {
+				cam0: atto320@1b {
 					compatible = "nvidia,atto320";
-					reg = <0x11>;
+					reg = <0x1b>;
 					/* Physical dimensions of sensor */
 					physical_w = "12.0";
 					physical_h = "12.0";
-					reg_mux = <0x00>;
+					reg_mux = <0x02>;
 					sensor_model = "atto320";
 					post_crop_frame_drop = [30 00];
 					use_decibel_gain = "true";
@@ -2677,7 +2677,7 @@
 				imx390_b@1c {
 					compatible = "nvidia,imx390";
 					reg = <0x1c>;
-					reg_mux = <0x00>;
+					reg_mux = <0x02>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -2778,9 +2778,9 @@
 					phandle = <0x10d>;
 				};
 
-				ser_a: max9295_a@64{
+				ser_a: max9295_a@40{
 					compatible = "nvidia,max9295";
-					reg = <0x64>;
+					reg = <0x40>;
 					nvidia,gmsl-dser-device = <&deser0>;
 					linux,phandle = <0x30>;
 					phandle = <0x30>;
@@ -2804,7 +2804,7 @@
 				cam1: imx390_c@1b {
 					compatible = "nvidia,imx390";
 					reg = <0x1b>;
-					reg_mux = <0x01>;
+					reg_mux = <0x02>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -2891,7 +2891,7 @@
 				imx390_d@1c {
 					compatible = "nvidia,imx390";
 					reg = <0x1c>;
-					reg_mux = <0x01>;
+					reg_mux = <0x02>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -3247,7 +3247,7 @@
 				cam3: imx390_g@1b {
 					compatible = "nvidia,imx390";
 					reg = <0x1b>;
-					reg_mux = <0x03>;
+					reg_mux = <0x02>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -3334,7 +3334,7 @@
 				imx390_h@1c {
 					compatible = "nvidia,imx390";
 					reg = <0x1c>;
-					reg_mux = <0x03>;
+					reg_mux = <0x02>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -8595,7 +8595,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 30-001b";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@0/atto320@11";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@0/atto320@1b";
 				};
 			};
 
@@ -8796,11 +8796,11 @@
 		dp_aux_ch0_i2c = "/i2c@31b0000";
 		dp_aux_ch2_i2c = "/i2c@31c0000";
 		gen8_i2c = "/i2c@c250000";
-		imx390_imx390_out6 = "/i2c@c250000/tca9546@72/i2c@0/atto320@11/ports/port@0/endpoint";
+		imx390_imx390_out6 = "/i2c@c250000/tca9546@72/i2c@0/atto320@1b/ports/port@0/endpoint";
 		imx390_imx390_out7 = "/i2c@c250000/tca9546@72/i2c@0/imx390_b@1c/ports/port@0/endpoint";
 		dser = "/i2c@c250000/tca9546@72/i2c@0/max9296@48";
 		ser_prim = "/i2c@c250000/tca9546@72/i2c@0/max9295_prim@62";
-        ser_a = "/i2c@c250000/tca9546@72/i2c@0/max9295_a@64";
+        ser_a = "/i2c@c250000/tca9546@72/i2c@0/max9295_a@40";
 		ser_b = "/i2c@c250000/tca9546@72/i2c@0/max9295_b@60";
 		imx390_imx390_out4 = "/i2c@c250000/tca9546@72/i2c@1/imx390_c@1b/ports/port@0/endpoint";
 		imx390_imx390_out5 = "/i2c@c250000/tca9546@72/i2c@1/imx390_d@1c/ports/port@0/endpoint";
