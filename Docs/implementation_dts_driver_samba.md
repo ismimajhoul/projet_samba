@@ -9,7 +9,16 @@ devicetree_file_name.dtb:
 ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
 
 devicetree_file_name.dts:
-devicetree_second_version.dts
+/home/altran-brahim/clone_linux_samba_4.4.1/DeviceTree/devicetree_second_version.dts
+
+
+
+modification du dts:
+===================
+modifier le fichier 
+dtc -I dts -O dtb -f devicetree_second_version.dts -o tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
+cp tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/kernel/dtb/
+
 
 
 implémentation dans le dts de l'atto320 à la place de imx390_a@1b

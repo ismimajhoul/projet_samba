@@ -48,4 +48,27 @@ Attention avant de flasher se mettre en mode recovery sur la carte nvidia:
 sudo ./cti-flash.sh
 
 
+=============================================================================
+# Mise à jour de linux
+=============================================================================
+Brancher le cable usb entre le pc ubuntu et la carte nvidia (port usb J3)
+
+Attention avant de flasher se mettre en mode recovery sur la carte nvidia:
+- mettre la carte nvidia hors tension
+- appuyer sur le bouton recovery ( le bouton est etiqueté)
+- booter la carte nvidia en appuyant sur le bouton
+- lancer le script comme indiqué ci-dessous:
+
+cd  ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/kernel
+rm zImage Image
+cp ~/clone_linux_samba_4.4.1/build/arch/arm64/boot/Image .
+cd ..
+sudo ./cti-flash.sh
+
+
+
+
+
+
+
 
