@@ -1,1 +1,2 @@
-sudo ./Linux_for_Tegra/cti-flash.sh
+cd Linux_for_Tegra
+sudo ./cti-flash.sh
