@@ -2601,7 +2601,7 @@
 					/* Physical dimensions of sensor */
 					physical_w = "12.0";
 					physical_h = "12.0";
-					reg_mux = <0x02>;
+					reg_mux = <0x00>;
 					sensor_model = "atto320";
 					post_crop_frame_drop = [30 00];
 					use_decibel_gain = "true";
@@ -2677,7 +2677,7 @@
 				imx390_b@1c {
 					compatible = "nvidia,imx390";
 					reg = <0x1c>;
-					reg_mux = <0x02>;
+					reg_mux = <0x00>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -2804,7 +2804,7 @@
 				cam1: imx390_c@1b {
 					compatible = "nvidia,imx390";
 					reg = <0x1b>;
-					reg_mux = <0x02>;
+					reg_mux = <0x01>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -2891,7 +2891,7 @@
 				imx390_d@1c {
 					compatible = "nvidia,imx390";
 					reg = <0x1c>;
-					reg_mux = <0x02>;
+					reg_mux = <0x01>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -3247,7 +3247,7 @@
 				cam3: imx390_g@1b {
 					compatible = "nvidia,imx390";
 					reg = <0x1b>;
-					reg_mux = <0x02>;
+					reg_mux = <0x03>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
@@ -3334,7 +3334,7 @@
 				imx390_h@1c {
 					compatible = "nvidia,imx390";
 					reg = <0x1c>;
-					reg_mux = <0x02>;
+					reg_mux = <0x03>;
 					physical_w = "15.0";
 					physical_h = "12.5";
 					sensor_model = "imx390";
