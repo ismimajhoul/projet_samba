@@ -946,7 +946,7 @@ static int atto320_probe(struct i2c_client *client,
 
 
 
-	max9296_samba_portage_9272(priv->dser_dev);
+	//max9296_samba_portage_9272(priv->dser_dev);
 
 	/*
 	 * gmsl serdes setup

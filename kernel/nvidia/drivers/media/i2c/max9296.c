@@ -477,7 +477,7 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 
 		max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
 		priv->splitter_enabled = true;
-
+		
 		/* delay to settle link */
 		msleep(100);
 	}
@@ -499,6 +499,19 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 		priv->splitter_enabled = false;
 	}
 
+
+	/////// 
+
+		//max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x0F);
+		//////
+
+		/////
+		//lecture du gmsl1 link locked 
+
+		max9296_read_reg(dev,0xBCB, &value_cr13);
+		dev_err(dev,
+			" MAX9296 link locked value = 0x%x\n",value_cr13 );
+		////
 	msleep(1000);
 	max9296_read_reg(dev,0x13, &value_cr13);
 	dev_err(dev,
