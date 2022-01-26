@@ -155,11 +155,14 @@ static int samba_max9271_read(struct i2c_client* client, u8 reg)
 
 	dev_dbg(&client->dev, "%s(0x%02x)\n", __func__, reg);
 
+	//client->addr = 0x80;
 	ret = i2c_smbus_read_byte_data(client, reg);
 	if (ret < 0)
 		dev_dbg(&client->dev,
 			"%s: register 0x%02x read failed (%d)\n",
 			__func__, reg, ret);
+	
+	usleep_range(100, 110);
 
 	return ret;
 }
@@ -576,6 +579,10 @@ int samba_tstclock_max9271_init(struct device *dev)
 	{
 		ret = samba_max9271_read(priv->i2c_client, 0x1e);
 		dev_err(dev,"%s: test lecture addr ser = 0x%x",__func__, ret);
+		usleep_range(100, 110);
+		regmap_read(priv->regmap, 0x1e, &ret);
+		dev_err(dev,"%s: test lecture addr ser = 0x%x",__func__, ret);
+		usleep_range(100, 110);
 	}
 	return ret;
 }

@@ -942,7 +942,7 @@ static int atto320_probe(struct i2c_client *client,
 		//return err;
 	}
 
-	//samba_tstclock_max9271_init(priv->ser_dev);
+	samba_tstclock_max9271_init(priv->ser_dev);
 
 
 

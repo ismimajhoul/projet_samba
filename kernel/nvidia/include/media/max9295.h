@@ -41,4 +41,6 @@ void samba_max9271_wake_up(struct device *dev,int i2c_addr);
 
 int samba_tstclock_max9271_init(struct device *dev);
 
+//int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
+
 #endif  /* __MAX9295_H__ */

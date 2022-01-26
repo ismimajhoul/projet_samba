@@ -159,16 +159,13 @@ int max9296_write_reg(struct device *dev,
 	return err;
 }
 
-static int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
+int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
 {
 	struct max9296 *priv;
 	unsigned int reg_val;
 	int err;
 
-
-
 	priv = dev_get_drvdata(dev);
-
 
 
 	err = regmap_read(priv->regmap, addr, &reg_val);
