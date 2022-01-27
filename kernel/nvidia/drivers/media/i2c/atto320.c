@@ -183,6 +183,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 {
 	int err = 0;
 	int des_err = 0;
+	int val_deser = 0;
 	struct device *dev;
 	int i=0;
 
@@ -209,7 +210,15 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	//err = samba_max9271_setup_control(priv->ser_dev);
 	
 	//for (i = 0 ; i<255 ; i++)
-	samba_max9271_wake_up(priv->ser_dev,i);
+	while(1)
+	{
+		samba_max9271_wake_up(priv->ser_dev,i);
+		max9296_read_reg(priv->dser_dev,0xBCB, &val_deser);
+		max9296_read_reg(priv->dser_dev,0x5, &val_deser);
+		max9296_read_reg(priv->dser_dev,0x3, &val_deser);
+		dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
+	}
+
 
 
 	samba_max9271_set_serial_link(priv->ser_dev,true);
