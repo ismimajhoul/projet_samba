@@ -183,7 +183,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 {
 	int err = 0;
 	int des_err = 0;
-	int val_deser = 0;
+	
 	struct device *dev;
 	int i=0;
 
@@ -210,16 +210,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	//err = samba_max9271_setup_control(priv->ser_dev);
 	
 	//for (i = 0 ; i<255 ; i++)
-	while(1)
-	{
-		samba_max9271_wake_up(priv->ser_dev,i);
-		max9296_read_reg(priv->dser_dev,0xBCB, &val_deser);
-		max9296_read_reg(priv->dser_dev,0x5, &val_deser);
-		max9296_read_reg(priv->dser_dev,0x3, &val_deser);
-		dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
-	}
-
-
+	
 
 	samba_max9271_set_serial_link(priv->ser_dev,true);
 	
@@ -234,6 +225,18 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		dev_err(dev, "gmsl deserializer setup failed\n");
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
+	}
+
+
+	while(1)
+	{
+		samba_max9271_wake_up(priv->ser_dev,i);
+		msleep(2000);
+		max9296_samba_portage_9272(priv->dser_dev);
+		// max9296_read_reg(priv->dser_dev,0xBCB, &val_deser);
+		// max9296_read_reg(priv->dser_dev,0x5, &val_deser);
+		// max9296_read_reg(priv->dser_dev,0x3, &val_deser);
+		//dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
 	}
 
 
@@ -980,7 +983,7 @@ static int atto320_probe(struct i2c_client *client,
 	}
 
 	////////////////////////////////////////boucle infini ///////////////////////////
-	samba_tstclock_max9271_init(priv->ser_dev);
+	//samba_tstclock_max9271_init(priv->ser_dev);
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {

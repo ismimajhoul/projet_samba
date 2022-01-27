@@ -185,75 +185,82 @@ EXPORT_SYMBOL(max9296_read_reg);
 
 int max9296_samba_portage_9272(struct device *dev)
 {
-	int res;
+	//int res;
+	int val_deser = 0;
 
-	// test lecture i2c deser oscillo OK
-	/*while(1)
-	{
-		max9296_read_reg(dev, 0xD, &res);
-		dev_err(dev,"%s: test lecture addr = 0x%x",__func__, res);
-	}*/
+	max9296_read_reg(dev,0xBCB, &val_deser);
+	msleep(2000);
+	max9296_read_reg(dev,0x5, &val_deser);
+	msleep(2000);
+	max9296_read_reg(dev,0x3, &val_deser);
+	dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
+	// // test lecture i2c deser oscillo OK
+	// /*while(1)
+	// {
+	// 	max9296_read_reg(dev, 0xD, &res);
+	// 	dev_err(dev,"%s: test lecture addr = 0x%x",__func__, res);
+	// }*/
 
-	////////translationnnnn //////////////////////
+	// ////////translationnnnn //////////////////////
 
-	max9296_write_reg(dev, MAX9296_GMSL1_F07_ADDR, 0x40);
-	max9296_write_reg(dev, MAX9296_GMSL1_F08_ADDR, 0x80);
-
-
-	//////////////////////////////////////////////
+	// max9296_write_reg(dev, MAX9296_GMSL1_F07_ADDR, 0x40);
+	// max9296_write_reg(dev, MAX9296_GMSL1_F08_ADDR, 0x80);
 
 
-	//9272 reg 0x7 <= 0x0C 
-	max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0x04); /*DBL DRS DWL HVEN EVC*/
-	max9296_write_reg(dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
-	//mwrite (i2cport,0x40,4,0x83); // recriture serializer a reecrire
-	//9272 reg 0x4 <= 0x3
-	max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
+	// //////////////////////////////////////////////
 
-	// mwrite (i2cport, 0x40, 0x02, 0x1C); recriture serializer 
-    // mwrite (i2cport, 0x40, 0x03, 0x00); recriture serializer 
-    // mwrite (i2cport, 0x40, 0x05, 0x80); recriture serializer  
-    // mwrite (i2cport, 0x40, 0x06, 0x50); recriture serializer 
-	//mwrite (i2cport, 0x40, 0x07, 0x06); // perd le lock, car Hamming code enable
+
+	// //9272 reg 0x7 <= 0x0C 
+	// max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0x04); /*DBL DRS DWL HVEN EVC*/
+	// max9296_write_reg(dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
+	// //mwrite (i2cport,0x40,4,0x83); // recriture serializer a reecrire
+	// //9272 reg 0x4 <= 0x3
+	// max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
+
+	// // mwrite (i2cport, 0x40, 0x02, 0x1C); recriture serializer 
+    // // mwrite (i2cport, 0x40, 0x03, 0x00); recriture serializer 
+    // // mwrite (i2cport, 0x40, 0x05, 0x80); recriture serializer  
+    // // mwrite (i2cport, 0x40, 0x06, 0x50); recriture serializer 
+	// //mwrite (i2cport, 0x40, 0x07, 0x06); // perd le lock, car Hamming code enable
 	
 
-	max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0xA0); // a clarifier !
-	//     sleep(0.020);
-	//  
-	//     mwrite (i2cport, 0x40, 0x08, 0x00);
-	//     mwrite (i2cport, 0x40, 0x09, 0x00);
-	//     mwrite (i2cport, 0x40, 0x0A, 0x00);
-	//     mwrite (i2cport, 0x40, 0x0B, 0x00);
-	//     mwrite (i2cport, 0x40, 0x0C, 0x00);
-	//     mwrite (i2cport, 0x40, 0x0D, 0x6E); // Lien I2C serialiseur à 105KHz
-	//     mwrite (i2cport, 0x40, 0x0E, 0x42);
-	//     mwrite (i2cport, 0x40, 0x0F, 0xC2);
+	// max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0xA0); // a clarifier !
+	// //     sleep(0.020);
+	// //  
+	// //     mwrite (i2cport, 0x40, 0x08, 0x00);
+	// //     mwrite (i2cport, 0x40, 0x09, 0x00);
+	// //     mwrite (i2cport, 0x40, 0x0A, 0x00);
+	// //     mwrite (i2cport, 0x40, 0x0B, 0x00);
+	// //     mwrite (i2cport, 0x40, 0x0C, 0x00);
+	// //     mwrite (i2cport, 0x40, 0x0D, 0x6E); // Lien I2C serialiseur à 105KHz
+	// //     mwrite (i2cport, 0x40, 0x0E, 0x42);
+	// //     mwrite (i2cport, 0x40, 0x0F, 0xC2);
 
-	max9296_write_reg(dev, MAX9296_GMSL1_B02_ADDR, 0x00); // a verifier ! 
+	// max9296_write_reg(dev, MAX9296_GMSL1_B02_ADDR, 0x00); // a verifier ! 
 
-	//     mwrite (i2cport, 0x48, 0x03, 0x00);
-	max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
-	//     mwrite (i2cport, 0x48, 0x05, 0xA9);
-	//     mwrite (i2cport, 0x48, 0x08, 0x00);
-	max9296_write_reg(dev,MAX9296_GMSL1_42_ADDR,0x00);
-	max9296_write_reg(dev,MAX9296_GMSL1_43_ADDR,0x00);
-	max9296_write_reg(dev,MAX9296_GMSL1_44_ADDR,0x00);
-	max9296_write_reg(dev,MAX9296_GMSL1_45_ADDR,0x00);
+	// //     mwrite (i2cport, 0x48, 0x03, 0x00);
+	// max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
+	// //     mwrite (i2cport, 0x48, 0x05, 0xA9);
+	// //     mwrite (i2cport, 0x48, 0x08, 0x00);
+	// max9296_write_reg(dev,MAX9296_GMSL1_42_ADDR,0x00);
+	// max9296_write_reg(dev,MAX9296_GMSL1_43_ADDR,0x00);
+	// max9296_write_reg(dev,MAX9296_GMSL1_44_ADDR,0x00);
+	// max9296_write_reg(dev,MAX9296_GMSL1_45_ADDR,0x00);
 
-	//     mwrite (i2cport, 0x48, 0x0D, 0x36); 
-	//     mwrite (i2cport, 0x48, 0x0E, 0x60);
-	//     mwrite (i2cport, 0x48, 0x0F, 0x00);
-	//  
-	//     // i2c distant a 100kbps et 1046/496 ns
-	//     mwrite (i2cport, 0x40, 0x0D, 0x6E);
+	// //     mwrite (i2cport, 0x48, 0x0D, 0x36); 
+	// //     mwrite (i2cport, 0x48, 0x0E, 0x60);
+	// //     mwrite (i2cport, 0x48, 0x0F, 0x00);
+	// //  
+	// //     // i2c distant a 100kbps et 1046/496 ns
+	// //     mwrite (i2cport, 0x40, 0x0D, 0x6E);
 
 
-	//test Lecture/Ecriture 
-	max9296_read_reg(dev, 0x172, &res);
-	dev_err(dev,"%s: test lecture 1 0x172 res = 0x%x",__func__, res);
-	max9296_write_reg(dev,0x172, ~res );
-	max9296_read_reg(dev, 0x172, &res);
-	dev_err(dev,"%s: test lecture 2 0x172 res = 0x%x",__func__, res);
+	// //test Lecture/Ecriture 
+	// max9296_read_reg(dev, 0x172, &res);
+	// dev_err(dev,"%s: test lecture 1 0x172 res = 0x%x",__func__, res);
+	// max9296_write_reg(dev,0x172, ~res );
+	// max9296_read_reg(dev, 0x172, &res);
+	// dev_err(dev,"%s: test lecture 2 0x172 res = 0x%x",__func__, res);
 
 
 	return 0;
