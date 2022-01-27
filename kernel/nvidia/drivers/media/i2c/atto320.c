@@ -942,7 +942,7 @@ static int atto320_probe(struct i2c_client *client,
 		//return err;
 	}
 
-	samba_tstclock_max9271_init(priv->ser_dev);
+	
 
 
 
@@ -970,6 +970,8 @@ static int atto320_probe(struct i2c_client *client,
 		return err;
 	}
 
+	////////////////////////////////////////boucle infini ///////////////////////////
+	samba_tstclock_max9271_init(priv->ser_dev);
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {

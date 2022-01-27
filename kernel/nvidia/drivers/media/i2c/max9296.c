@@ -31,6 +31,8 @@
 #define MAX9296_GMSL1_B02_ADDR 0xB02
 #define MAX9296_GMSL1_VIDEO_RX_103_ADDR 0x103
 #define MAX9296_GMSL1_B04_ADDR 0xB04
+#define MAX9296_GMSL1_C04_ADDR 0xC04
+#define MAX9296_GMSL1_B05_ADDR 0xB05
 #define MAX9296_GMSL1_42_ADDR 0x42
 #define MAX9296_GMSL1_43_ADDR 0x43
 #define MAX9296_GMSL1_44_ADDR 0x44
@@ -498,8 +500,9 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 
 
 	/////// 
-
-		//max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x0F);
+		max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x0F);
+		max9296_write_reg(dev,MAX9296_GMSL1_C04_ADDR,0x0F);
+		max9296_write_reg(dev,MAX9296_GMSL1_B05_ADDR,0x34);
 		//////
 
 		/////

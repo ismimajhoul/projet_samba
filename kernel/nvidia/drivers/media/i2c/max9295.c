@@ -574,15 +574,19 @@ EXPORT_SYMBOL_GPL(samba_std_max9271_init);
 int samba_tstclock_max9271_init(struct device *dev)
 {
 	int ret = 0;
+	int i=0;
 	struct samba_max9271 *priv = dev_get_drvdata(dev);
 	while(1)
 	{
-		ret = samba_max9271_read(priv->i2c_client, 0x1e);
-		dev_err(dev,"%s: test lecture addr ser = 0x%x",__func__, ret);
-		usleep_range(100, 110);
-		regmap_read(priv->regmap, 0x1e, &ret);
-		dev_err(dev,"%s: test lecture addr ser = 0x%x",__func__, ret);
-		usleep_range(100, 110);
+		for(i=0;i<255;i++){
+			priv->i2c_client->addr = i;
+			ret = samba_max9271_read(priv->i2c_client, 0);
+			dev_err(dev,"%s: test lecture addr ser = 0x%x",__func__, ret);
+			usleep_range(100, 110);
+			// regmap_read(priv->regmap, 0x1e, &ret);
+			// dev_err(dev,"%s: test lecture addr ser = 0x%x",__func__, ret);
+			// usleep_range(100, 110);
+		}
 	}
 	return ret;
 }
