@@ -18,6 +18,7 @@
 
 #include <media/camera_common.h>
 #include <linux/module.h>
+#include <linux/i2c.h>
 #include <media/max9295.h>
 #include <media/max9271.h>
 #include <media/max9296.h>
@@ -100,11 +101,6 @@
 
 #define MAX9295_MAX_PIPES 0x4
 
-struct max9295_client_ctx {
-	struct gmsl_link_ctx *g_ctx;
-	bool st_done;
-};
-
 struct max9295
 {
 	struct i2c_client *i2c_client;
@@ -118,16 +114,7 @@ struct max9295
 
 static struct max9295 *prim_priv__;
 
-struct samba_max9271
-{
-	struct i2c_client *i2c_client;
-	struct regmap *regmap;
-	struct max9295_client_ctx g_client;
-	struct mutex lock;
-	/* primary serializer properties */
-	__u32 def_addr;
-	__u32 pst2_ref;
-};
+
 
 static struct samba_max9271 *samba_prim_priv__;
 
@@ -140,12 +127,12 @@ struct map_ctx {
 	u8 st_id;
 };
 
-static int samba_max9271_write(struct i2c_client* client, u8 reg, u8 val)
+int samba_max9271_write(struct i2c_client* client, u8 reg, u8 val)
 {
 	int ret;
 	dev_dbg(&client->dev, "%s(0x%02x, 0x%02x)\n", __func__, reg, val);
 	ret = i2c_smbus_write_byte_data(client, reg, val);
-	dev_err(&client->dev,"%s: register 0x%02x write failed (%d)\n",__func__, reg, ret);
+	dev_err(&client->dev,"%s: register 0x%02x write (%d)\n",__func__, reg, ret);
 	return ret;
 }
 
@@ -169,7 +156,7 @@ static int samba_max9271_read(struct i2c_client* client, u8 reg)
 
 
 
-void samba_max9271_wake_up(struct device *dev, int addr_i2c)
+void samba_max9271_wake_up(struct device *dev, unsigned int reg)
 {
 	/*
 	 * Use the chip default address as this function has to be called
@@ -179,8 +166,8 @@ void samba_max9271_wake_up(struct device *dev, int addr_i2c)
 	int status;
 	//priv->i2c_client->addr = addr_i2c;
 	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
-	status = i2c_smbus_read_byte_data(priv->i2c_client,0);
-	usleep_range(5000, 8000);
+	status = i2c_smbus_read_byte_data(priv->i2c_client,reg);
+	usleep_range(30000, 80000);
 	dev_err(dev," Samba max9271 wakeup status addr =0x%x value = %d\n",0,status);
 	//dev_err(&client->dev, "wake_up data/status: %x\n",(unsigned int) status);
 }

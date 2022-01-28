@@ -175,7 +175,7 @@ int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
 	dev_err(dev,"%s: i2c reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
 
 	/* delay before next i2c command as required for SERDES link */
-	usleep_range(100, 110);
+	usleep_range(1000, 2000);
 
 
 

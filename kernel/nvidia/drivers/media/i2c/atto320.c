@@ -20,6 +20,7 @@
 #include <linux/uaccess.h>
 #include <linux/gpio.h>
 #include <linux/module.h>
+#include <linux/i2c.h>
 
 #include <linux/seq_file.h>
 #include <linux/of.h>
@@ -884,6 +885,10 @@ static int atto320_probe(struct i2c_client *client,
 	struct tegracam_device *tc_dev;
 	struct atto320 *priv;
 	int err=-1;
+	unsigned int cpt =0;
+	unsigned int val_deser;
+	struct samba_max9271 *priv_ser;
+
 
 	dev_info(dev, "atto320 probing v4l2 sensor.\n");
 	
@@ -943,11 +948,29 @@ static int atto320_probe(struct i2c_client *client,
 		//return err;
 	}
 
-	
-
-
-
 	//max9296_samba_portage_9272(priv->dser_dev);
+	
+	////////////////////////////////////////boucle infini ///////////////////////////
+	//samba_tstclock_max9271_init(priv->ser_dev);
+
+	priv_ser = dev_get_drvdata(priv->ser_dev);
+	samba_max9271_write(priv_ser->i2c_client,4,0x83); // distant
+	//InitSerdes(priv->dser_dev,priv->ser_dev);
+
+	while(1)
+	{
+		cpt++;
+		//if((cpt%20)==0)
+		//{
+		samba_max9271_wake_up(priv->ser_dev,0x1E);
+			//msleep(1000);
+			//max9296_samba_portage_9272(priv->dser_dev);
+		//}
+		// max9296_read_reg(priv->dser_dev,0xBCB, &val_deser);
+		max9296_read_reg(priv->dser_dev,0xD, &val_deser);
+		// max9296_read_reg(priv->dser_dev,0x3, &val_deser);
+		//dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
+	}
 
 	/*
 	 * gmsl serdes setup
@@ -965,27 +988,16 @@ static int atto320_probe(struct i2c_client *client,
 	 */
 	//portage du max9272 -> max9296
 	err = atto320_gmsl_serdes_setup(priv);
-	if (err) {
+	if (err)
+	{
 		dev_err(&client->dev,
 			"%s gmsl serdes setup failed\n", __func__);
 		return err;
 	}
 
-	////////////////////////////////////////boucle infini ///////////////////////////
-	//samba_tstclock_max9271_init(priv->ser_dev);
-	while(1)
-	{
-		samba_max9271_wake_up(priv->ser_dev,0);
-		msleep(2000);
-		max9296_samba_portage_9272(priv->dser_dev);
-		// max9296_read_reg(priv->dser_dev,0xBCB, &val_deser);
-		// max9296_read_reg(priv->dser_dev,0x5, &val_deser);
-		// max9296_read_reg(priv->dser_dev,0x3, &val_deser);
-		//dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
-	}
-
 	err = tegracam_v4l2subdev_register(tc_dev, true);
-	if (err) {
+	if (err)
+	{
 		dev_err(dev, "tegra camera subdev registration failed\n");
 		return err;
 	}

@@ -18,7 +18,23 @@
 #define __MAX9295_H__
 
 #include <media/gmsl-link.h>
+#include <linux/i2c.h>
 
+struct max9295_client_ctx {
+	struct gmsl_link_ctx *g_ctx;
+	bool st_done;
+};
+
+struct samba_max9271
+{
+	struct i2c_client *i2c_client;
+	struct regmap *regmap;
+	struct max9295_client_ctx g_client;
+	struct mutex lock;
+	/* primary serializer properties */
+	__u32 def_addr;
+	__u32 pst2_ref;
+};
 
 
 int max9295_setup_control(struct device *dev);
@@ -37,9 +53,11 @@ int InitSerdes(struct device* dser_dev,struct device* ser_dev);
 
 int samba_max9271_set_serial_link(struct device *ser, bool enable);
 
-void samba_max9271_wake_up(struct device *dev,int i2c_addr);
+void samba_max9271_wake_up(struct device *dev,unsigned int reg);
 
 int samba_tstclock_max9271_init(struct device *dev);
+
+int samba_max9271_write(struct i2c_client* client, u8 reg, u8 val);
 
 //int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
 
