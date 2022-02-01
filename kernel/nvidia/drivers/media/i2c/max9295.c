@@ -432,7 +432,8 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	//- EDC=10=>6-bit hamming code (single-bit error correct, double-bit error detect)
 	//and 16 word interleaving. Power-up default when LCCEN = low and
 	//RX/SDA/EDC = high.
-	ret = samba_max9271_write(priv->i2c_client,0x07, 0x06); // perd le lock, car Hamming code enable
+
+	////PROBLEMMMM////ret = samba_max9271_write(priv->i2c_client,0x07, 0x06); // perd le lock, car Hamming code enable
 
 	//sleep(0.020); // DS : tLock 2ms (link start time), serializer delay ~ 17ms
 
@@ -446,6 +447,7 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	//- INVVS =0=>No VS or DIN0 inversion.
 	//- INVHS=0 =>No HS or DIN1 inversion.
 	//ret = max9271_write(client,0x08,0x00);
+
 	ret = samba_max9271_write(priv->i2c_client, 0x08, 0x00);
 	ret = samba_max9271_write(priv->i2c_client, 0x09, 0x00);
 	ret = samba_max9271_write(priv->i2c_client, 0x0A, 0x00);
@@ -454,6 +456,7 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	ret = samba_max9271_write(priv->i2c_client, 0x0D, 0x6E); // Lien I2C serialiseur \E0 105KHz
 	ret = samba_max9271_write(priv->i2c_client, 0x0E, 0x42);
 	ret = samba_max9271_write(priv->i2c_client, 0x0F, 0xC2);
+
 
 	// Faire ici l'init du deser max 9296 \E0 la place de l'inits du max9272
 

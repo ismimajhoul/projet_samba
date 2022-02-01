@@ -481,7 +481,7 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x03);
 		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x23);
 
-		max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
+		//max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
 		priv->splitter_enabled = true;
 		
 		/* delay to settle link */
@@ -507,8 +507,7 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 
 
 	/////// 
-		max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x0F);
-		max9296_write_reg(dev,MAX9296_GMSL1_C04_ADDR,0x0F);
+
 		max9296_write_reg(dev,MAX9296_GMSL1_B05_ADDR,0x34);
 		//////
 

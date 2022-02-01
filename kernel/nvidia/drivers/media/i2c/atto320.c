@@ -885,9 +885,9 @@ static int atto320_probe(struct i2c_client *client,
 	struct tegracam_device *tc_dev;
 	struct atto320 *priv;
 	int err=-1;
-	unsigned int cpt =0;
-	unsigned int val_deser;
-	struct samba_max9271 *priv_ser;
+	//unsigned int cpt =0;
+	//unsigned int val_deser;
+	//struct samba_max9271 *priv_ser;
 
 
 	dev_info(dev, "atto320 probing v4l2 sensor.\n");
@@ -953,16 +953,20 @@ static int atto320_probe(struct i2c_client *client,
 	////////////////////////////////////////boucle infini ///////////////////////////
 	//samba_tstclock_max9271_init(priv->ser_dev);
 
-	priv_ser = dev_get_drvdata(priv->ser_dev);
-	samba_max9271_write(priv_ser->i2c_client,4,0x83); // distant
-	//InitSerdes(priv->dser_dev,priv->ser_dev);
+	// max9296_write_reg(priv->dser_dev,0xB04,0x0F);
+	// max9296_write_reg(priv->dser_dev,0xC04,0x0F);
 
-	while(1)
+	
+	samba_max9271_wake_up(priv->ser_dev,0x1E);
+	
+	InitSerdes(priv->dser_dev,priv->ser_dev);
+	
+	/*while(1)
 	{
 		cpt++;
 		//if((cpt%20)==0)
 		//{
-		samba_max9271_wake_up(priv->ser_dev,0x1E);
+		msleep(1000);
 			//msleep(1000);
 			//max9296_samba_portage_9272(priv->dser_dev);
 		//}
@@ -971,7 +975,7 @@ static int atto320_probe(struct i2c_client *client,
 		// max9296_read_reg(priv->dser_dev,0x3, &val_deser);
 		//dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
 	}
-
+*/
 	/*
 	 * gmsl serdes setup
 	 *
