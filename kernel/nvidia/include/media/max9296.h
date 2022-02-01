@@ -19,6 +19,46 @@
 
 #include <media/gmsl-link.h>
 
+/* Dual GMSL MAX9296A/B */
+#define MAX9296_MAX_SOURCES 2
+#define MAX9296_MAX_PIPES 4
+
+struct pipe_ctx {
+	u32 id;
+	u32 dt_type;
+	u32 dst_csi_ctrl;
+	u32 st_count;
+	u32 st_id_sel;
+};
+
+struct max9296_source_ctx {
+	struct gmsl_link_ctx *g_ctx;
+	bool st_enabled;
+};
+
+struct max9296 {
+	struct i2c_client *i2c_client;
+	struct regmap *regmap;
+	u32 num_src;
+	u32 max_src;
+	u32 num_src_found;
+	u32 src_link;
+	bool splitter_enabled;
+	struct max9296_source_ctx sources[MAX9296_MAX_SOURCES];
+	struct mutex lock;
+	u32 sdev_ref;
+	bool lane_setup;
+	bool link_setup;
+	struct pipe_ctx pipe[MAX9296_MAX_PIPES];
+	u8 csi_mode;
+	u8 lane_mp1;
+	u8 lane_mp2;
+	int reset_gpio;
+	int pw_ref;
+	struct regulator *vdd_cam_1v2;
+};
+
+
 int max9296_samba_portage_9272(struct device *dev);
 
 int max9296_setup_link(struct device *dev, struct device *s_dev);

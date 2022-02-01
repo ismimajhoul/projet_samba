@@ -82,6 +82,31 @@ static const struct regmap_config sensor_regmap_config = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
+
+int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned int *val)
+{
+	struct max9296 *priv;
+	unsigned int reg_val;
+	int err;
+
+	priv = dev_get_drvdata(dev);
+
+	priv->i2c_client->addr = 0x12;
+	err = regmap_read(priv->regmap, addr, &reg_val);
+	*val = reg_val;
+	dev_err(dev,"%s: camera sensor i2c reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+
+	/* delay before next i2c command as required for SERDES link */
+	usleep_range(1000, 2000);
+
+	priv->i2c_client->addr = 0x48;
+
+
+	return err;
+}
+EXPORT_SYMBOL(max9296_read_reg);
+
+
 static inline void atto320_get_frame_length_regs(atto320_reg *regs,
 				u32 frame_length)
 {
@@ -886,7 +911,7 @@ static int atto320_probe(struct i2c_client *client,
 	struct atto320 *priv;
 	int err=-1;
 	//unsigned int cpt =0;
-	//unsigned int val_deser;
+	unsigned int val_deser;
 	//struct samba_max9271 *priv_ser;
 
 
@@ -958,7 +983,7 @@ static int atto320_probe(struct i2c_client *client,
 
 	
 	samba_max9271_wake_up(priv->ser_dev,0x1E);
-	
+	sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
 	
 	/*while(1)
