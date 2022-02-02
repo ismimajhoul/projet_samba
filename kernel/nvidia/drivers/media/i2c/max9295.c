@@ -375,6 +375,12 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	struct samba_max9271 *priv = dev_get_drvdata(ser_dev);
 // For lock priv->dser_dev
 	//max9296_write_reg(dser_dev, 0x07, 0x0C); // retrouve le lock quand le M1-mini est eteint
+	// //9272 reg 0x7 <= 0x0C
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x0); /*DBL DRS DWL HVEN EVC*/
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x0); /*DBL DRS DWL HVEN EVC*/
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
+
+
     //usleep_range(200000,300000);
     //// verifications
     //ok, val = max.read (i2cport,0x48,0x1e,1);
@@ -439,8 +445,10 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 
 	// DESER
 	//=> mwrite (i2cport, 0x48, 0x07, 0x0E); // retrouve le lock !!!!! atention ceci \E9crit dans le max 9272 DESER
-	//=> ret = max9271_write(dev,0x07, 0x0E);
-	//max9296_write_reg(dser_dev,0x07, 0x0E);
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
+
 	//usleep_range(200000,300000);
 
 	// Reg 0x8

@@ -26,19 +26,7 @@
 #include <media/max9296.h>
 
 /* GMSL1 register specifics */
-#define MAX9296_GMSL1_B07_ADDR 0xB07
-#define MAX9296_GMSL1_B05_ADDR 0xB05
-#define MAX9296_GMSL1_B02_ADDR 0xB02
-#define MAX9296_GMSL1_VIDEO_RX_103_ADDR 0x103
-#define MAX9296_GMSL1_B04_ADDR 0xB04
-#define MAX9296_GMSL1_C04_ADDR 0xC04
-#define MAX9296_GMSL1_B05_ADDR 0xB05
-#define MAX9296_GMSL1_42_ADDR 0x42
-#define MAX9296_GMSL1_43_ADDR 0x43
-#define MAX9296_GMSL1_44_ADDR 0x44
-#define MAX9296_GMSL1_45_ADDR 0x45
-#define MAX9296_GMSL1_F07_ADDR 0xF07
-#define MAX9296_GMSL1_F08_ADDR 0xF08
+
 
 /* register specifics */
 #define MAX9296_DST_CSI_MODE_ADDR 0x330
@@ -103,8 +91,7 @@
 
 
 
-int max9296_write_reg(struct device *dev,
-	u16 addr, u8 val)
+int max9296_write_reg(struct device *dev,u16 addr, u8 val)
 {
 	struct max9296 *priv;
 	int err;

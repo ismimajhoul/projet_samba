@@ -104,7 +104,30 @@ int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned int 
 
 	return err;
 }
-EXPORT_SYMBOL(max9296_read_reg);
+EXPORT_SYMBOL(sensor_read_reg_for_test);
+
+int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val)
+{
+	struct max9296 *priv;
+	int err;
+
+	priv = dev_get_drvdata(dev);
+	priv->i2c_client->addr = 0x12;
+
+	err = regmap_write(priv->regmap, addr, val);
+	if (err)
+		dev_err(dev,
+		"%s:sensor i2c write failed, 0x%x = %x\n",
+		__func__, addr, val);
+
+	/* delay before next i2c command as required for SERDES link */
+	usleep_range(100, 110);
+	priv->i2c_client->addr = 0x48;
+
+	return err;
+}
+EXPORT_SYMBOL(sensor_write_reg_for_test);
+
 
 
 static inline void atto320_get_frame_length_regs(atto320_reg *regs,
@@ -178,8 +201,7 @@ static inline int atto320_read_reg(struct camera_common_data *s_data,
 	return err;
 }
 
-static int atto320_write_reg(struct camera_common_data *s_data,
-				u16 addr, u8 val)
+static int atto320_write_reg(struct camera_common_data *s_data,u16 addr, u8 val)
 {
 	int err;
 	struct device *dev = s_data->dev;

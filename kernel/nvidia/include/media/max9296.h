@@ -19,6 +19,22 @@
 
 #include <media/gmsl-link.h>
 
+#define MAX9296_GMSL1_B07_ADDR 0xB07
+#define MAX9296_GMSL1_C07_ADDR 0xC07
+#define MAX9296_GMSL1_B05_ADDR 0xB05
+#define MAX9296_GMSL1_B02_ADDR 0xB02
+#define MAX9296_GMSL1_VIDEO_RX_103_ADDR 0x103
+#define MAX9296_GMSL1_B04_ADDR 0xB04
+#define MAX9296_GMSL1_C04_ADDR 0xC04
+#define MAX9296_GMSL1_B05_ADDR 0xB05
+#define MAX9296_GMSL1_42_ADDR 0x42
+#define MAX9296_GMSL1_43_ADDR 0x43
+#define MAX9296_GMSL1_44_ADDR 0x44
+#define MAX9296_GMSL1_45_ADDR 0x45
+#define MAX9296_GMSL1_F07_ADDR 0xF07
+#define MAX9296_GMSL1_F08_ADDR 0xF08
+
+
 /* Dual GMSL MAX9296A/B */
 #define MAX9296_MAX_SOURCES 2
 #define MAX9296_MAX_PIPES 4
@@ -84,5 +100,9 @@ void max9296_power_off(struct device *dev);
 int max9296_write_reg(struct device *dev,
 	u16 addr, u8 val);
 int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val);
+
+int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val);
+int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned int *val);
+
 
 #endif  /* __MAX9296_H__ */
