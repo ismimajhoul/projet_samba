@@ -464,6 +464,15 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	ret = samba_max9271_write(priv->i2c_client, 0x0F, 0xC2);
 
 
+	// Finalisation INIT Max9296
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B02_ADDR, 0x00);
+	max9296_write_reg(dser_dev,MAX9296_GMSL1_B04_ADDR,0x3);
+	max9296_write_reg(dser_dev,MAX9296_GMSL1_42_ADDR,0x00);
+	max9296_write_reg(dser_dev,MAX9296_GMSL1_43_ADDR,0x00);
+	max9296_write_reg(dser_dev,MAX9296_GMSL1_44_ADDR,0x00);
+	max9296_write_reg(dser_dev,MAX9296_GMSL1_45_ADDR,0x00);
+
+
 	// Faire ici l'init du deser max 9296 \E0 la place de l'inits du max9272
 
 	//mwrite (i2cport, 0x48, 0x02, 0x1C);
