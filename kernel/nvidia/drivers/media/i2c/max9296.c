@@ -103,8 +103,7 @@
 
 
 
-int max9296_write_reg(struct device *dev,
-	u16 addr, u8 val)
+int max9296_write_reg(struct device *dev,u16 addr, u8 val)
 {
 	struct max9296 *priv;
 	int err;

@@ -375,6 +375,11 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	struct samba_max9271 *priv = dev_get_drvdata(ser_dev);
 // For lock priv->dser_dev
 	//max9296_write_reg(dser_dev, 0x07, 0x0C); // retrouve le lock quand le M1-mini est eteint
+	max9296_write_reg(dser_dev,0xB07,0x04);
+	max9296_write_reg(dser_dev,0xC07,0x04);
+	max9296_write_reg(dser_dev,0x103,0x43);
+
+
     //usleep_range(200000,300000);
     //// verifications
     //ok, val = max.read (i2cport,0x48,0x1e,1);
@@ -441,6 +446,7 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	//=> mwrite (i2cport, 0x48, 0x07, 0x0E); // retrouve le lock !!!!! atention ceci \E9crit dans le max 9272 DESER
 	//=> ret = max9271_write(dev,0x07, 0x0E);
 	//max9296_write_reg(dser_dev,0x07, 0x0E);
+	max9296_write_reg(dser_dev,0x07, 0x0E);
 	//usleep_range(200000,300000);
 
 	// Reg 0x8
