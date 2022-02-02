@@ -102,7 +102,7 @@ int max9296_write_reg(struct device *dev,
 int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val);
 
 int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val);
-int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned int *val);
+int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned char *val);
 
 
 #endif  /* __MAX9296_H__ */
