@@ -380,7 +380,6 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x0); /*DBL DRS DWL HVEN EVC*/
 	max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
 
-
     //usleep_range(200000,300000);
     //// verifications
     //ok, val = max.read (i2cport,0x48,0x1e,1);
@@ -448,7 +447,6 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
 	max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
 	max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
-
 	//usleep_range(200000,300000);
 
 	// Reg 0x8
