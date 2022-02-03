@@ -510,7 +510,8 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 	int i;
 	int err = 0;
 
-	if (!dev || !g_ctx || !g_ctx->s_dev) {
+	if (!dev || !g_ctx || !g_ctx->s_dev)
+	{
 		dev_err(dev, "%s: invalid input params\n", __func__);
 		return -EINVAL;
 	}
@@ -519,7 +520,8 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 
 	mutex_lock(&priv->lock);
 
-	if (priv->num_src > priv->max_src) {
+	if (priv->num_src > priv->max_src)
+	{
 		dev_err(dev,
 			"%s: MAX9296 inputs size exhausted\n", __func__);
 		err = -ENOMEM;
@@ -538,15 +540,18 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 		goto error;
 	}
 
-	for (i = 0; i < priv->num_src; i++) {
+	for (i = 0; i < priv->num_src; i++)
+	{
 		if (g_ctx->serdes_csi_link ==
-			priv->sources[i].g_ctx->serdes_csi_link) {
+			priv->sources[i].g_ctx->serdes_csi_link)
+		{
 			dev_err(dev,
 				"%s: serdes csi link is in use\n", __func__);
 			err = -EINVAL;
 			goto error;
 		}
-		else{
+		else
+		{
 			dev_err(dev,
 				"%s: serdes csi link is not in use\n", __func__);
 		}
@@ -558,15 +563,17 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 		 * check should be performed per port.
 		 */
 		if (g_ctx->num_csi_lanes !=
-				priv->sources[i].g_ctx->num_csi_lanes) {
+				priv->sources[i].g_ctx->num_csi_lanes)
+		{
 			dev_err(dev,
 				"%s: csi num lanes mismatch\n", __func__);
 			err = -EINVAL;
 			goto error;
 		}
-		else{
+		else
+		{
 			dev_err(dev,
-				"%s: ok : csi num lanesno mismatch\n", __func__);
+				"%s: ok : csi num lanes no mismatch\n", __func__);
 		}
 	}
 
@@ -574,7 +581,7 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 	priv->sources[priv->num_src].st_enabled = false;
 
 	priv->num_src++;
-
+	dev_err(dev,"%s: ok : device max9296 registered\n", __func__);
 error:
 	mutex_unlock(&priv->lock);
 	return err;

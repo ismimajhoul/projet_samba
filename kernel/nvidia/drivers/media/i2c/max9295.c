@@ -776,17 +776,23 @@ int max9295_sdev_pair(struct device *dev, struct gmsl_link_ctx *g_ctx)
 	struct max9295 *priv;
 	int err = 0;
 
-	if (!dev || !g_ctx || !g_ctx->s_dev) {
+	if (!dev || !g_ctx || !g_ctx->s_dev)
+	{
 		dev_err(dev, "%s: invalid input params\n", __func__);
 		return -EINVAL;
 	}
 
 	priv = dev_get_drvdata(dev);
 	mutex_lock(&priv->lock);
-	if (priv->g_client.g_ctx) {
+	if (priv->g_client.g_ctx)
+	{
 		dev_err(dev, "%s: device already paired\n", __func__);
 		err = -EINVAL;
 		goto error;
+	}
+	else
+	{
+		dev_err(dev, "%s: device paired\n", __func__);
 	}
 
 	priv->g_client.st_done = false;
