@@ -46,16 +46,23 @@ regmap_util_write_table_8(struct regmap *regmap,
 		     (next->addr == end_addr) ||
 		     (next->addr == wait_ms_addr) ||
 		     (range_count == max_range_vals)) {
-
+				 
+			pr_err("%s:regmap_util_write_table:%d",
+				       __func__, err);
 			if (range_count == 1) {
-				err =
-				    regmap_write(regmap, range_start,
-						 range_vals[0]);
+				// pr_err("%s:regmap_write addr:0x%x , val = 0x%x",
+				//        __func__, range_start,range_vals[0]);
+				err = 0;
+				    // regmap_write(regmap, range_start,
+					// 	 range_vals[0]);
 			} else if (range_count > 1) {
-				err =
-				    regmap_bulk_write(regmap, range_start,
-						      &range_vals[0],
-						      range_count);
+				// pr_err("%s:regmap_bulk_write addr:0x%x , val = 0x%x count = %d",
+				//        __func__, range_start,range_vals[0],range_count);
+
+				err = 0;
+				    // regmap_bulk_write(regmap, range_start,
+					// 	      &range_vals[0],
+					// 	      range_count);
 			}
 
 			if (err) {

@@ -220,6 +220,11 @@ static int atto320_write_table(struct atto320 *priv,
 				const atto320_reg table[])
 {
 	struct camera_common_data *s_data = priv->s_data;
+	struct device *dev = s_data->dev;
+	
+	dev_err(dev, "%s:atto320_write_table addr = 0x%x\n",
+			__func__, priv->i2c_client->addr);
+
 	return regmap_util_write_table_8(s_data->regmap,
 					 table,
 					 NULL, 0,
@@ -536,7 +541,7 @@ static int atto320_set_mode(struct tegracam_device *tc_dev)
 	struct device *dev = tc_dev->dev;
 	const struct of_device_id *match;
 	int err;
-
+	dev_err(dev, "atto320_set_mode in \n");
 	match = of_match_device(atto320_of_match, dev);
 	if (!match) {
 		dev_err(dev, "Failed to find matching dt id\n");
