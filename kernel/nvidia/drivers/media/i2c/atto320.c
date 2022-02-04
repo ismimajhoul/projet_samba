@@ -556,10 +556,11 @@ static int atto320_start_streaming(struct tegracam_device *tc_dev)
 	struct device *dev = tc_dev->dev;
 	int err;
 
+	dev_err(dev, "%s: test start streaming\n", __func__);
 	/* enable serdes streaming */
-	err = max9295_setup_streaming(priv->ser_dev);
-	if (err)
-		goto exit;
+	//err = max9295_setup_streaming(priv->ser_dev);
+	//if (err)
+	//	goto exit;
 	err = max9296_setup_streaming(priv->dser_dev, dev);
 	if (err)
 		goto exit;
@@ -587,6 +588,7 @@ static int atto320_stop_streaming(struct tegracam_device *tc_dev)
 	struct device *dev = tc_dev->dev;
 	struct atto320 *priv = (struct atto320 *)tegracam_get_privdata(tc_dev);
 	int err;
+	dev_err(dev, "%s: test stop streaming\n", __func__);
 
 	/* disable serdes streaming */
 	max9296_stop_streaming(priv->dser_dev, dev);
