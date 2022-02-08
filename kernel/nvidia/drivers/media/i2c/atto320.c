@@ -941,6 +941,7 @@ static int atto320_probe(struct i2c_client *client,
 	int err=-1;
 	//unsigned int cpt =0;
 	unsigned char val_deser;
+	int val_video_lock = 0xAA;
 	//struct samba_max9271 *priv_ser;
 
 
@@ -1015,7 +1016,10 @@ static int atto320_probe(struct i2c_client *client,
 	sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
 	atto_init(priv->dser_dev,priv->ser_dev);
-	
+
+	//max9296_read_reg(priv->dser_dev,0x108, &val_video_lock);pas de video lock
+
+	dev_err(&client->dev, "video lock resultat 0x%x \n",val_video_lock);
 	/*while(1)
 	{
 		cpt++;

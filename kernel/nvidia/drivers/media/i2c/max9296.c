@@ -109,6 +109,8 @@ int max9296_write_reg(struct device *dev,u16 addr, u8 val)
 
 	return err;
 }
+EXPORT_SYMBOL(max9296_write_reg);
+
 
 int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
 {
@@ -162,34 +164,9 @@ int max9296_samba_portage_9272(struct device *dev)
 	// //9272 reg 0x7 <= 0x0C 
 	// max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0x04); /*DBL DRS DWL HVEN EVC*/
 	// max9296_write_reg(dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
-	// //mwrite (i2cport,0x40,4,0x83); // recriture serializer a reecrire
-	// //9272 reg 0x4 <= 0x3
-	// max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
-
-	// // mwrite (i2cport, 0x40, 0x02, 0x1C); recriture serializer 
-    // // mwrite (i2cport, 0x40, 0x03, 0x00); recriture serializer 
-    // // mwrite (i2cport, 0x40, 0x05, 0x80); recriture serializer  
-    // // mwrite (i2cport, 0x40, 0x06, 0x50); recriture serializer 
-	// //mwrite (i2cport, 0x40, 0x07, 0x06); // perd le lock, car Hamming code enable
-	
-
-	// max9296_write_reg(dev, MAX9296_GMSL1_B07_ADDR, 0xA0); // a clarifier !
-	// //     sleep(0.020);
-	// //  
-	// //     mwrite (i2cport, 0x40, 0x08, 0x00);
+	// //mwrite (i2cport,0x4max9296_write_regt, 0x40, 0x08, 0x00);
 	// //     mwrite (i2cport, 0x40, 0x09, 0x00);
-	// //     mwrite (i2cport, 0x40, 0x0A, 0x00);
-	// //     mwrite (i2cport, 0x40, 0x0B, 0x00);
-	// //     mwrite (i2cport, 0x40, 0x0C, 0x00);
-	// //     mwrite (i2cport, 0x40, 0x0D, 0x6E); // Lien I2C serialiseur à 105KHz
-	// //     mwrite (i2cport, 0x40, 0x0E, 0x42);
-	// //     mwrite (i2cport, 0x40, 0x0F, 0xC2);
-
-	// max9296_write_reg(dev, MAX9296_GMSL1_B02_ADDR, 0x00); // a verifier ! 
-
-	// //     mwrite (i2cport, 0x48, 0x03, 0x00);
-	// max9296_write_reg(dev,MAX9296_GMSL1_B04_ADDR,0x3);
-	// //     mwrite (i2cport, 0x48, 0x05, 0xA9);
+	// //     mwrite (i2cpormax9296_write_regt, 0x48, 0x05, 0xA9);
 	// //     mwrite (i2cport, 0x48, 0x08, 0x00);
 	// max9296_write_reg(dev,MAX9296_GMSL1_42_ADDR,0x00);
 	// max9296_write_reg(dev,MAX9296_GMSL1_43_ADDR,0x00);
@@ -219,11 +196,11 @@ EXPORT_SYMBOL(max9296_samba_portage_9272);
 static int max9296_get_sdev_idx(struct device *dev,
 			struct device *s_dev, int *idx)
 {
-	struct max9296 *priv = dev_get_drvdata(dev);
-	int i;
-	int err = 0;
+	int i = 0;
+	struct max9296 *priv;
+	int err;
+	priv = dev_get_drvdata(dev);
 
-	mutex_lock(&priv->lock);
 	for (i = 0; i < priv->max_src; i++) {
 		if (priv->sources[i].g_ctx->s_dev == s_dev)
 			break;
@@ -322,6 +299,7 @@ ret:
 
 	return err;
 }
+EXPORT_SYMBOL(max9296_power_on);
 
 void max9296_power_off(struct device *dev)
 {
@@ -342,6 +320,9 @@ void max9296_power_off(struct device *dev)
 
 	mutex_unlock(&priv->lock);
 }
+EXPORT_SYMBOL(max9296_power_off);
+
+
 
 static int max9296_write_link(struct device *dev, u32 link)
 {
@@ -788,6 +769,8 @@ int max9296_start_streaming(struct device *dev, struct device *s_dev)
 
 	return 0;
 }
+EXPORT_SYMBOL(max9296_start_streaming);
+
 
 int max9296_stop_streaming(struct device *dev, struct device *s_dev)
 {
@@ -816,6 +799,7 @@ int max9296_stop_streaming(struct device *dev, struct device *s_dev)
 
 	return 0;
 }
+EXPORT_SYMBOL(max9296_stop_streaming);
 
 int max9296_setup_streaming(struct device *dev, struct device *s_dev)
 {

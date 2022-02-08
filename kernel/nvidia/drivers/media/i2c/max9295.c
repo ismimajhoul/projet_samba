@@ -135,6 +135,7 @@ int samba_max9271_write(struct i2c_client* client, u8 reg, u8 val)
 	dev_err(&client->dev,"%s: register 0x%02x write (%d)\n",__func__, reg, ret);
 	return ret;
 }
+EXPORT_SYMBOL(samba_max9271_write);
 
 static int samba_max9271_read(struct i2c_client* client, u8 reg)
 {
@@ -171,6 +172,7 @@ void samba_max9271_wake_up(struct device *dev, unsigned int reg)
 	dev_err(dev," Samba max9271 wakeup status addr =0x%x value = %d\n",0,status);
 	//dev_err(&client->dev, "wake_up data/status: %x\n",(unsigned int) status);
 }
+EXPORT_SYMBOL(samba_max9271_wake_up);
 
 static int max9295_write_reg(struct device *dev, u16 addr, u8 val)
 {
