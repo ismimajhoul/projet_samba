@@ -364,9 +364,9 @@ int max9296_setup_link(struct device *dev, struct device *s_dev)
 
 	mutex_lock(&priv->lock);
 
-	if (!priv->splitter_enabled) {
-		err = max9296_write_link(dev,
-				priv->sources[i].g_ctx->serdes_csi_link);
+	if (!priv->splitter_enabled)
+	{
+		err = max9296_write_link(dev,priv->sources[i].g_ctx->serdes_csi_link);
 		if (err)
 			goto ret;
 
@@ -407,9 +407,10 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 	/* Enable splitter mode */
 	if ((priv->max_src > 1U) &&
 		(priv->num_src_found > 0U) &&
-		(priv->splitter_enabled == false)) {
-		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x03);
-		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x23);
+		(priv->splitter_enabled == false))
+	{
+		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x03);
+		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x23);
 
 		//max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
 		priv->splitter_enabled = true;
@@ -418,8 +419,7 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 		msleep(100);
 	}
 
-	max9296_write_reg(dev,
-			MAX9296_PWDN_PHYS_ADDR, MAX9296_ALLPHYS_NOSTDBY);
+	//max9296_write_reg(dev,MAX9296_PWDN_PHYS_ADDR, MAX9296_ALLPHYS_NOSTDBY);
 
 	priv->sdev_ref++;
 
@@ -438,20 +438,18 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 
 	/////// 
 
-		max9296_write_reg(dev,MAX9296_GMSL1_B05_ADDR,0x34);
-		//////
+	//max9296_write_reg(dev,MAX9296_GMSL1_B05_ADDR,0x34);
+	//////
 
-		/////
-		//lecture du gmsl1 link locked 
+	/////
+	//lecture du gmsl1 link locked
 
-		max9296_read_reg(dev,0xBCB, &value_cr13);
-		dev_err(dev,
-			" MAX9296 link locked value = 0x%x\n",value_cr13 );
+	max9296_read_reg(dev,0xBCB, &value_cr13);
+	dev_err(dev," MAX9296 link locked value = 0x%x\n",value_cr13 );
 		////
 	msleep(1000);
 	max9296_read_reg(dev,0x13, &value_cr13);
-	dev_err(dev,
-			" MAX9296 value_cr13 = 0x%x\n",value_cr13 );
+	dev_err(dev," MAX9296 value_cr13 = 0x%x\n",value_cr13 );
 error:
 	mutex_unlock(&priv->lock);
 	return err;

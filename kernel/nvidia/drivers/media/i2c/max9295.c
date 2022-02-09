@@ -378,9 +378,9 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 // For lock priv->dser_dev
 	//max9296_write_reg(dser_dev, 0x07, 0x0C); // retrouve le lock quand le M1-mini est eteint
 	// //9272 reg 0x7 <= 0x0C
-	max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x0); /*DBL DRS DWL HVEN EVC*/
-	max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x0); /*DBL DRS DWL HVEN EVC*/
-	max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
+	//max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x0); /*DBL DRS DWL HVEN EVC*/
+	//max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x0); /*DBL DRS DWL HVEN EVC*/
+	//max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
 
     //usleep_range(200000,300000);
     //// verifications
@@ -446,9 +446,9 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 
 	// DESER
 	//=> mwrite (i2cport, 0x48, 0x07, 0x0E); // retrouve le lock !!!!! atention ceci \E9crit dans le max 9272 DESER
-	max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
-	max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
-	max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
+	//max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
+	//max9296_write_reg(dser_dev, MAX9296_GMSL1_C07_ADDR, 0x4); /*DBL DRS DWL HVEN EVC*/
+	//max9296_write_reg(dser_dev, MAX9296_GMSL1_VIDEO_RX_103_ADDR, 0x043);/* HS VS TRACKING*/
 	//usleep_range(200000,300000);
 
 	// Reg 0x8
@@ -467,12 +467,12 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 
 
 	// Finalisation INIT Max9296
-	max9296_write_reg(dser_dev, MAX9296_GMSL1_B02_ADDR, 0x00);
-	max9296_write_reg(dser_dev,MAX9296_GMSL1_B04_ADDR,0x3);
-	max9296_write_reg(dser_dev,MAX9296_GMSL1_42_ADDR,0x00);
-	max9296_write_reg(dser_dev,MAX9296_GMSL1_43_ADDR,0x00);
-	max9296_write_reg(dser_dev,MAX9296_GMSL1_44_ADDR,0x00);
-	max9296_write_reg(dser_dev,MAX9296_GMSL1_45_ADDR,0x00);
+	//max9296_write_reg(dser_dev, MAX9296_GMSL1_B02_ADDR, 0x00);
+	//max9296_write_reg(dser_dev,MAX9296_GMSL1_B04_ADDR,0x3);
+	//max9296_write_reg(dser_dev,MAX9296_GMSL1_42_ADDR,0x00);
+	//max9296_write_reg(dser_dev,MAX9296_GMSL1_43_ADDR,0x00);
+	//max9296_write_reg(dser_dev,MAX9296_GMSL1_44_ADDR,0x00);
+	//max9296_write_reg(dser_dev,MAX9296_GMSL1_45_ADDR,0x00);
 
 
 	// Faire ici l'init du deser max 9296 \E0 la place de l'inits du max9272
@@ -494,8 +494,86 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 EXPORT_SYMBOL_GPL(InitSerdes);
 
 
+int InitDeser(struct device *dser_dev)
+{
+	int val_deser = 0;
+	//1 REG1 C1
+	max9296_write_reg(dser_dev, 0x01, 0xC1);
+
+	//11 CTRL1 Lecture du registre pour vérifier que les bits 2 (CXTP_B)
+	//et 0  (CXTP_A) sont positionnés à 1 (Coax drive)
+	max9296_read_reg(dser_dev,0x11, &val_deser);
+
+	//330 MIPI_PHY0 A évaluer pour activer le mode test rebouclé du MIPI
+
+	//B04 GMSL1_4 03 ou 0B
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B04_ADDR, 0x03);
+
+	//B05 GMSL1_5 29
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B05_ADDR, 0x29);
+
+	//B06 GMSL1_6 69
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B06_ADDR, 0x69);
+
+	//B07 GMSL1_7 4
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B07_ADDR, 0x04);
+
+	//B08 GMSL1_8 31
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B08_ADDR, 0x31);
+
+	//B0D GMSL1_D 84
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B0D_ADDR, 0x84);
+
+	//B0E GMSL1_E Reset value
+
+	//B0F GMSL1_F 1
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B0F_ADDR, 0x01);
+
+	//B10 GMSL1_10 Reset value
+
+	//B12 GMSL1_12 Reset value
+
+	//B13 GMSL1_13 Reset value
+
+	//B14 GMSL1_14 0
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B14_ADDR, 0x00);
+
+	//B15 GMSL1_15 Reset value
 
 
+	//B16 GMSL1_16 Reset value
+
+	//B17 GMSL1_17 20
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B17_ADDR, 0x20);
+
+	//B18 GMSL1_18 Reset value
+
+	//B19 GMSL1_19 Reset value
+
+	//B1A GMSL1_1A Reset value
+
+	//B1B GMSL1_1B Reset value
+
+	//B1C GMSL1_1C Reset value
+
+	//B1D GMSL1_1D Reset value
+
+	//B20 GMSL1_20 Reset value
+
+	//B21 GMSL1_21 Reset value
+
+	//B22 GMSL1_22 Reset value
+
+	//B23 GMSL1_23 Reset value
+
+	//B96 GMSL1_96 2A
+	max9296_write_reg(dser_dev, MAX9296_GMSL1_B96_ADDR, 0x2A);
+
+	max9296_read_reg(dser_dev,0x11, &val_deser);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(InitDeser);
 
 
 
@@ -533,7 +611,7 @@ int samba_max9271_set_serial_link(struct device *ser, bool enable)
 	 * Short delays here appear to show bit-errors in the writes following.
 	 * Therefore a conservative delay seems best here.
 	 */
-	ret = samba_max9271_write(priv->i2c_client, 0x04, val);
+	//ret = samba_max9271_write(priv->i2c_client, 0x04, val);
 	if (ret < 0)
 		return ret;
 
