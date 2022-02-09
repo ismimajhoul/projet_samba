@@ -7,6 +7,7 @@ export CROSS_COMPILE=$HOME/l4t-gcc/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux
 export LOCALVERSION=-tegra
 cd kernel-4.9
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+make mrproper
 make ARCH=arm64 O=$TEGRA_KERNEL_OUT tegra_defconfig
 make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) Image
 #make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) dtbs
@@ -22,6 +23,8 @@ rm Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
 cp DeviceTree/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb Linux_for_Tegra/kernel/dtb/
 cp build/arch/arm64/boot/Image  Linux_for_Tegra/kernel/
 cp build/arch/arm64/boot/zImage Linux_for_Tegra/kernel/
-
+cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/atto320.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
+cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9296.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
+cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9295.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
 
 
