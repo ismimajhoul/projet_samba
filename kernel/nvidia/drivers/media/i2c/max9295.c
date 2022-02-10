@@ -572,6 +572,8 @@ int InitDeser(struct device *dser_dev)
 
 	max9296_read_reg(dser_dev,0x11, &val_deser);
 	max9296_read_reg(dser_dev,0x330, &val_deser);
+	msleep(20);
+	max9296_read_reg(dser_dev,0xBCA, &val_deser);
 
 	return 0;
 }
