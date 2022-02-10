@@ -503,6 +503,7 @@ int InitDeser(struct device *dser_dev)
 	//11 CTRL1 Lecture du registre pour vérifier que les bits 2 (CXTP_B)
 	//et 0  (CXTP_A) sont positionnés à 1 (Coax drive)
 	max9296_read_reg(dser_dev,0x11, &val_deser);
+	max9296_read_reg(dser_dev,0x330, &val_deser);
 
 	//330 MIPI_PHY0 A évaluer pour activer le mode test rebouclé du MIPI
 
@@ -570,6 +571,7 @@ int InitDeser(struct device *dser_dev)
 	max9296_write_reg(dser_dev, MAX9296_GMSL1_B96_ADDR, 0x2A);
 
 	max9296_read_reg(dser_dev,0x11, &val_deser);
+	max9296_read_reg(dser_dev,0x330, &val_deser);
 
 	return 0;
 }

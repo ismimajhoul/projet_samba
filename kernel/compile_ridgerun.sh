@@ -8,7 +8,7 @@ export LOCALVERSION=-tegra
 cd kernel-4.9
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 make mrproper
-make ARCH=arm64 O=$TEGRA_KERNEL_OUT tegra_defconfig
+make ARCH=arm64 O=$TEGRA_KERNEL_OUT tegra_defconfig_module
 make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) Image
 #make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) dtbs
 make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) modules
@@ -20,9 +20,12 @@ rm Linux_for_Tegra/kernel/zImage
 rm Linux_for_Tegra/kernel/Image
 rm Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
 
+#installation DTS et KERNEL
 cp DeviceTree/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb Linux_for_Tegra/kernel/dtb/
 cp build/arch/arm64/boot/Image  Linux_for_Tegra/kernel/
 cp build/arch/arm64/boot/zImage Linux_for_Tegra/kernel/
+
+#installation des modules
 sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/atto320.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
 sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9296.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
 sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9295.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
