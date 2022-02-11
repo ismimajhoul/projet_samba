@@ -96,8 +96,14 @@ int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned char
 	priv->i2c_client->addr = 0x12;
 	err = regmap_read(priv->regmap, addr, &reg_val);
 	*val = reg_val;
-	dev_err(dev,"%s: camera sensor i2c reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
-
+	if(err)
+	{
+		dev_err(dev,"%s: camera sensor i2c read failed KO reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+	}
+	else
+	{
+		dev_err(dev,"%s: camera sensor i2c read OK reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(1000, 2000);
 
@@ -118,10 +124,13 @@ int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val)
 
 	err = regmap_write(priv->regmap, addr, val);
 	if (err)
-		dev_err(dev,
-		"%s:sensor i2c write failed, 0x%x = %x\n",
-		__func__, addr, val);
-
+	{
+		dev_err(dev,"%s:sensor i2c write failed KO, 0x%x = %x\n",__func__, addr, val);
+	}
+	else
+	{
+		dev_err(dev,"%s:sensor i2c write OK, 0x%x = %x\n",__func__, addr, val);
+	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(100, 110);
 	priv->i2c_client->addr = 0x48;
@@ -798,6 +807,13 @@ static int atto320_board_setup(struct atto320 *priv)
 	priv->g_ctx.src_csi_port =
 		(!strcmp(str_value, "a")) ? GMSL_CSI_PORT_A : GMSL_CSI_PORT_B;
 
+	if(priv->g_ctx.src_csi_port == GMSL_CSI_PORT_A )
+		dev_err(dev, "LINK A CONFIGURATION ON GOING\n");
+	else if(priv->g_ctx.src_csi_port == GMSL_CSI_PORT_B )
+		dev_err(dev, "LINK B CONFIGURATION ON GOING\n");
+	else
+		dev_err(dev, "LINK CONFIGURATION ERROR\n");
+
 	err = of_property_read_string(gmsl, "csi-mode", &str_value);
 	if (err < 0)
 	{
@@ -991,7 +1007,8 @@ static int atto320_probe(struct i2c_client *client,
 
 	/* Pair sensor to serializer dev */
 	err = max9295_sdev_pair(priv->ser_dev, &priv->g_ctx);
-	if (err) {
+	if (err)
+	{
 		dev_err(&client->dev, "gmsl ser pairing failed\n");
 		return err;
 	}
@@ -1015,7 +1032,11 @@ static int atto320_probe(struct i2c_client *client,
 	samba_max9271_wake_up(priv->ser_dev,0x1E);
 	sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
-	InitDeser(priv->dser_dev);
+	if(priv->g_ctx.serdes_csi_link == GMSL_CSI_PORT_A)
+		InitDeserLinkA(priv->dser_dev);
+	else
+		InitDeserLinkB(priv->dser_dev);
+
 	atto_init(priv->dser_dev,priv->ser_dev);
 
 	//max9296_read_reg(priv->dser_dev,0x108, &val_video_lock);pas de video lock

@@ -281,7 +281,8 @@ int max9296_power_on(struct device *dev)
 	int err = 0;
 
 	mutex_lock(&priv->lock);
-	if (priv->pw_ref == 0) {
+	if (priv->pw_ref == 0)
+	{
 		usleep_range(1, 2);
 		if (priv->reset_gpio)
 			gpio_set_value(priv->reset_gpio, 0);
@@ -289,7 +290,8 @@ int max9296_power_on(struct device *dev)
 		usleep_range(30, 50);
 
 
-		if (priv->vdd_cam_1v2) {
+		if (priv->vdd_cam_1v2)
+		{
 			err = regulator_enable(priv->vdd_cam_1v2);
 			if (unlikely(err))
 				goto ret;
@@ -298,7 +300,8 @@ int max9296_power_on(struct device *dev)
 		usleep_range(30, 50);
 
 		/*exit reset mode: XCLR */
-		if (priv->reset_gpio) {
+		if (priv->reset_gpio)
+		{
 			gpio_set_value(priv->reset_gpio, 0);
 			usleep_range(30, 50);
 			gpio_set_value(priv->reset_gpio, 1);
@@ -426,17 +429,17 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 		(priv->num_src_found > 0U) &&
 		(priv->splitter_enabled == false))
 	{
-		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x03);
-		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x23);
+		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x03);
+		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x23);
 
-		//max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
+		max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
 		priv->splitter_enabled = true;
 		
 		/* delay to settle link */
 		msleep(100);
 	}
 
-	//max9296_write_reg(dev,MAX9296_PWDN_PHYS_ADDR, MAX9296_ALLPHYS_NOSTDBY);
+	max9296_write_reg(dev,MAX9296_PWDN_PHYS_ADDR, MAX9296_ALLPHYS_NOSTDBY);
 
 	priv->sdev_ref++;
 
