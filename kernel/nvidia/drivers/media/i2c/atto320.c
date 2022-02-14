@@ -96,8 +96,14 @@ int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned char
 	priv->i2c_client->addr = 0x12;
 	err = regmap_read(priv->regmap, addr, &reg_val);
 	*val = reg_val;
-	dev_err(dev,"%s: camera sensor i2c reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
-
+	if(err)
+	{
+		dev_err(dev,"%s: camera sensor i2c read failed KO reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+	}
+	else
+	{
+		dev_err(dev,"%s: camera sensor i2c read OK reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(1000, 2000);
 
@@ -118,10 +124,13 @@ int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val)
 
 	err = regmap_write(priv->regmap, addr, val);
 	if (err)
-		dev_err(dev,
-		"%s:sensor i2c write failed, 0x%x = %x\n",
-		__func__, addr, val);
-
+	{
+		dev_err(dev,"%s:sensor i2c write failed KO, 0x%x = %x\n",__func__, addr, val);
+	}
+	else
+	{
+		dev_err(dev,"%s:sensor i2c write OK, 0x%x = %x\n",__func__, addr, val);
+	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(100, 110);
 	priv->i2c_client->addr = 0x48;
@@ -220,6 +229,11 @@ static int atto320_write_table(struct atto320 *priv,
 				const atto320_reg table[])
 {
 	struct camera_common_data *s_data = priv->s_data;
+	struct device *dev = s_data->dev;
+	
+	dev_err(dev, "%s:atto320_write_table addr = 0x%x\n",
+			__func__, priv->i2c_client->addr);
+
 	return regmap_util_write_table_8(s_data->regmap,
 					 table,
 					 NULL, 0,
@@ -536,7 +550,7 @@ static int atto320_set_mode(struct tegracam_device *tc_dev)
 	struct device *dev = tc_dev->dev;
 	const struct of_device_id *match;
 	int err;
-
+	dev_err(dev, "atto320_set_mode in \n");
 	match = of_match_device(atto320_of_match, dev);
 	if (!match) {
 		dev_err(dev, "Failed to find matching dt id\n");
@@ -835,9 +849,17 @@ static int atto320_board_setup(struct atto320 *priv)
 	{
 		dev_err(dev, "serdes-csi-link %s found\n",str_value);
 	}
+
 	priv->g_ctx.serdes_csi_link =
 		(!strcmp(str_value, "a")) ?
 			GMSL_SERDES_CSI_LINK_A : GMSL_SERDES_CSI_LINK_B;
+	
+	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A )
+		dev_err(dev, "LINK A CONFIGURATION ON GOING\n");
+	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B )
+		dev_err(dev, "LINK B CONFIGURATION ON GOING\n");
+	else
+		dev_err(dev, "LINK CONFIGURATION ERROR\n");
 
 	err = of_property_read_u32(gmsl, "st-vc", &value);
 	if (err < 0)
@@ -935,7 +957,8 @@ static int atto320_probe(struct i2c_client *client,
 	struct atto320 *priv;
 	int err=-1;
 	//unsigned int cpt =0;
-	unsigned char val_deser;
+	//unsigned char val_deser;
+	int val_video_lock = 0xAA;
 	//struct samba_max9271 *priv_ser;
 
 
@@ -985,7 +1008,8 @@ static int atto320_probe(struct i2c_client *client,
 
 	/* Pair sensor to serializer dev */
 	err = max9295_sdev_pair(priv->ser_dev, &priv->g_ctx);
-	if (err) {
+	if (err)
+	{
 		dev_err(&client->dev, "gmsl ser pairing failed\n");
 		return err;
 	}
@@ -1006,11 +1030,27 @@ static int atto320_probe(struct i2c_client *client,
 	// max9296_write_reg(priv->dser_dev,0xC04,0x0F);
 
 	
+	
+	
+	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
+	{
+		InitDeserLinkA(priv->dser_dev);
+	}
+	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B){
+		InitDeserLinkB(priv->dser_dev);
+	}
+	else{
+		dev_err(&client->dev, "Link init ERROR \n");
+	}
+
 	samba_max9271_wake_up(priv->ser_dev,0x1E);
-	sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
+	//sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
 	atto_init(priv->dser_dev,priv->ser_dev);
-	
+
+	//max9296_read_reg(priv->dser_dev,0x108, &val_video_lock);pas de video lock
+
+	dev_err(&client->dev, "video lock resultat 0x%x \n",val_video_lock);
 	/*while(1)
 	{
 		cpt++;
@@ -1276,7 +1316,6 @@ int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct device *d
     data[0] = (unsigned char)(reg >> 8);
     data[1] = (unsigned char)(reg & 0xFF);
     ok = I2C_Write (ulis_i2c_port, 0x12, 2, data);
-
     if (ok < 0)
     {
         //I2C_ErrLastData = reg;

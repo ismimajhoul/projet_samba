@@ -101,9 +101,13 @@ int max9296_write_reg(struct device *dev,u16 addr, u8 val)
 	err = regmap_write(priv->regmap, addr, val);
 	if (err)
 		dev_err(dev,
-		"%s:i2c write failed, 0x%x = %x\n",
+		"%s:i2c write failed KO, 0x%x = %x\n",
 		__func__, addr, val);
-
+	else{
+		dev_err(dev,
+		"%s:i2c write OK, 0x%x = %x\n",
+		__func__, addr, val);
+	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(100, 110);
 
@@ -121,8 +125,14 @@ int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
 
 	err = regmap_read(priv->regmap, addr, &reg_val);
 	*val = reg_val;
-	dev_err(dev,"%s: i2c reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
-
+	if (err)
+	{
+		dev_err(dev,"%s: i2c KO reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+	}
+	else
+	{
+		dev_err(dev,"%s: i2c OK reg addr = 0x%x = val read = %x\n",__func__, addr, *val);
+	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(1000, 2000);
 

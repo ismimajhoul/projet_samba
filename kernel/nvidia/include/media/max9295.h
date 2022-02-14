@@ -59,6 +59,10 @@ int samba_tstclock_max9271_init(struct device *dev);
 
 int samba_max9271_write(struct i2c_client* client, u8 reg, u8 val);
 
+int InitDeserLinkA(struct device *dser_dev);
+
+int InitDeserLinkB(struct device *dser_dev);
+
 //int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val)
 
 #endif  /* __MAX9295_H__ */

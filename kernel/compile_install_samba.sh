@@ -4,6 +4,9 @@ export CROSS_COMPILE=$HOME/l4t-gcc/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux
 export LOCALVERSION=-tegra
 cd kernel-4.9
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+make mrproper
+make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) tegra_defconfig
+#make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) menuconfig
 make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc)
 cd ..
 ln -sf ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra 
