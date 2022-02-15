@@ -1,0 +1,12 @@
+démarrage de l'appli samba avec les drivers atto320 , max9296, max9295(71) configuré en module:
+===============================================================================================
+
+
+2) utilisation
+
+afin de démarrer les drivers du projet samba en modules effectuer les commandes suivantes:
+
+./compile_ridgerun.sh
+
+la commande compile et installe le projet samba prêt à être flasher (avec les drivers en module)
+
