@@ -2532,7 +2532,8 @@
 		};
 	};
 
-	i2c@c250000 {
+	i2c@c250000 
+	{
 		#address-cells = <0x01>;
 		#size-cells = <0x00>;
 		iommus = <0x02 0x20>;
@@ -2544,7 +2545,7 @@
 		scl-gpio = <0x2a 0x19 0x00>;
 		sda-gpio = <0x2a 0x1a 0x00>;
 		status = "okay";
-		clock-frequency = <0x61a80>;
+		clock-frequency = <0x186a0>;
 		clocks = <0x04 0x36 0x04 0x66>;
 		clock-names = "div-clk\0parent";
 		resets = <0x05 0x22>;
@@ -2554,7 +2555,8 @@
 		linux,phandle = <0x10c>;
 		phandle = <0x10c>;
 
-		prod-settings {
+		prod-settings 
+		{
 			#prod-cells = <0x04>;
 
 			prod {
@@ -2578,7 +2580,8 @@
 			};
 		};
 
-		tca9546@72 {
+		tca9546@72 
+		{
 			compatible = "nxp,pca9544";
 			reg = <0x72>;
 			#address-cells = <0x01>;
@@ -2595,13 +2598,15 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				atto320_a@12 {
+				cam0: atto320@1b 
+				{
 					compatible = "nvidia,atto320";
-					reg = <0x12>;
+					reg = <0x1b>;
+					/* Physical dimensions of sensor */
+					physical_w = "12.0";
+					physical_h = "12.0";
 					reg_mux = <0x00>;
-					physical_w = "15.0";
-					physical_h = "12.5";
-					sensor_model = "imx390";
+					sensor_model = "atto320";
 					post_crop_frame_drop = [30 00];
 					use_decibel_gain = "true";
 					use_sensor_mode_id = "true";
@@ -2609,46 +2614,38 @@
 					clocks = <0x04 0x24 0x04 0x24>;
 					clock-names = "extperiph1\0pllp_grtba";
 					mclk = "extperiph1";
-					nvidia,gmsl-ser-device = <0x30>;
-					nvidia,gmsl-dser-device = <0x31>;
+					nvidia,gmsl-ser-device = <&ser_a>;
+					nvidia,gmsl-dser-device = <&deser0>;
 
-					mode0 {
+				
+					mode0 {/*mode IMX185_MODE_1920X1080_CROP_30FPS*/
 						mclk_khz = "24000";
 						num_lanes = [32 00];
-						tegra_sinterface = "serial_g";
-						vc_id = [30 00];
+						tegra_sinterface = "serial_a";
 						discontinuous_clk = "no";
 						dpcm_enable = "false";
 						cil_settletime = [30 00];
-						dynamic_pixel_bit_depth = "12";
-						csi_pixel_bit_depth = "12";
+                        dynamic_pixel_bit_depth = "12";
+						csi_pixel_bit_depth = "12";  /* je ne suis pas sur*/
 						mode_type = "bayer";
 						pixel_phase = "rggb";
-						active_w = "1920";
-						active_h = "1080";
-						readout_orientation = [30 00];
-						line_length = "2200";
-						inherent_gain = [31 00];
-						pix_clk_hz = "74250000";
-						serdes_pix_clk_hz = "833333333";
-						gain_factor = "10";
-						min_gain_val = [30 00];
-						max_gain_val = "300";
-						step_gain_val = [33 00];
-						default_gain = [30 00];
-						min_hdr_ratio = [31 00];
-						max_hdr_ratio = [31 00];
-						framerate_factor = "1000000";
-						min_framerate = "30000000";
-						max_framerate = "30000000";
-						step_framerate = [31 00];
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "59";
-						max_exp_time = "33333";
-						step_exp_time = [31 00];
-						default_exp_time = "33333";
-						embedded_metadata_height = [30 00];
+						active_w = "320";
+						active_h = "240";
+						readout_orientation = "0";
+						line_length = "340";
+						inherent_gain = "1";
+						mclk_multiplier = "2";
+						pix_clk_hz = "74250000";/* pas sur */
+						min_gain_val = "1"; /* dB */
+						max_gain_val = "48"; /* dB */ /* pas sur */
+						min_hdr_ratio = "1";/* pas sur */
+						max_hdr_ratio = "1";/* pas sur */
+						min_framerate = "1.5";/* pas sur */
+						max_framerate = "30";/* pas sur */
+						min_exp_time = "30"; /* pas sur */
+						max_exp_time = "660000"; /* pas sur */
+						embedded_metadata_height = "0"; /* pas sur */
+
 					};
 
 					ports {
@@ -2670,7 +2667,6 @@
 					};
 
 					gmsl-link {
-						link-id = <0x0>;
 						src-csi-port = [62 00];
 						dst-csi-port = [61 00];
 						serdes-csi-link = [61 00];
@@ -2682,7 +2678,7 @@
 					};
 				};
 
-				atto320_b@1c {
+				imx390_b@1c {
 					compatible = "nvidia,atto320";
 					reg = <0x1c>;
 					reg_mux = <0x00>;
@@ -2696,8 +2692,8 @@
 					clocks = <0x04 0x24 0x04 0x24>;
 					clock-names = "extperiph1\0pllp_grtba";
 					mclk = "extperiph1";
-					nvidia,gmsl-ser-device = <0x33>;
-					nvidia,gmsl-dser-device = <0x31>;
+					nvidia,gmsl-ser-device = <&ser_b>;
+					nvidia,gmsl-dser-device = <&deser0>;
 
 					mode0 {
 						mclk_khz = "24000";
@@ -2757,7 +2753,6 @@
 					};
 
 					gmsl-link {
-						link-id = <0x1>;
 						src-csi-port = [62 00];
 						dst-csi-port = [61 00];
 						serdes-csi-link = [62 00];
@@ -2769,7 +2764,7 @@
 					};
 				};
 
-				max9296@48 {
+				deser0: max9296@48 {
 					compatible = "nvidia,max9296";
 					reg = <0x48>;
 					csi-mode = "2x4";
@@ -2779,7 +2774,7 @@
 					phandle = <0x31>;
 				};
 
-				max9295_prim@62 {
+				ser_prim: max9295_prim@62 {
 					compatible = "nvidia,max9295";
 					reg = <0x62>;
 					is-prim-ser;
@@ -2787,32 +2782,33 @@
 					phandle = <0x10d>;
 				};
 
-				max9295_a@40 {
+				ser_a: max9295_a@40{
 					compatible = "nvidia,max9295";
 					reg = <0x40>;
-					nvidia,gmsl-dser-device = <0x31>;
+					nvidia,gmsl-dser-device = <&deser0>;
 					linux,phandle = <0x30>;
 					phandle = <0x30>;
 				};
 
-				max9295_b@60 {
+				ser_b: max9295_b@60 {
 					compatible = "nvidia,max9295";
 					reg = <0x60>;
-					nvidia,gmsl-dser-device = <0x31>;
+					nvidia,gmsl-dser-device = <&deser0>;
 					linux,phandle = <0x33>;
 					phandle = <0x33>;
 				};
 			};
 
-			i2c@1 {
+			i2c@1 
+			{
 				reg = <0x01>;
 				i2c-mux,deselect-on-exit;
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				atto320_c@12 {
+				cam1: imx390_c@1b {
 					compatible = "nvidia,atto320";
-					reg = <0x12>;
+					reg = <0x1b>;
 					reg_mux = <0x01>;
 					physical_w = "15.0";
 					physical_h = "12.5";
@@ -2886,7 +2882,6 @@
 					};
 
 					gmsl-link {
-						link-id = <0x2>;
 						src-csi-port = [62 00];
 						dst-csi-port = [61 00];
 						serdes-csi-link = [61 00];
@@ -2898,7 +2893,8 @@
 					};
 				};
 
-				atto320_d@1c {
+				imx390_d@1c 
+				{
 					compatible = "nvidia,atto320";
 					reg = <0x1c>;
 					reg_mux = <0x01>;
@@ -2974,7 +2970,6 @@
 					};
 
 					gmsl-link {
-						link-id = <0x3>;
 						src-csi-port = [62 00];
 						dst-csi-port = [61 00];
 						serdes-csi-link = [62 00];
@@ -2986,7 +2981,7 @@
 					};
 				};
 
-				max9296@48 {
+				deser1: max9296@48 {
 					compatible = "nvidia,max9296";
 					reg = <0x48>;
 					csi-mode = "2x4";
@@ -2996,466 +2991,40 @@
 					phandle = <0x36>;
 				};
 
-				max9295_prim@62 {
-					compatible = "nvidia,max9295";
-					reg = <0x62>;
-					is-prim-ser;
-					linux,phandle = <0x10e>;
-					phandle = <0x10e>;
+				ser_prima: max9295_prim@62 
+				{
+				    compatible = "nvidia,max9295";
+				    reg = <0x62>;
+				    is-prim-ser;
+				    linux,phandle = <0x10e>;
+				    phandle = <0x10e>;
 				};
 
-				max9295_a@40 {
-					compatible = "nvidia,max9295";
-					reg = <0x40>;
-					nvidia,gmsl-dser-device = <0x36>;
-					linux,phandle = <0x35>;
-					phandle = <0x35>;
+
+
+				ser_c: max9295_a@40 
+				{
+				    compatible = "nvidia,max9295";
+				    reg = <0x40>;
+				    nvidia,gmsl-dser-device = <&deser1>;
+				    linux,phandle = <0x35>;
+				    phandle = <0x35>;
 				};
 
-				max9295_b@60 {
-					compatible = "nvidia,max9295";
-					reg = <0x60>;
-					nvidia,gmsl-dser-device = <0x36>;
-					linux,phandle = <0x38>;
-					phandle = <0x38>;
+
+
+				ser_d: max9295_b@60 
+				{
+				    compatible = "nvidia,max9295";
+				    reg = <0x60>;
+				    nvidia,gmsl-dser-device = <&deser1>;
+				    linux,phandle = <0x38>;
+				    phandle = <0x38>;
 				};
-			};
-
-			i2c@2 {
-				reg = <0x02>;
-				i2c-mux,deselect-on-exit;
-				#address-cells = <0x01>;
-				#size-cells = <0x00>;
-
-				atto320_e@12 {
-					compatible = "nvidia,atto320";
-					reg = <0x12>;
-					reg_mux = <0x02>;
-					physical_w = "15.0";
-					physical_h = "12.5";
-					sensor_model = "imx390";
-					post_crop_frame_drop = [30 00];
-					use_decibel_gain = "true";
-					use_sensor_mode_id = "true";
-					def-addr = <0x21>;
-					clocks = <0x04 0x24 0x04 0x24>;
-					clock-names = "extperiph1\0pllp_grtba";
-					mclk = "extperiph1";
-					nvidia,gmsl-ser-device = <0x3a>;
-					nvidia,gmsl-dser-device = <0x3b>;
-
-					mode0 {
-						mclk_khz = "24000";
-						num_lanes = [32 00];
-						tegra_sinterface = "serial_c";
-						vc_id = [30 00];
-						discontinuous_clk = "no";
-						dpcm_enable = "false";
-						cil_settletime = [30 00];
-						dynamic_pixel_bit_depth = "12";
-						csi_pixel_bit_depth = "12";
-						mode_type = "bayer";
-						pixel_phase = "rggb";
-						active_w = "1920";
-						active_h = "1080";
-						readout_orientation = [30 00];
-						line_length = "2200";
-						inherent_gain = [31 00];
-						mclk_multiplier = "3.09";
-						pix_clk_hz = "74250000";
-						serdes_pix_clk_hz = "833333333";
-						gain_factor = "10";
-						min_gain_val = [30 00];
-						max_gain_val = "300";
-						step_gain_val = [33 00];
-						default_gain = [30 00];
-						min_hdr_ratio = [31 00];
-						max_hdr_ratio = [31 00];
-						framerate_factor = "1000000";
-						min_framerate = "30000000";
-						max_framerate = "30000000";
-						step_framerate = [31 00];
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "59";
-						max_exp_time = "33333";
-						step_exp_time = [31 00];
-						default_exp_time = "33333";
-						embedded_metadata_height = [30 00];
-					};
-
-					ports {
-						#address-cells = <0x01>;
-						#size-cells = <0x00>;
-
-						port@0 {
-							reg = <0x00>;
-
-							endpoint {
-								vc-id = <0x00>;
-								port-index = <0x02>;
-								bus-width = <0x02>;
-								remote-endpoint = <0x3c>;
-								linux,phandle = <0x7b>;
-								phandle = <0x7b>;
-							};
-						};
-					};
-
-					gmsl-link {
-						link-id = <0x4>;
-						src-csi-port = [62 00];
-						dst-csi-port = [61 00];
-						serdes-csi-link = [61 00];
-						csi-mode = "1x4";
-						st-vc = <0x00>;
-						vc-id = <0x00>;
-						num-lanes = <0x02>;
-						streams = "ued-u1\0raw12";
-					};
-				};
-
-				atto320_f@1c {
-					compatible = "nvidia,atto320";
-					reg = <0x1c>;
-					reg_mux = <0x02>;
-					physical_w = "15.0";
-					physical_h = "12.5";
-					sensor_model = "imx390";
-					post_crop_frame_drop = [30 00];
-					use_decibel_gain = "true";
-					use_sensor_mode_id = "true";
-					def-addr = <0x21>;
-					clocks = <0x04 0x24 0x04 0x24>;
-					clock-names = "extperiph1\0pllp_grtba";
-					mclk = "extperiph1";
-					nvidia,gmsl-ser-device = <0x3d>;
-					nvidia,gmsl-dser-device = <0x3b>;
-
-					mode0 {
-						mclk_khz = "24000";
-						num_lanes = [32 00];
-						tegra_sinterface = "serial_c";
-						vc_id = [31 00];
-						discontinuous_clk = "no";
-						dpcm_enable = "false";
-						cil_settletime = [30 00];
-						dynamic_pixel_bit_depth = "12";
-						csi_pixel_bit_depth = "12";
-						mode_type = "bayer";
-						pixel_phase = "rggb";
-						active_w = "1920";
-						active_h = "1080";
-						readout_orientation = [30 00];
-						line_length = "2200";
-						inherent_gain = [31 00];
-						mclk_multiplier = "3.09";
-						pix_clk_hz = "74250000";
-						serdes_pix_clk_hz = "833333333";
-						gain_factor = "10";
-						min_gain_val = [30 00];
-						max_gain_val = "300";
-						step_gain_val = [33 00];
-						default_gain = [30 00];
-						min_hdr_ratio = [31 00];
-						max_hdr_ratio = [31 00];
-						framerate_factor = "1000000";
-						min_framerate = "30000000";
-						max_framerate = "30000000";
-						step_framerate = [31 00];
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "59";
-						max_exp_time = "33333";
-						step_exp_time = [31 00];
-						default_exp_time = "33333";
-						embedded_metadata_height = [30 00];
-					};
-
-					ports {
-						#address-cells = <0x01>;
-						#size-cells = <0x00>;
-
-						port@0 {
-							reg = <0x00>;
-
-							endpoint {
-								vc-id = <0x01>;
-								port-index = <0x02>;
-								bus-width = <0x02>;
-								remote-endpoint = <0x3e>;
-								linux,phandle = <0x7d>;
-								phandle = <0x7d>;
-							};
-						};
-					};
-
-					gmsl-link {
-						link-id = <0x05>;
-						src-csi-port = [62 00];
-						dst-csi-port = [61 00];
-						serdes-csi-link = [62 00];
-						csi-mode = "1x4";
-						st-vc = <0x00>;
-						vc-id = <0x01>;
-						num-lanes = <0x02>;
-						streams = "ued-u1\0raw12";
-					};
-				};
-
-				max9296@48 {
-					compatible = "nvidia,max9296";
-					reg = <0x48>;
-					csi-mode = "2x4";
-					max-src = <0x02>;
-					reset-gpios = <0x13 0x9e 0x00>;
-					linux,phandle = <0x3b>;
-					phandle = <0x3b>;
-				};
-
-				max9295_prim@62 {
-					compatible = "nvidia,max9295";
-					reg = <0x62>;
-					is-prim-ser;
-					linux,phandle = <0x10f>;
-					phandle = <0x10f>;
-				};
-
-				max9295_a@40 {
-					compatible = "nvidia,max9295";
-					reg = <0x40>;
-					nvidia,gmsl-dser-device = <0x3b>;
-					linux,phandle = <0x3a>;
-					phandle = <0x3a>;
-				};
-
-				max9295_b@60 {
-					compatible = "nvidia,max9295";
-					reg = <0x60>;
-					nvidia,gmsl-dser-device = <0x3b>;
-					linux,phandle = <0x3d>;
-					phandle = <0x3d>;
-				};
-			};
-
-			i2c@3 {
-				reg = <0x03>;
-				i2c-mux,deselect-on-exit;
-				#address-cells = <0x01>;
-				#size-cells = <0x00>;
-
-				atto320_g@12 {
-					compatible = "nvidia,atto320";
-					reg = <0x12>;
-					reg_mux = <0x03>;
-					physical_w = "15.0";
-					physical_h = "12.5";
-					sensor_model = "imx390";
-					post_crop_frame_drop = [30 00];
-					use_decibel_gain = "true";
-					use_sensor_mode_id = "true";
-					def-addr = <0x21>;
-					clocks = <0x04 0x24 0x04 0x24>;
-					clock-names = "extperiph1\0pllp_grtba";
-					mclk = "extperiph1";
-					nvidia,gmsl-ser-device = <0x3f>;
-					nvidia,gmsl-dser-device = <0x40>;
-
-					mode0 {
-						mclk_khz = "24000";
-						num_lanes = [32 00];
-						tegra_sinterface = "serial_a";
-						vc_id = [30 00];
-						discontinuous_clk = "no";
-						dpcm_enable = "false";
-						cil_settletime = [30 00];
-						dynamic_pixel_bit_depth = "12";
-						csi_pixel_bit_depth = "12";
-						mode_type = "bayer";
-						pixel_phase = "rggb";
-						active_w = "1920";
-						active_h = "1080";
-						readout_orientation = [30 00];
-						line_length = "2200";
-						inherent_gain = [31 00];
-						mclk_multiplier = "3.09";
-						pix_clk_hz = "74250000";
-						serdes_pix_clk_hz = "833333333";
-						gain_factor = "10";
-						min_gain_val = [30 00];
-						max_gain_val = "300";
-						step_gain_val = [33 00];
-						default_gain = [30 00];
-						min_hdr_ratio = [31 00];
-						max_hdr_ratio = [31 00];
-						framerate_factor = "1000000";
-						min_framerate = "30000000";
-						max_framerate = "30000000";
-						step_framerate = [31 00];
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "59";
-						max_exp_time = "33333";
-						step_exp_time = [31 00];
-						default_exp_time = "33333";
-						embedded_metadata_height = [30 00];
-					};
-
-					ports {
-						#address-cells = <0x01>;
-						#size-cells = <0x00>;
-
-						port@0 {
-							reg = <0x00>;
-
-							endpoint {
-								vc-id = <0x00>;
-								port-index = <0x00>;
-								bus-width = <0x02>;
-								remote-endpoint = <0x41>;
-								linux,phandle = <0x77>;
-								phandle = <0x77>;
-							};
-						};
-					};
-
-					gmsl-link {
-						link-id = <0x6>;
-						src-csi-port = [62 00];
-						dst-csi-port = [61 00];
-						serdes-csi-link = [61 00];
-						csi-mode = "1x4";
-						st-vc = <0x00>;
-						vc-id = <0x00>;
-						num-lanes = <0x02>;
-						streams = "ued-u1\0raw12";
-					};
-				};
-
-				atto320_h@1c {
-					compatible = "nvidia,atto320";
-					reg = <0x1c>;
-					reg_mux = <0x03>;
-					physical_w = "15.0";
-					physical_h = "12.5";
-					sensor_model = "imx390";
-					post_crop_frame_drop = [30 00];
-					use_decibel_gain = "true";
-					use_sensor_mode_id = "true";
-					def-addr = <0x21>;
-					clocks = <0x04 0x24 0x04 0x24>;
-					clock-names = "extperiph1\0pllp_grtba";
-					mclk = "extperiph1";
-					nvidia,gmsl-ser-device = <0x42>;
-					nvidia,gmsl-dser-device = <0x40>;
-
-					mode0 {
-						mclk_khz = "24000";
-						num_lanes = [32 00];
-						tegra_sinterface = "serial_a";
-						vc_id = [31 00];
-						discontinuous_clk = "no";
-						dpcm_enable = "false";
-						cil_settletime = [30 00];
-						dynamic_pixel_bit_depth = "12";
-						csi_pixel_bit_depth = "12";
-						mode_type = "bayer";
-						pixel_phase = "rggb";
-						active_w = "1920";
-						active_h = "1080";
-						readout_orientation = [30 00];
-						line_length = "2200";
-						inherent_gain = [31 00];
-						mclk_multiplier = "3.09";
-						pix_clk_hz = "74250000";
-						serdes_pix_clk_hz = "833333333";
-						gain_factor = "10";
-						min_gain_val = [30 00];
-						max_gain_val = "300";
-						step_gain_val = [33 00];
-						default_gain = [30 00];
-						min_hdr_ratio = [31 00];
-						max_hdr_ratio = [31 00];
-						framerate_factor = "1000000";
-						min_framerate = "30000000";
-						max_framerate = "30000000";
-						step_framerate = [31 00];
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "59";
-						max_exp_time = "33333";
-						step_exp_time = [31 00];
-						default_exp_time = "33333";
-						embedded_metadata_height = [30 00];
-					};
-
-					ports {
-						#address-cells = <0x01>;
-						#size-cells = <0x00>;
-
-						port@0 {
-							reg = <0x00>;
-
-							endpoint {
-								vc-id = <0x01>;
-								port-index = <0x00>;
-								bus-width = <0x02>;
-								remote-endpoint = <0x43>;
-								linux,phandle = <0x79>;
-								phandle = <0x79>;
-							};
-						};
-					};
-
-					gmsl-link {
-						link-id = <0x7>;
-						src-csi-port = [62 00];
-						dst-csi-port = [61 00];
-						serdes-csi-link = [62 00];
-						csi-mode = "1x4";
-						st-vc = <0x00>;
-						vc-id = <0x01>;
-						num-lanes = <0x02>;
-						streams = "ued-u1\0raw12";
-					};
-				};
-
-				max9296@48 {
-					compatible = "nvidia,max9296";
-					reg = <0x48>;
-					csi-mode = "2x4";
-					max-src = <0x02>;
-					reset-gpios = <0x13 0x9d 0x00>;
-					linux,phandle = <0x40>;
-					phandle = <0x40>;
-				};
-
-				max9295_prim@62 {
-					compatible = "nvidia,max9295";
-					reg = <0x62>;
-					is-prim-ser;
-					linux,phandle = <0x110>;
-					phandle = <0x110>;
-				};
-
-				max9295_a@40 {
-					compatible = "nvidia,max9295";
-					reg = <0x40>;
-					nvidia,gmsl-dser-device = <0x40>;
-					linux,phandle = <0x3f>;
-					phandle = <0x3f>;
-				};
-
-				max9295_b@60 {
-					compatible = "nvidia,max9295";
-					reg = <0x60>;
-					nvidia,gmsl-dser-device = <0x40>;
-					linux,phandle = <0x42>;
-					phandle = <0x42>;
-				};
-			};
+	    		};
 		};
 	};
+ 
 
 	i2c@31e0000 {
 		#address-cells = <0x01>;
@@ -8592,7 +8161,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 30-001b";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@0/atto320_a@12";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@0/atto320@1b";
 				};
 			};
 
@@ -8604,7 +8173,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 30-001c";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@0/atto320_b@1c";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@0/imx390_b@1c";
 				};
 			};
 
@@ -8616,7 +8185,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 31-001b";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@1/atto320_c@12";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@1/imx390_c@1b";
 				};
 			};
 
@@ -8628,7 +8197,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 31-001c";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@1/atto320_d@1c";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@1/imx390_d@1c";
 				};
 			};
 
@@ -8640,7 +8209,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 32-001b";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@2/atto320_e@12";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@2/imx390_e@1b";
 				};
 			};
 
@@ -8652,7 +8221,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 32-001c";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@2/atto320_f@1c";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@2/imx390_f@1c";
 				};
 			};
 
@@ -8664,7 +8233,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 33-001b";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@3/atto320_g@12";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@3/imx390_g@1b";
 				};
 			};
 
@@ -8676,7 +8245,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "imx390 33-001c";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@3/atto320_h@1c";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9546@72/i2c@3/imx390_h@1c";
 				};
 			};
 		};
@@ -8793,29 +8362,29 @@
 		dp_aux_ch0_i2c = "/i2c@31b0000";
 		dp_aux_ch2_i2c = "/i2c@31c0000";
 		gen8_i2c = "/i2c@c250000";
-		imx390_imx390_out6 = "/i2c@c250000/tca9546@72/i2c@0/atto320_a@12/ports/port@0/endpoint";
-		imx390_imx390_out7 = "/i2c@c250000/tca9546@72/i2c@0/atto320_b@1c/ports/port@0/endpoint";
+		imx390_imx390_out6 = "/i2c@c250000/tca9546@72/i2c@0/atto320@1b/ports/port@0/endpoint";
+		imx390_imx390_out7 = "/i2c@c250000/tca9546@72/i2c@0/imx390_b@1c/ports/port@0/endpoint";
 		dser = "/i2c@c250000/tca9546@72/i2c@0/max9296@48";
 		ser_prim = "/i2c@c250000/tca9546@72/i2c@0/max9295_prim@62";
-		ser_a = "/i2c@c250000/tca9546@72/i2c@0/max9295_a@40";
+        ser_a = "/i2c@c250000/tca9546@72/i2c@0/max9295_a@40";
 		ser_b = "/i2c@c250000/tca9546@72/i2c@0/max9295_b@60";
-		imx390_imx390_out4 = "/i2c@c250000/tca9546@72/i2c@1/atto320_c@12/ports/port@0/endpoint";
-		imx390_imx390_out5 = "/i2c@c250000/tca9546@72/i2c@1/atto320_d@1c/ports/port@0/endpoint";
+		imx390_imx390_out4 = "/i2c@c250000/tca9546@72/i2c@1/imx390_c@1b/ports/port@0/endpoint";
+		imx390_imx390_out5 = "/i2c@c250000/tca9546@72/i2c@1/imx390_d@1c/ports/port@0/endpoint";
 		dsera = "/i2c@c250000/tca9546@72/i2c@1/max9296@48";
 		ser_prima = "/i2c@c250000/tca9546@72/i2c@1/max9295_prim@62";
-		ser_c = "/i2c@c250000/tca9546@72/i2c@1/max9295_a@40";
+        ser_c = "/i2c@c250000/tca9546@72/i2c@1/max9295_a@40";
 		ser_d = "/i2c@c250000/tca9546@72/i2c@1/max9295_b@60";
-		imx390_imx390_out2 = "/i2c@c250000/tca9546@72/i2c@2/atto320_e@12/ports/port@0/endpoint";
-		imx390_imx390_out3 = "/i2c@c250000/tca9546@72/i2c@2/atto320_f@1c/ports/port@0/endpoint";
+		imx390_imx390_out2 = "/i2c@c250000/tca9546@72/i2c@2/imx390_e@1b/ports/port@0/endpoint";
+		imx390_imx390_out3 = "/i2c@c250000/tca9546@72/i2c@2/imx390_f@1c/ports/port@0/endpoint";
 		dserb = "/i2c@c250000/tca9546@72/i2c@2/max9296@48";
 		ser_primb = "/i2c@c250000/tca9546@72/i2c@2/max9295_prim@62";
-		ser_e = "/i2c@c250000/tca9546@72/i2c@2/max9295_a@40";
+        ser_e = "/i2c@c250000/tca9546@72/i2c@2/max9295_a@40";
 		ser_f = "/i2c@c250000/tca9546@72/i2c@2/max9295_b@60";
-		imx390_imx390_out0 = "/i2c@c250000/tca9546@72/i2c@3/atto320_g@12/ports/port@0/endpoint";
-		imx390_imx390_out1 = "/i2c@c250000/tca9546@72/i2c@3/atto320_h@1c/ports/port@0/endpoint";
+		imx390_imx390_out0 = "/i2c@c250000/tca9546@72/i2c@3/imx390_g@1b/ports/port@0/endpoint";
+		imx390_imx390_out1 = "/i2c@c250000/tca9546@72/i2c@3/imx390_h@1c/ports/port@0/endpoint";
 		dserc = "/i2c@c250000/tca9546@72/i2c@3/max9296@48";
 		ser_primc = "/i2c@c250000/tca9546@72/i2c@3/max9295_prim@62";
-		ser_g = "/i2c@c250000/tca9546@72/i2c@3/max9295_a@40";
+        ser_g = "/i2c@c250000/tca9546@72/i2c@3/max9295_a@40";
 		ser_h = "/i2c@c250000/tca9546@72/i2c@3/max9295_b@60";
 		dp_aux_ch3_i2c = "/i2c@31e0000";
 		mttcan0 = "/mttcan@c310000";

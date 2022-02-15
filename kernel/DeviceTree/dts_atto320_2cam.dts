@@ -2606,7 +2606,7 @@
 					post_crop_frame_drop = [30 00];
 					use_decibel_gain = "true";
 					use_sensor_mode_id = "true";
-					def-addr = <0x21>;
+					def-addr = <0x12>;
 					clocks = <0x04 0x24 0x04 0x24>;
 					clock-names = "extperiph1\0pllp_grtba";
 					mclk = "extperiph1";
@@ -2684,7 +2684,7 @@
 					post_crop_frame_drop = [30 00];
 					use_decibel_gain = "true";
 					use_sensor_mode_id = "true";
-					def-addr = <0x21>;
+					def-addr = <0x12>;
 					clocks = <0x04 0x24 0x04 0x24>;
 					clock-names = "extperiph1\0pllp_grtba";
 					mclk = "extperiph1";

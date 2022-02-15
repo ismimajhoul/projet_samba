@@ -807,13 +807,6 @@ static int atto320_board_setup(struct atto320 *priv)
 	priv->g_ctx.src_csi_port =
 		(!strcmp(str_value, "a")) ? GMSL_CSI_PORT_A : GMSL_CSI_PORT_B;
 
-	if(priv->g_ctx.src_csi_port == GMSL_CSI_PORT_A )
-		dev_err(dev, "LINK A CONFIGURATION ON GOING\n");
-	else if(priv->g_ctx.src_csi_port == GMSL_CSI_PORT_B )
-		dev_err(dev, "LINK B CONFIGURATION ON GOING\n");
-	else
-		dev_err(dev, "LINK CONFIGURATION ERROR\n");
-
 	err = of_property_read_string(gmsl, "csi-mode", &str_value);
 	if (err < 0)
 	{
@@ -859,6 +852,16 @@ static int atto320_board_setup(struct atto320 *priv)
 	priv->g_ctx.serdes_csi_link =
 		(!strcmp(str_value, "a")) ?
 			GMSL_SERDES_CSI_LINK_A : GMSL_SERDES_CSI_LINK_B;
+
+	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A )
+		dev_err(dev, "LINK A CONFIGURATION ON GOING\n");
+	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B )
+		dev_err(dev, "LINK B CONFIGURATION ON GOING\n");
+	else
+		dev_err(dev, "LINK CONFIGURATION ERROR\n");
+
+
+
 
 	err = of_property_read_u32(gmsl, "st-vc", &value);
 	if (err < 0)
@@ -1032,10 +1035,19 @@ static int atto320_probe(struct i2c_client *client,
 	samba_max9271_wake_up(priv->ser_dev,0x1E);
 	sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
-	if(priv->g_ctx.serdes_csi_link == GMSL_CSI_PORT_A)
+		if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
+	{
 		InitDeserLinkA(priv->dser_dev);
-	else
+	}
+	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B)
+	{
 		InitDeserLinkB(priv->dser_dev);
+	}
+	else
+	{
+		dev_err(&client->dev, "Link init ERROR \n");
+	}
+
 
 	atto_init(priv->dser_dev,priv->ser_dev);
 
