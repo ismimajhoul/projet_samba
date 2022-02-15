@@ -33,4 +33,7 @@ sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9296.ko Li
 sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9295.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
 sudo cp -r modules/lib/modules/4.9.140-tegra/kernel/drivers/media Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/
 
+cd modules/lib/modules/4.9.140-tegra
+
+cp modules.symbols modules.alias modules.dep modules.order modules.symbols.bin modules.dep.bin modules.alias.bin ../../../../Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/
 
