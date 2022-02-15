@@ -53,7 +53,7 @@ int InitSerdes(struct device* dser_dev,struct device* ser_dev);
 
 int samba_max9271_set_serial_link(struct device *ser, bool enable);
 
-void samba_max9271_wake_up(struct device *dev,unsigned int reg);
+void samba_max9271_wake_up(struct device *dev,unsigned int reg,unsigned int linkid);
 
 int samba_tstclock_max9271_init(struct device *dev);
 

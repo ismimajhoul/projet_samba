@@ -74,6 +74,7 @@ struct atto320 {
 	u32	frame_length;
 	struct camera_common_data	*s_data;
 	struct tegracam_device		*tc_dev;
+	u32	   linkID;
 };
 
 static const struct regmap_config sensor_regmap_config = {
@@ -794,6 +795,19 @@ static int atto320_board_setup(struct atto320 *priv)
 	priv->g_ctx.dst_csi_port =
 		(!strcmp(str_value, "a")) ? GMSL_CSI_PORT_A : GMSL_CSI_PORT_B;
 
+
+	err = of_property_read_u32(gmsl, "link-id",
+					&priv->linkID);
+	if (err < 0)
+	{
+		dev_err(dev, "link-id not found\n");
+		goto error;
+	}
+	else
+	{
+		dev_err(dev, "link-id: 0x%x\n",priv->linkID);
+	}
+
 	err = of_property_read_string(gmsl, "src-csi-port", &str_value);
 	if (err < 0)
 	{
@@ -1036,14 +1050,16 @@ static int atto320_probe(struct i2c_client *client,
 	{
 		InitDeserLinkA(priv->dser_dev);
 	}
-	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B){
+	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B)
+	{
 		InitDeserLinkB(priv->dser_dev);
 	}
-	else{
+	else
+	{
 		dev_err(&client->dev, "Link init ERROR \n");
 	}
 
-	samba_max9271_wake_up(priv->ser_dev,0x1E);
+	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
 	//sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
 	atto_init(priv->dser_dev,priv->ser_dev);

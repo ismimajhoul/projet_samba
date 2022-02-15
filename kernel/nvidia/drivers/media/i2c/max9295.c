@@ -165,7 +165,7 @@ static int samba_max9271_read(struct i2c_client* client, u8 reg)
 
 
 
-void samba_max9271_wake_up(struct device *dev, unsigned int reg)
+void samba_max9271_wake_up(struct device *dev, unsigned int reg,unsigned int linkid)
 {
 	struct samba_max9271 *priv = dev_get_drvdata(dev);
 	int status;
@@ -175,11 +175,11 @@ void samba_max9271_wake_up(struct device *dev, unsigned int reg)
 	usleep_range(30000, 80000);
 	if(status<0)
 	{
-		dev_err(dev," Samba max9271 wakeup failed KO status addr =0x%x value = 0x%x\n",reg,status);
+		dev_err(dev," Samba max9271 wakeup failed KO status addr =0x%x value = 0x%x linkid: %d\n",reg,status,linkid);
 	}
 	else
 	{
-		dev_err(dev," Samba max9271 wakeup OK status addr =0x%x value = 0x%x\n",reg,status);
+		dev_err(dev," Samba max9271 wakeup OK status addr =0x%x value = 0x%x linkid: %d\n",reg,status,linkid);
 	}
 }
 
