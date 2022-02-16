@@ -1060,6 +1060,9 @@ static int atto320_probe(struct i2c_client *client,
 	}
 
 	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
+	//samba_max9271_write_dev(priv->ser_dev,0x0,0xC0);
+	//samba_max9271_read_dev(priv->ser_dev,0x1E);
+
 	//sensor_read_reg_for_test(priv->dser_dev,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
 	atto_init(priv->dser_dev,priv->ser_dev);

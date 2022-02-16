@@ -183,6 +183,41 @@ void samba_max9271_wake_up(struct device *dev, unsigned int reg,unsigned int lin
 	}
 }
 
+void samba_max9271_write_dev(struct device *dev, unsigned int reg,unsigned int value)
+{
+	struct samba_max9271 *priv = dev_get_drvdata(dev);
+	int ret;
+	ret = i2c_smbus_write_byte_data(priv->i2c_client, reg, value);
+	usleep_range(30000, 80000);
+	if(ret<0)
+	{
+		dev_err(dev," Samba max9271 write_dev failed KO status addr =0x%x ret = 0x%x value: 0x%x\n",reg,ret,value);
+	}
+	else
+	{
+		dev_err(dev," Samba max9271 write_dev OK status addr =0x%x ret = 0x%x value: 0x%x\n",reg,ret,value);
+	}
+}
+
+void samba_max9271_read_dev(struct device *dev, unsigned int reg)
+{
+	struct samba_max9271 *priv = dev_get_drvdata(dev);
+	int ret;
+	priv->i2c_client->addr = 0x60;
+	ret = i2c_smbus_read_byte_data(priv->i2c_client,reg);
+	usleep_range(30000, 80000);
+	if(ret<0)
+	{
+		dev_err(dev," Samba max9271 read_dev failed KO status addr =0x%x ret = 0x%x\n",reg,ret);
+	}
+	else
+	{
+		dev_err(dev," Samba max9271 read_dev OK status addr =0x%x ret = 0x%x \n",reg,ret);
+	}
+}
+
+
+
 static int max9295_write_reg(struct device *dev, u16 addr, u8 val)
 {
 	struct max9295 *priv = dev_get_drvdata(dev);
@@ -1042,7 +1077,8 @@ static int max9295_probe(struct i2c_client *client,
 	priv->i2c_client = client;
 	priv->regmap = devm_regmap_init_i2c(priv->i2c_client,
 				&max9295_regmap_config);
-	if (IS_ERR(priv->regmap)) {
+	if (IS_ERR(priv->regmap))
+	{
 		dev_err(&client->dev,
 			"regmap init failed: %ld\n", PTR_ERR(priv->regmap));
 		return -ENODEV;
