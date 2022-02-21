@@ -188,7 +188,7 @@ void samba_max9271_write_dev(struct device *dev, unsigned int reg,unsigned int v
 	struct samba_max9271 *priv = dev_get_drvdata(dev);
 	int ret;
 	ret = i2c_smbus_write_byte_data(priv->i2c_client, reg, value);
-	usleep_range(30000, 80000);
+	usleep_range(1000000,2000000);
 	if(ret<0)
 	{
 		dev_err(dev," Samba max9271 write_dev failed KO status addr =0x%x ret = 0x%x value: 0x%x\n",reg,ret,value);

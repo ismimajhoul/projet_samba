@@ -3277,4 +3277,30 @@ static const int atto320_120fps[] = {
 static const struct camera_common_frmfmt atto320_frmfmt[] = {
 	{{1920, 1080}, atto320_30fps, 1, 0, ATTO320_MODE_1920X1080_CROP_30FPS},
 };
+
+struct atto320 {
+	struct i2c_client	*i2c_client;
+	struct regmap *regmap;
+	const struct i2c_device_id *id;
+	struct v4l2_subdev	*subdev;
+	struct device		*ser_dev;
+	struct device		*dser_dev;
+	struct gmsl_link_ctx	g_ctx;
+	u32	frame_length;
+	struct camera_common_data	*s_data;
+	struct tegracam_device		*tc_dev;
+	u32	   linkID;
+};
+
+
+int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val);
+int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned char *val);
+int sensor_read_reg(struct atto320 *priv,unsigned int addr, unsigned char *val);
+int sensor_write_reg(struct atto320 *priv,u16 addr, u8 val);
+
+
+
+
+
+
 #endif /* __ATTO320_I2C_TABLES__ */
