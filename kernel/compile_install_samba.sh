@@ -18,6 +18,6 @@ rm Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
 cp DeviceTree/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb Linux_for_Tegra/kernel/dtb/
 cp build/arch/arm64/boot/Image  Linux_for_Tegra/kernel/
 cp build/arch/arm64/boot/zImage Linux_for_Tegra/kernel/
-cp ../tools/webcam_capture.c ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/rootfs/home/
+#cp ../tools/webcam_capture.c ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra/rootfs/home/
 
 

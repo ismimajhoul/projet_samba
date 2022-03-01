@@ -186,12 +186,12 @@ static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
 
 	/* Only select the channel if its different from the last channel */
 	if (data->last_chan != regval) {
-		//dev_err(&client->dev, "select chan its different from the last channel 0x%x  regval= %x\n",data->last_chan,regval);
+		dev_err(&client->dev, "select chan its different from the last channel 0x%x  regval= %x\n",data->last_chan,regval);
 		ret = pca954x_reg_write(muxc->parent, client, regval);
 		data->last_chan = ret < 0 ? 0 : regval;
 	}
 	else{
-		//dev_err(&client->dev, "select chan its not different from the last channel 0x%x  regval= %x\n",data->last_chan,regval);
+		dev_err(&client->dev, "select chan its not different from the last channel 0x%x  regval= %x\n",data->last_chan,regval);
 	}
 	
 	return ret;

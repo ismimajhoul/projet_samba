@@ -58,11 +58,11 @@ regmap_util_write_table_8(struct regmap *regmap,
 						      range_count);
 			}
 
-			if (err) {
-				pr_err("%s:regmap_util_write_table:%d",
-				       __func__, err);
-				return err;
-			}
+			//if (err) {
+			//	pr_err("%s:regmap_util_write_table:%d",
+			//	       __func__, err);
+			//	return err;
+			//}
 
 			range_start = -1;
 			range_count = 0;

@@ -165,7 +165,7 @@ static int samba_max9271_read(struct i2c_client* client, u8 reg)
 
 
 
-void samba_max9271_wake_up(struct device *dev, unsigned int reg,unsigned int linkid)
+int samba_max9271_wake_up(struct device *dev, unsigned int reg,unsigned int linkid)
 {
 	struct samba_max9271 *priv = dev_get_drvdata(dev);
 	int status;
@@ -181,6 +181,7 @@ void samba_max9271_wake_up(struct device *dev, unsigned int reg,unsigned int lin
 	{
 		dev_err(dev," Samba max9271 wakeup OK status addr =0x%x value = 0x%x linkid: %d\n",reg,status,linkid);
 	}
+	return status;
 }
 
 void samba_max9271_write_dev(struct device *dev, unsigned int reg,unsigned int value)
@@ -543,6 +544,7 @@ int InitDeserLinkA(struct device *dser_dev)
 	int val_deser = 0;
 	//struct samba_max9271 *priv = dev_get_drvdata(dser_dev);
 	///////////////////////init deser MAX9296 ////////////////////////////
+	max9296_read_reg(dser_dev,0xBCA, &val_deser);
 	max9296_write_reg(dser_dev, 0x01, 0xC1);
 
 	//11 CTRL1 Lecture du registre pour vérifier que les bits 2 (CXTP_B)
@@ -568,7 +570,7 @@ int InitDeserLinkA(struct device *dser_dev)
 	max9296_write_reg(dser_dev, 0xB08, 0x31);
 
 	//B0D GMSL1_D 84
-	max9296_write_reg(dser_dev, 0xB0D, 0x84);
+	max9296_write_reg(dser_dev, 0xB0D, 0x4);
 
 	//B0E GMSL1_E Reset value
 
@@ -630,6 +632,7 @@ int InitDeserLinkB(struct device *dser_dev)
 	//struct samba_max9271 *priv = dev_get_drvdata(dser_dev);
 	///////////////////////init deser MAX9296 ////////////////////////////
 	int val_deser = 0;
+	max9296_read_reg(dser_dev,0xCCA, &val_deser);
 	//1 REG1 C1
 	max9296_write_reg(dser_dev, 0x01, 0xC1);
 
@@ -656,7 +659,7 @@ int InitDeserLinkB(struct device *dser_dev)
 	max9296_write_reg(dser_dev, 0xC08, 0x31);
 
 	//B0D GMSL1_D 84
-	max9296_write_reg(dser_dev, 0xC0D, 0x84);
+	max9296_write_reg(dser_dev, 0xC0D, 0x4);
 
 	//B0E GMSL1_E Reset value
 
