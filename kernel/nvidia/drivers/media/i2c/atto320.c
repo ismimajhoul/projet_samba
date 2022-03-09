@@ -297,14 +297,9 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 
 	/* setup serdes addressing and control pipeline */
 	err = max9296_setup_link(priv->dser_dev, &priv->i2c_client->dev);
-	if (err)
-	{
+	if (err) {
 		dev_err(dev, "gmsl deserializer link config failed\n");
 		goto error;
-	}
-	else
-	{
-		dev_err(dev, "gmsl deserializer link config OK\n");
 	}
 	
 	//err = max9295_setup_control(priv->ser_dev);
@@ -319,8 +314,6 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	/* proceed even if ser setup failed, to setup deser correctly */
 	if (err)
 		dev_err(dev, "gmsl serializer setup failed\n");
-	else
-		dev_err(dev, "gmsl serializer setup OK\n");
 
 	des_err = max9296_setup_control(priv->dser_dev, &priv->i2c_client->dev);
 	if (des_err) 
@@ -328,10 +321,6 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		dev_err(dev, "gmsl deserializer setup failed\n");
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
-	}
-	else
-	{
-		dev_err(dev, "gmsl deserializer setup OK\n");
 	}
 
 
@@ -723,7 +712,6 @@ static int atto320_board_setup(struct atto320 *priv)
 	else
 	{
 		dev_err(dev, "def-addr: 0x%x\n",priv->g_ctx.sdev_def);
-		priv->i2c_client->addr = priv->g_ctx.sdev_def;
 	}
 
 	ser_node = of_parse_phandle(node, "nvidia,gmsl-ser-device", 0);
@@ -1019,7 +1007,7 @@ static int atto320_probe(struct i2c_client *client,
 	//unsigned char val_deser;
 	int val_video_lock = 0xAA;
 	//struct samba_max9271 *priv_ser;
-	int val_deser = 0;
+
 
 	dev_info(dev, "atto320 probing v4l2 sensor.\n");
 	
@@ -1068,21 +1056,8 @@ static int atto320_probe(struct i2c_client *client,
 
 	tegracam_set_privdata(tc_dev, (void *)priv);
 
-	err = samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
-	if (err)
-	{
-		dev_err(dev, "unable to read serializer register identifier 0x1E \n");
-		//return err;
-	}
-	else
-	{
-		dev_err(dev, "read serializer register identifier 0x1E OK\n");
-	}
-
-
 	err = atto320_board_setup(priv);
-	if (err)
-	{
+	if (err) {
 		dev_err(dev, "board setup failed\n");
 		return err;
 	}
@@ -1112,10 +1087,9 @@ static int atto320_probe(struct i2c_client *client,
 	// max9296_write_reg(priv->dser_dev,0xB04,0x0F);
 	// max9296_write_reg(priv->dser_dev,0xC04,0x0F);
 
-	InitDeserLinkA(priv->dser_dev);
-	InitDeserLinkB(priv->dser_dev);
 	
-#if 0
+	
+	
 	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
 	{
 		InitDeserLinkA(priv->dser_dev);
@@ -1128,8 +1102,8 @@ static int atto320_probe(struct i2c_client *client,
 	{
 		dev_err(&client->dev, "Link init ERROR \n");
 	}
-#endif
 
+	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
 
 #if 0
 	if((priv->linkID % 2)!=0)
@@ -1147,20 +1121,6 @@ static int atto320_probe(struct i2c_client *client,
 	//sensor_read_reg(priv,0,&val_deser);
 	InitSerdes(priv->dser_dev,priv->ser_dev);
 	atto_init(priv->ser_dev,priv);
-
-	max9296_read_reg(priv->dser_dev,0xBCA, &val_deser);
-	max9296_read_reg(priv->dser_dev,0xCCA, &val_deser);
-
-#if 0
-	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
-	{
-		max9296_read_reg(priv->dser_dev,0xBCA, &val_deser);
-	}
-	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B)
-	{
-		max9296_read_reg(priv->dser_dev,0xCCA, &val_deser);
-	}
-#endif
 
 	//max9296_read_reg(priv->dser_dev,0x108, &val_video_lock);pas de video lock
 

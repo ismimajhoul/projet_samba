@@ -364,9 +364,9 @@ static int max9296_write_link(struct device *dev, u32 link)
 	}
 	else if (link == GMSL_SERDES_CSI_LINK_B)
 	{
-		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x02);
-		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x22);
-		dev_err(dev, "%s: gmsl link B selected\n", __func__);
+		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x02);
+		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x22);
+		dev_err(dev, "%s: gmsl link B selected but not set\n", __func__);
 	}
 	else
 	{
@@ -378,7 +378,10 @@ static int max9296_write_link(struct device *dev, u32 link)
 	dev_err(dev, " id read  = 0x%x at this addr = 0x%x\n", val, 0xD);
 
 	max9296_read_reg(dev,0,&val);
-	dev_err(dev, " id read  = 0x%x at this addr = 0x%x\n", val, 0);
+	dev_err(dev, " addr read  = 0x%x at this addr = 0x%x\n", val, 0);
+
+	max9296_read_reg(dev,0,&val);
+	dev_err(dev, " link read  = 0x%x at this addr = 0x%x\n", val, MAX9296_CTRL0_ADDR);
 
 	/* delay to settle link */
 	msleep(100);
@@ -402,12 +405,15 @@ int max9296_setup_link(struct device *dev, struct device *s_dev)
 
 	if (!priv->splitter_enabled)
 	{
-		err = max9296_write_link(dev,
-				priv->sources[i].g_ctx->serdes_csi_link);
+		err = max9296_write_link(dev,priv->sources[i].g_ctx->serdes_csi_link);
 		if (err)
 			goto ret;
 
 		priv->link_setup = true;
+	}
+	else
+	{
+		dev_err(dev, "splitter mode not enable \n");
 	}
 
 ret:
@@ -549,11 +555,17 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 			((g_ctx->csi_mode == GMSL_CSI_1X4_MODE) ||
 				(g_ctx->csi_mode == GMSL_CSI_2X4_MODE)) :
 			((g_ctx->csi_mode == GMSL_CSI_2X2_MODE) ||
-				(g_ctx->csi_mode == GMSL_CSI_4X2_MODE)))) {
+				(g_ctx->csi_mode == GMSL_CSI_4X2_MODE))))
+	{
 		dev_err(dev,
 			"%s: csi mode not supported\n", __func__);
 		err = -EINVAL;
 		goto error;
+	}
+	else
+	{
+		dev_err(dev,
+					"%s: csi mode checked\n", __func__);
 	}
 
 	for (i = 0; i < priv->num_src; i++)
