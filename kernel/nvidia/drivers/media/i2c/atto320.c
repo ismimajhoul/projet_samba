@@ -283,6 +283,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	int des_err = 0;
 	
 	struct device *dev;
+	int val_video_lock = 0xAA;
 	//int i=0;
 
 	if (!priv || !priv->ser_dev || !priv->dser_dev || !priv->i2c_client)
@@ -295,9 +296,14 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	/* For now no separate power on required for serializer device */
 	max9296_power_on(priv->dser_dev);
 
+	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
+	dev_err(dev, "video lock resultat 0x%x \n",val_video_lock);
+
+
 	/* setup serdes addressing and control pipeline */
 	err = max9296_setup_link(priv->dser_dev, &priv->i2c_client->dev);
-	if (err) {
+	if (err)
+	{
 		dev_err(dev, "gmsl deserializer link config failed\n");
 		goto error;
 	}
@@ -313,12 +319,12 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	samba_max9271_set_serial_link(priv->ser_dev,true);
 	/* proceed even if ser setup failed, to setup deser correctly */
 	if (err)
-		dev_err(dev, "gmsl serializer setup failed\n");
+		dev_err(dev, "gmsl serializer setup link failed\n");
 
 	des_err = max9296_setup_control(priv->dser_dev, &priv->i2c_client->dev);
 	if (des_err) 
 	{
-		dev_err(dev, "gmsl deserializer setup failed\n");
+		dev_err(dev, "gmsl deserializer setup control failed\n");
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
 	}
@@ -1005,7 +1011,6 @@ static int atto320_probe(struct i2c_client *client,
 	int err=-1;
 	//unsigned int cpt =0;
 	//unsigned char val_deser;
-	int val_video_lock = 0xAA;
 	//struct samba_max9271 *priv_ser;
 
 
@@ -1090,20 +1095,7 @@ static int atto320_probe(struct i2c_client *client,
 	
 	
 	
-	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
-	{
-		InitDeserLinkA(priv->dser_dev);
-	}
-	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B)
-	{
-		InitDeserLinkB(priv->dser_dev);
-	}
-	else
-	{
-		dev_err(&client->dev, "Link init ERROR \n");
-	}
 
-	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
 
 #if 0
 	if((priv->linkID % 2)!=0)
@@ -1118,28 +1110,31 @@ static int atto320_probe(struct i2c_client *client,
 	}
 #endif
 
-	//sensor_read_reg(priv,0,&val_deser);
-	InitSerdes(priv->dser_dev,priv->ser_dev);
+
+	// sensor atto320 Init
 	atto_init(priv->ser_dev,priv);
 
-	//max9296_read_reg(priv->dser_dev,0x108, &val_video_lock);pas de video lock
+	// read max9271 ID
+	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
 
-	dev_err(&client->dev, "video lock resultat 0x%x \n",val_video_lock);
-	/*while(1)
+	// Init max9271 registers
+	InitSerdes(priv->dser_dev,priv->ser_dev);
+
+
+	// Init deser link A or link B
+	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
 	{
-		cpt++;
-		//if((cpt%20)==0)
-		//{
-		msleep(1000);
-			//msleep(1000);
-			//max9296_samba_portage_9272(priv->dser_dev);
-		//}
-		// max9296_read_reg(priv->dser_dev,0xBCB, &val_deser);
-		max9296_read_reg(priv->dser_dev,0xD, &val_deser);
-		// max9296_read_reg(priv->dser_dev,0x3, &val_deser);
-		//dev_err(dev," MAX9296 link locked value = 0x%x\n",val_deser);
+		InitDeserLinkA(priv->dser_dev);
 	}
-*/
+	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B)
+	{
+		InitDeserLinkB(priv->dser_dev);
+	}
+	else
+	{
+		dev_err(&client->dev, "Link init ERROR \n");
+	}
+
 	/*
 	 * gmsl serdes setup
 	 *
@@ -1154,7 +1149,6 @@ static int atto320_probe(struct i2c_client *client,
 	 * would be powered on always post boot, until 1.2v is supplied
 	 * to deserializer from CVB.
 	 */
-	//portage du max9272 -> max9296
 	err = atto320_gmsl_serdes_setup(priv);
 	if (err)
 	{

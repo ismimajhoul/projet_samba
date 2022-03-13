@@ -152,10 +152,11 @@ static int samba_max9271_read(struct i2c_client* client, u8 reg)
 	//client->addr = 0x80;
 	ret = i2c_smbus_read_byte_data(client, reg);
 	if (ret < 0)
-		dev_dbg(&client->dev,
-			"%s: register 0x%02x read failed KO(%d)\n",
-			__func__, reg, ret);
-	else{
+	{
+		dev_dbg(&client->dev,"%s: register 0x%02x read failed KO(%d)\n",__func__, reg, ret);
+	}
+	else
+	{
 		dev_err(&client->dev,"%s: register 0x%02x write OK (%d)\n",__func__, reg, ret);
 	}
 	usleep_range(100, 110);
@@ -252,7 +253,7 @@ static int samba_max9271_pclk_detect(struct i2c_client *client)
 		ret = samba_max9271_read(client, 0x15);
 		if (ret < 0)
 		{
-			dev_err(&client->dev, "unable to read register 15 KO\n");
+			dev_err(&client->dev, "unable to read register 15 PCLKDET KO\n");
 			return ret;
 		}
 
@@ -736,6 +737,7 @@ int samba_max9271_set_serial_link(struct device *ser, bool enable)
 			return ret;
 
 		val |= MAX9271_SEREN;
+		dev_err(ser, "Set serial link max9271 \n");
 	}
 	else
 	{
