@@ -297,7 +297,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	max9296_power_on(priv->dser_dev);
 
 	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
-	dev_err(dev, "video lock resultat 0x%x \n",val_video_lock);
+	dev_err(dev, "video lock result 0x%x \n",val_video_lock);
 
 
 	/* setup serdes addressing and control pipeline */
@@ -320,6 +320,11 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	/* proceed even if ser setup failed, to setup deser correctly */
 	if (err)
 		dev_err(dev, "gmsl serializer setup link failed\n");
+
+	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
+	dev_err(dev, "video lock result 0x%x \n",val_video_lock);
+
+
 
 	des_err = max9296_setup_control(priv->dser_dev, &priv->i2c_client->dev);
 	if (des_err) 
