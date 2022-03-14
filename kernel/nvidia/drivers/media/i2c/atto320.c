@@ -72,8 +72,9 @@ static const struct regmap_config sensor_regmap_config = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
-void atto_init(struct device *ser_dev,struct atto320 *priv);
-int I2C_Ulis_WriteReg (unsigned short reg, unsigned char data,struct atto320 *priv);
+void atto_init(struct device *ser_dev,struct device *devatto);
+int I2C_Ulis_WriteReg (unsigned short reg, unsigned char data,struct device *devatto);
+int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct device *devatto);
 
 int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned char *val)
 {
@@ -104,12 +105,12 @@ int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned char
 }
 EXPORT_SYMBOL(sensor_read_reg_for_test);
 
-int sensor_read_reg(struct atto320 *priv,unsigned int addr, unsigned char *val)
+int sensor_read_reg(struct device *devatto,unsigned int addr, unsigned char *val)
 {
 	unsigned int reg_val;
-	int err;int save_i2c_addr;
-	save_i2c_addr = priv->i2c_client->addr;
-	priv->i2c_client->addr = 0x12;
+	int err;
+	struct atto320 *priv = dev_get_drvdata(devatto);
+
 	err = regmap_read(priv->regmap, addr, &reg_val);
 	*val = reg_val;
 	if(err)
@@ -122,7 +123,7 @@ int sensor_read_reg(struct atto320 *priv,unsigned int addr, unsigned char *val)
 	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(1000, 2000);
-	priv->i2c_client->addr = save_i2c_addr;
+
 	return err;
 }
 EXPORT_SYMBOL(sensor_read_reg);
@@ -133,8 +134,8 @@ EXPORT_SYMBOL(sensor_read_reg);
 int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val)
 {
 	struct max9296 *priv;
-	int err;int save_i2c_addr;
-	save_i2c_addr = priv->i2c_client->addr;
+	int err;
+
 	priv = dev_get_drvdata(dev);
 	priv->i2c_client->addr = 0x12;
 
@@ -149,16 +150,16 @@ int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val)
 	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(100, 110);
-	priv->i2c_client->addr = save_i2c_addr;
+	priv->i2c_client->addr = 0x48;
 
 	return err;
 }
 EXPORT_SYMBOL(sensor_write_reg_for_test);
 
-int sensor_write_reg(struct atto320 *priv,u16 addr, u8 val)
+int sensor_write_reg(struct device *devatto,u16 addr, u8 val)
 {
 	int err;
-	priv->i2c_client->addr = 0x12;
+	struct atto320 *priv = dev_get_drvdata(devatto);
 	err = regmap_write(priv->regmap, addr, val);
 	if (err)
 	{
@@ -168,7 +169,7 @@ int sensor_write_reg(struct atto320 *priv,u16 addr, u8 val)
 	{
 		dev_err(priv->dser_dev,"%s:sensor i2c write OK, 0x%x = %x\n",__func__, addr, val);
 	}
-	priv->i2c_client->addr = 0x48;
+
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(100, 110);
 	return err;
@@ -285,14 +286,14 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	int err = 0;
 	int des_err = 0;
 	
-	struct device *dev;
+	struct device *devatto;
 	int val_video_lock = 0xAA;
 	//int i=0;
 
 	if (!priv || !priv->ser_dev || !priv->dser_dev || !priv->i2c_client)
 		return -EINVAL;
 
-	dev = &priv->i2c_client->dev;
+	devatto = &priv->i2c_client->dev;
 
 	mutex_lock(&serdes_lock__);
 
@@ -300,14 +301,14 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	max9296_power_on(priv->dser_dev);
 
 	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
-	dev_err(dev, "before init serializer: video lock result 0x%x \n",val_video_lock);
+	dev_err(devatto, "before init serializer: video lock result 0x%x \n",val_video_lock);
 
 
 	/* setup serdes addressing and control pipeline */
 	err = max9296_setup_link(priv->dser_dev, &priv->i2c_client->dev);
 	if (err)
 	{
-		dev_err(dev, "gmsl deserializer link config failed\n");
+		dev_err(devatto, "gmsl deserializer link config failed\n");
 		goto error;
 	}
 
@@ -318,7 +319,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 
 	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
 	// sensor atto320 Init
-	atto_init(priv->ser_dev,priv);
+	atto_init(priv->ser_dev,devatto);
 	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
 	// read max9271 ID
 	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
@@ -339,7 +340,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	}
 	else
 	{
-		dev_err(dev, "Link init ERROR \n");
+		dev_err(devatto, "Link init ERROR \n");
 	}
 	
 	//err = max9295_setup_control(priv->ser_dev);
@@ -350,12 +351,12 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	//for (i = 0 ; i<255 ; i++)
 
 	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
-	dev_err(dev, "after init serializer: video lock result 0x%x \n",val_video_lock);
+	dev_err(devatto, "after init serializer: video lock result 0x%x \n",val_video_lock);
 
 	des_err = max9296_setup_control(priv->dser_dev, &priv->i2c_client->dev);
 	if (des_err) 
 	{
-		dev_err(dev, "gmsl deserializer setup control failed\n");
+		dev_err(devatto, "gmsl deserializer setup control failed\n");
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
 	}
@@ -1226,15 +1227,15 @@ static void __exit atto320_exit(void)
 	i2c_del_driver(&atto320_i2c_driver);
 }
 
-static int prog_gsk (unsigned short val,struct atto320 *priv)
+static int prog_gsk (unsigned short val,struct device *devatto)
   {
     int ret = 0;
     if (val < 1024) // gsk sur 10 bits
       {
-        ret = I2C_Ulis_WriteReg (0x4C, (unsigned char)(val>>8),priv);
+        ret = I2C_Ulis_WriteReg (0x4C, (unsigned char)(val>>8),devatto);
         if (ret <0) return ret;
 
-        ret = I2C_Ulis_WriteReg (0x4D, (unsigned char)(val & 0xFF),priv);
+        ret = I2C_Ulis_WriteReg (0x4D, (unsigned char)(val & 0xFF),devatto);
         if (ret <0) return ret;
 
         //global_det_infos.gsk = val;
@@ -1244,12 +1245,12 @@ static int prog_gsk (unsigned short val,struct atto320 *priv)
 
 
 // reset detecteur (specifique par module)
-static int prog_gfid (unsigned short val,struct atto320 *priv)
+static int prog_gfid (unsigned short val,struct device *devatto)
   {
     int ret = 0;
     if (val < 256) // gfid sur 8 bits
       {
-        ret = I2C_Ulis_WriteReg (0x4B, (unsigned char)val,priv);
+        ret = I2C_Ulis_WriteReg (0x4B, (unsigned char)val,devatto);
         //if (ret >=0) global_det_infos.gfid = val;
       }
     return ret;
@@ -1258,13 +1259,13 @@ static int prog_gfid (unsigned short val,struct atto320 *priv)
 //
 // ecritures de base
 //
-static int prog_i2cdiff (unsigned char val,struct atto320 *priv)
+static int prog_i2cdiff (unsigned char val,struct device *devatto)
 {
     unsigned short reg = 0x5C;
     unsigned char readval;
     int ret = 0;
 
-    if ((ret = sensor_read_reg(priv,reg,&readval)) < 0) return ret;
+    if ((ret = sensor_read_reg(devatto,reg,&readval)) < 0) return ret;
 
     if (val)
       {
@@ -1275,53 +1276,53 @@ static int prog_i2cdiff (unsigned char val,struct atto320 *priv)
         val = readval & 0xFE;
       }
 
-    ret = I2C_Ulis_WriteReg (reg, (unsigned char)val,priv);
+    ret = I2C_Ulis_WriteReg (reg, (unsigned char)val,devatto);
     return ret;
 }
 
 
-short atto_gfid (unsigned short val,struct atto320 *priv)
+short atto_gfid (unsigned short val,struct device *devatto)
   {
     unsigned char readval;
     short retval;
     int ok=0;
 
     // lecture
-    if ((ok = sensor_read_reg(priv,0x4B,&readval)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(devatto,0x4B,&readval)) < 0) return (short)ok;
     retval = (short)readval;
 
     // ecriture
     if (val < 256) // gfid sur 8 bits
       {
-        if ((ok = prog_i2cdiff(0,priv)) < 0) return (short)ok;
-        if ((ok = prog_gfid (val,priv)) < 0) return (short)ok;
-        if ((ok = prog_i2cdiff(1,priv)) < 0) return (short)ok;
+        if ((ok = prog_i2cdiff(0,devatto)) < 0) return (short)ok;
+        if ((ok = prog_gfid (val,devatto)) < 0) return (short)ok;
+        if ((ok = prog_i2cdiff(1,devatto)) < 0) return (short)ok;
       }
     return retval;
   }
 
-short atto_gsk (unsigned short val,struct atto320 *priv)
+short atto_gsk (unsigned short val,struct device *devatto)
   {
     unsigned char readvalmsb, readvallsb;
     short retval;
     int ok;
 
     // lecture
-    if ((ok = sensor_read_reg(priv,0x4C,&readvalmsb)) < 0) return (short)ok;
-    if ((ok = sensor_read_reg(priv,0x4D,&readvallsb)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(devatto,0x4C,&readvalmsb)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(devatto,0x4D,&readvallsb)) < 0) return (short)ok;
     retval = (short)( ((readvalmsb & 0x03) << 8) | readvallsb);
 
     // ecriture
     if (val < 1024) // gsk sur 10 bits
       {
-        if ((ok = prog_i2cdiff(0,priv)) < 0) return (short)ok;
-        if ((ok = prog_gsk (val,priv))  < 0) return (short)ok;
-        if ((ok = prog_i2cdiff(1,priv)) < 0) return (short)ok;
+        if ((ok = prog_i2cdiff(0,devatto)) < 0) return (short)ok;
+        if ((ok = prog_gsk (val,devatto))  < 0) return (short)ok;
+        if ((ok = prog_i2cdiff(1,devatto)) < 0) return (short)ok;
       }
     return retval;
   }
 
-short atto_gain (unsigned short val,struct atto320 *priv)
+short atto_gain (unsigned short val,struct device *devatto)
   {
     unsigned char readval;
     short retval;
@@ -1329,67 +1330,67 @@ short atto_gain (unsigned short val,struct atto320 *priv)
     int ok;
 
     // lecture
-    if ((ok = sensor_read_reg(priv,reg,&readval)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(devatto,reg,&readval)) < 0) return (short)ok;
     retval = (short)((readval & 0x70)>>4);
 
     // ecriture
     if (val < 8) // gain sur 3 bits
       {
-        ok = I2C_Ulis_WriteReg (reg, (unsigned char)( (readval & 0x8F) | (val << 4) ),priv);
+        ok = I2C_Ulis_WriteReg (reg, (unsigned char)( (readval & 0x8F) | (val << 4) ),devatto);
         if (ok < 0) return (short) ok;
         //global_det_infos.gain = val;
       }
     return retval;
   }
 
-short atto_tint (unsigned short val,struct atto320 *priv)
+short atto_tint (unsigned short val,struct device *devatto)
   {
     unsigned char readvalmsb, readvallsb;
     short retval;
     int ok;
 
     // lecture
-    if ((ok = sensor_read_reg(priv,0x4F,&readvalmsb)) < 0) return (short)ok;
-    if ((ok = sensor_read_reg(priv,0x50,&readvallsb)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(devatto,0x4F,&readvalmsb)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(devatto,0x50,&readvallsb)) < 0) return (short)ok;
 
     retval = (short)( ((readvalmsb & 0x3F) << 8) + readvallsb);
 
     // ecriture
     if (val < 16384) // gsk sur 14 bits
       {
-        if ((ok = I2C_Ulis_WriteReg (0x4F, (unsigned char)(val>>8),priv))< 0) return (short)ok;
-        if ((ok = I2C_Ulis_WriteReg (0x50, (unsigned char)(val & 0xFF),priv)) < 0) return (short)ok;
+        if ((ok = I2C_Ulis_WriteReg (0x4F, (unsigned char)(val>>8),devatto))< 0) return (short)ok;
+        if ((ok = I2C_Ulis_WriteReg (0x50, (unsigned char)(val & 0xFF),devatto)) < 0) return (short)ok;
         //global_det_infos.tint = val;
       }
 
     return retval;
   }
 
-int atto_polars (unsigned short gain, unsigned short gfid, unsigned short gsk,struct atto320 *priv)
+int atto_polars (unsigned short gain, unsigned short gfid, unsigned short gsk,struct device *devatto)
   {
     int ok = 0;
-    if ((ok = atto_gain (gain,priv)) < 0) return ok;
-    if ((ok = prog_i2cdiff(0,priv))  < 0) return ok;
-    if ((ok = prog_gfid (gfid,priv)) < 0) return ok;
-    if ((ok = prog_gsk  (gsk,priv))  < 0) return ok;
-    if ((ok = prog_i2cdiff(1,priv))  < 0) return ok;
+    if ((ok = atto_gain (gain,devatto)) < 0) return ok;
+    if ((ok = prog_i2cdiff(0,devatto))  < 0) return ok;
+    if ((ok = prog_gfid (gfid,devatto)) < 0) return ok;
+    if ((ok = prog_gsk  (gsk,devatto))  < 0) return ok;
+    if ((ok = prog_i2cdiff(1,devatto))  < 0) return ok;
     return ok;
   }
 
 
 
-int I2C_Ulis_WriteReg (unsigned short reg, unsigned char data,struct atto320 *priv)
+int I2C_Ulis_WriteReg (unsigned short reg, unsigned char data,struct device *devatto)
 {
 	int ok = 0;
 	//ok = sensor_write_reg_for_test(dser_dev,reg,data);
-	ok = sensor_write_reg(priv,reg,data);
+	ok = sensor_write_reg(devatto,reg,data);
     //if (ok < 0) I2C_ErrLastData = reg;
 	usleep_range(100, 200); // 100 us
     return ok;
 }
 
 
-int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct atto320 *priv)
+int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct device *devatto)
 {
 /*    unsigned char data[3];
     int ok=0;
@@ -1410,7 +1411,7 @@ int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct atto320 *
     return ok;
 */
 	int ok=0;
-	ok = sensor_read_reg(priv,reg,result);
+	ok = sensor_read_reg(devatto,reg,result);
 	return ok;
 }
 
@@ -1422,7 +1423,7 @@ void atto_reset(unsigned char val,struct samba_max9271 *priv)
     samba_max9271_write(priv->i2c_client,0x0F,val);
 }
 
-void atto_init(struct device *ser_dev,struct atto320 *priv)
+void atto_init(struct device *ser_dev,struct device *devatto)
  {
     //unsigned long gfid, gsk, gain, tint;
 	struct samba_max9271 *priv_ser = dev_get_drvdata(ser_dev);
@@ -1433,13 +1434,13 @@ void atto_init(struct device *ser_dev,struct atto320 *priv)
     atto_reset (1,priv_ser);
 
     // etape 6
-    I2C_Ulis_WriteReg (0x41, 0x20,priv);
+    I2C_Ulis_WriteReg (0x41, 0x20,devatto);
     //I2C_Ulis_WriteReg (0x5B, 0x33);
 
     // Default polarisation "nominal quick start"
-    atto_gfid (0x92,priv);
-    atto_tint (154,priv);
-    atto_gain (5,priv);
+    atto_gfid (0x92,devatto);
+    atto_tint (154,devatto);
+    atto_gain (5,devatto);
 
     // lecture valeurs courantes (au cas ou l'ecriture aurait fait ko)
     //global_det_infos.tint = atto_tint ((unsigned short)-1);
@@ -1448,20 +1449,20 @@ void atto_init(struct device *ser_dev,struct atto320 *priv)
     //global_det_infos.gsk  = atto_gsk  ((unsigned short)-1);
 
     //Xmin
-    I2C_Ulis_WriteReg (0x47, 0x00,priv);
-    I2C_Ulis_WriteReg (0x48, 0x00,priv);
+    I2C_Ulis_WriteReg (0x47, 0x00,devatto);
+    I2C_Ulis_WriteReg (0x48, 0x00,devatto);
 
     //Xmax
-    I2C_Ulis_WriteReg (0x49, 0x01,priv);
-    I2C_Ulis_WriteReg (0x4A, 0x3F,priv);
+    I2C_Ulis_WriteReg (0x49, 0x01,devatto);
+    I2C_Ulis_WriteReg (0x4A, 0x3F,devatto);
 
     //Ymin
-    I2C_Ulis_WriteReg (0x43, 0x00,priv);
-    I2C_Ulis_WriteReg (0x44, 0x00,priv);
+    I2C_Ulis_WriteReg (0x43, 0x00,devatto);
+    I2C_Ulis_WriteReg (0x44, 0x00,devatto);
 
     //Ymax
-    I2C_Ulis_WriteReg (0x45, 0x00,priv);
-    I2C_Ulis_WriteReg (0x46, 239,priv);
+    I2C_Ulis_WriteReg (0x45, 0x00,devatto);
+    I2C_Ulis_WriteReg (0x46, 239,devatto);
 
 #if 0
     // polarisations
@@ -1491,16 +1492,16 @@ void atto_init(struct device *ser_dev,struct atto320 *priv)
 #endif
 
     // etape 8
-    I2C_Ulis_WriteReg (0x41, 0x20,priv);
+    I2C_Ulis_WriteReg (0x41, 0x20,devatto);
 
     //Interframe 1
     //I2C_Ulis_WriteReg (0x56, 10);
 
     // etape 9
-    I2C_Ulis_WriteReg (0x5C, 0x01,priv);
+    I2C_Ulis_WriteReg (0x5C, 0x01,devatto);
 
     // etape 10
-    I2C_Ulis_WriteReg (0x5C, 0x05,priv);
+    I2C_Ulis_WriteReg (0x5C, 0x05,devatto);
  }
 
 

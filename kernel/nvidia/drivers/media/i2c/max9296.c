@@ -234,11 +234,13 @@ static int max9296_get_sdev_idx(struct device *dev,
 	int err = 0;
 
 	mutex_lock(&priv->lock);
-	for (i = 0; i < priv->max_src; i++) {
+	for (i = 0; i < priv->max_src; i++)
+	{
 		if (priv->sources[i].g_ctx->s_dev == s_dev)
 			break;
 	}
-	if (i == priv->max_src) {
+	if (i == priv->max_src)
+	{
 		dev_err(dev, "no sdev found\n");
 		err = -EINVAL;
 		goto ret;
