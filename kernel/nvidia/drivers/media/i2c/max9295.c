@@ -173,7 +173,7 @@ int samba_max9271_wake_up(struct device *dev, unsigned int reg,unsigned int link
 	//priv->i2c_client->addr = addr_i2c;
 	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
 	status = i2c_smbus_read_byte_data(priv->i2c_client,reg);
-	usleep_range(30000, 80000);
+	usleep_range(200000, 300000);
 	if(status<0)
 	{
 		dev_err(dev," Samba max9271 wakeup failed KO status addr =0x%x value = 0x%x linkid: %d\n",reg,status,linkid);
@@ -460,7 +460,10 @@ int InitSerdes(struct device *dser_dev,struct device *ser_dev)
 	//- INTTYPE=00
 	//- REVCCEN=1=>Enable reverse control channel from deserializer (receiving)
 	//- FWDCCEN=1=>Enable forward control channel to deserializer (sending)
-	ret = samba_max9271_write(priv->i2c_client,0x04, 0x83);
+	//ret = samba_max9271_write(priv->i2c_client,0x04, 0x83);
+	samba_max9271_set_serial_link(ser_dev,true);
+	/* proceed even if ser setup failed, to setup deser correctly */
+
 
 	// Reg 0x5
 	//- I2CMETHOD=1 =>Disable sending of I2C register address when converting
@@ -728,7 +731,7 @@ int samba_max9271_set_serial_link(struct device *ser, bool enable)
 	struct samba_max9271 *priv = dev_get_drvdata(ser); 
 	u8 val = MAX9271_REVCCEN | MAX9271_FWDCCEN;
 
-	dev_err(ser, "Set serial link max9271 \n");
+	dev_err(ser, "samba Set serial link max9271 \n");
 
 	if (enable)
 	{
@@ -737,11 +740,12 @@ int samba_max9271_set_serial_link(struct device *ser, bool enable)
 			return ret;
 
 		val |= MAX9271_SEREN;
-		dev_err(ser, "Set serial link max9271 \n");
+		dev_err(ser, "samba Set serial link max9271 set SEREN\n");
 	}
 	else
 	{
 		val |= MAX9271_CLINKEN;
+		dev_err(ser, "Set serial link max9271 set CLKINKEN\n");
 	}
 
 	/*
@@ -757,7 +761,10 @@ int samba_max9271_set_serial_link(struct device *ser, bool enable)
 	 */
 	ret = samba_max9271_write(priv->i2c_client, 0x04, val);
 	if (ret < 0)
+	{
+		dev_err(ser, "samba Set serial link max9271 error\n");
 		return ret;
+	}
 
 	usleep_range(5000, 8000);
 

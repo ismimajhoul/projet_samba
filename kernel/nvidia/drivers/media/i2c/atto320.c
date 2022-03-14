@@ -297,7 +297,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	max9296_power_on(priv->dser_dev);
 
 	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
-	dev_err(dev, "video lock result 0x%x \n",val_video_lock);
+	dev_err(dev, "before init serializer: video lock result 0x%x \n",val_video_lock);
 
 
 	/* setup serdes addressing and control pipeline */
@@ -307,6 +307,37 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		dev_err(dev, "gmsl deserializer link config failed\n");
 		goto error;
 	}
+
+	//samba_max9271_set_serial_link(priv->ser_dev,true);
+	/* proceed even if ser setup failed, to setup deser correctly */
+	//if (err)
+	//	dev_err(dev, "gmsl serializer setup link failed\n");
+
+	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
+	// sensor atto320 Init
+	atto_init(priv->ser_dev,priv);
+	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
+	// read max9271 ID
+	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
+
+
+	// Init max9271 registers
+	InitSerdes(priv->dser_dev,priv->ser_dev);
+
+
+	// Init deser link A or link B
+	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
+	{
+		InitDeserLinkA(priv->dser_dev);
+	}
+	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B)
+	{
+		InitDeserLinkB(priv->dser_dev);
+	}
+	else
+	{
+		dev_err(dev, "Link init ERROR \n");
+	}
 	
 	//err = max9295_setup_control(priv->ser_dev);
 
@@ -314,17 +345,9 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	//err = samba_max9271_setup_control(priv->ser_dev);
 	
 	//for (i = 0 ; i<255 ; i++)
-	
-
-	samba_max9271_set_serial_link(priv->ser_dev,true);
-	/* proceed even if ser setup failed, to setup deser correctly */
-	if (err)
-		dev_err(dev, "gmsl serializer setup link failed\n");
 
 	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
-	dev_err(dev, "video lock result 0x%x \n",val_video_lock);
-
-
+	dev_err(dev, "after init serializer: video lock result 0x%x \n",val_video_lock);
 
 	des_err = max9296_setup_control(priv->dser_dev, &priv->i2c_client->dev);
 	if (des_err) 
@@ -333,8 +356,6 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
 	}
-
-
 
 error:
 	mutex_unlock(&serdes_lock__);
@@ -1116,29 +1137,7 @@ static int atto320_probe(struct i2c_client *client,
 #endif
 
 
-	// sensor atto320 Init
-	atto_init(priv->ser_dev,priv);
 
-	// read max9271 ID
-	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
-
-	// Init max9271 registers
-	InitSerdes(priv->dser_dev,priv->ser_dev);
-
-
-	// Init deser link A or link B
-	if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_A)
-	{
-		InitDeserLinkA(priv->dser_dev);
-	}
-	else if(priv->g_ctx.serdes_csi_link == GMSL_SERDES_CSI_LINK_B)
-	{
-		InitDeserLinkB(priv->dser_dev);
-	}
-	else
-	{
-		dev_err(&client->dev, "Link init ERROR \n");
-	}
 
 	/*
 	 * gmsl serdes setup

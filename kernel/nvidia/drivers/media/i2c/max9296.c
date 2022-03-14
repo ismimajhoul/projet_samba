@@ -436,7 +436,8 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 
 	mutex_lock(&priv->lock);
 
-	if (!priv->link_setup) {
+	if (!priv->link_setup)
+	{
 		dev_err(dev, "%s: invalid state\n", __func__);
 		err = -EINVAL;
 		goto error;
@@ -457,10 +458,12 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 
 		//max9296_write_reg(dev,0x6 , MAX9296_SEL_I2C);
 		priv->splitter_enabled = true;
-		
+		dev_err(dev, "%s: splitter_enablen", __func__);
 		/* delay to settle link */
 		msleep(100);
 	}
+	else
+		dev_err(dev, "%s: splitter not enable state\n", __func__);
 
 	max9296_write_reg(dev,MAX9296_PWDN_PHYS_ADDR, MAX9296_ALLPHYS_NOSTDBY);
 
@@ -477,6 +480,7 @@ int max9296_setup_control(struct device *dev, struct device *s_dev)
 			goto error;
 
 		priv->splitter_enabled = false;
+		dev_err(dev, "%s: reset splitter mode state\n", __func__);
 	}
 
 
