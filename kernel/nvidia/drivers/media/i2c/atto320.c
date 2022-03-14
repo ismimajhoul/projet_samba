@@ -107,8 +107,9 @@ EXPORT_SYMBOL(sensor_read_reg_for_test);
 int sensor_read_reg(struct atto320 *priv,unsigned int addr, unsigned char *val)
 {
 	unsigned int reg_val;
-	int err;
-
+	int err;int save_i2c_addr;
+	save_i2c_addr = priv->i2c_client->addr;
+	priv->i2c_client->addr = 0x12;
 	err = regmap_read(priv->regmap, addr, &reg_val);
 	*val = reg_val;
 	if(err)
@@ -121,6 +122,7 @@ int sensor_read_reg(struct atto320 *priv,unsigned int addr, unsigned char *val)
 	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(1000, 2000);
+	priv->i2c_client->addr = save_i2c_addr;
 	return err;
 }
 EXPORT_SYMBOL(sensor_read_reg);
@@ -131,8 +133,8 @@ EXPORT_SYMBOL(sensor_read_reg);
 int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val)
 {
 	struct max9296 *priv;
-	int err;
-
+	int err;int save_i2c_addr;
+	save_i2c_addr = priv->i2c_client->addr;
 	priv = dev_get_drvdata(dev);
 	priv->i2c_client->addr = 0x12;
 
@@ -147,7 +149,7 @@ int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val)
 	}
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(100, 110);
-	priv->i2c_client->addr = 0x48;
+	priv->i2c_client->addr = save_i2c_addr;
 
 	return err;
 }
@@ -156,7 +158,7 @@ EXPORT_SYMBOL(sensor_write_reg_for_test);
 int sensor_write_reg(struct atto320 *priv,u16 addr, u8 val)
 {
 	int err;
-
+	priv->i2c_client->addr = 0x12;
 	err = regmap_write(priv->regmap, addr, val);
 	if (err)
 	{
@@ -166,6 +168,7 @@ int sensor_write_reg(struct atto320 *priv,u16 addr, u8 val)
 	{
 		dev_err(priv->dser_dev,"%s:sensor i2c write OK, 0x%x = %x\n",__func__, addr, val);
 	}
+	priv->i2c_client->addr = 0x48;
 	/* delay before next i2c command as required for SERDES link */
 	usleep_range(100, 110);
 	return err;
@@ -1065,6 +1068,11 @@ static int atto320_probe(struct i2c_client *client,
 			"atto320 regmap init failed: %ld\n", PTR_ERR(priv->regmap));
 		return -ENODEV;
 	}
+	else
+	{
+		dev_err(&client->dev,"atto320 i2c addr: 0x%x",priv->i2c_client->addr);
+	}
+
 
 
 

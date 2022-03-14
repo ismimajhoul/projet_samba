@@ -97,10 +97,13 @@ int max9296_power_on(struct device *dev);
 
 void max9296_power_off(struct device *dev);
 
-int max9296_write_reg(struct device *dev,
-	u16 addr, u8 val);
+int max9296_write_reg(struct device *dev,u16 addr, u8 val);
+
 int max9296_read_reg(struct device *dev,unsigned int addr, unsigned int *val);
 
+int InitDeserLinkA(struct device *dser_dev);
+
+int InitDeserLinkB(struct device *dser_dev);
 
 
 #endif  /* __MAX9296_H__ */

@@ -35,5 +35,5 @@ sudo cp -r modules/lib/modules/4.9.140-tegra/kernel/drivers/media Linux_for_Tegr
 
 cd modules/lib/modules/4.9.140-tegra
 
-cp modules.symbols modules.alias modules.dep modules.order modules.symbols.bin modules.dep.bin modules.alias.bin ../../../../Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/
+sudo cp modules.symbols modules.alias modules.dep modules.order modules.symbols.bin modules.dep.bin modules.alias.bin ../../../../Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/
 
