@@ -783,7 +783,8 @@ static int imx390_probe(struct i2c_client *client,
 		return -EINVAL;
 
 	priv = devm_kzalloc(dev, sizeof(struct imx390), GFP_KERNEL);
-	if (!priv) {
+	if (!priv)
+	{
 		dev_err(dev, "unable to allocate memory!\n");
 		return -ENOMEM;
 	}
@@ -801,7 +802,8 @@ static int imx390_probe(struct i2c_client *client,
 	tc_dev->tcctrl_ops = &imx390_ctrl_ops;
 
 	err = tegracam_device_register(tc_dev);
-	if (err) {
+	if (err)
+	{
 		dev_err(dev, "tegra camera driver registration failed\n");
 		return err;
 	}
@@ -813,21 +815,24 @@ static int imx390_probe(struct i2c_client *client,
 	tegracam_set_privdata(tc_dev, (void *)priv);
 
 	err = imx390_board_setup(priv);
-	if (err) {
+	if (err)
+	{
 		dev_err(dev, "board setup failed\n");
 		return err;
 	}
 
 	/* Pair sensor to serializer dev */
 	err = max9295_sdev_pair(priv->ser_dev, &priv->g_ctx);
-	if (err) {
+	if (err)
+	{
 		dev_err(&client->dev, "gmsl ser pairing failed\n");
 		return err;
 	}
 
 	/* Register sensor to deserializer dev */
 	err = max9296_sdev_register(priv->dser_dev, &priv->g_ctx);
-	if (err) {
+	if (err)
+	{
 		dev_err(&client->dev, "gmsl deserializer register failed\n");
 		return err;
 	}

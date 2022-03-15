@@ -3295,8 +3295,8 @@ struct atto320 {
 
 int sensor_write_reg_for_test(struct device *dev,u16 addr, u8 val);
 int sensor_read_reg_for_test(struct device *dev,unsigned int addr, unsigned char *val);
-int sensor_read_reg(struct device *devatto,unsigned int addr, unsigned char *val);
-int sensor_write_reg(struct device *devatto,u16 addr, u8 val);
+static int sensor_read_reg(struct camera_common_data *s_data,u16 addr, u8 *val);
+static int sensor_write_reg(struct camera_common_data *s_data,u16 addr, u8 val);
 
 
 
