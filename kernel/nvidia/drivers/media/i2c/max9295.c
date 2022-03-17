@@ -174,7 +174,8 @@ int samba_max9271_wake_up(struct device *dev, unsigned int reg,unsigned int link
 	//priv->i2c_client->addr = addr_i2c;
 	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
 	status = i2c_smbus_read_byte_data(priv->i2c_client,reg);
-	usleep_range(200000, 300000);
+	usleep_range(800000, 900000);
+	usleep_range(800000, 900000);
 	if(status<0)
 	{
 		dev_err(dev," Samba max9271 wakeup failed KO status addr =0x%x value = 0x%x linkid: %d\n",reg,status,linkid);

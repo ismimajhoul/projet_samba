@@ -314,6 +314,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	int des_err = 0;
 	struct device *devatto;
 	int val_video_lock = 0xAA;
+	int value;
 	struct camera_common_data *s_data = priv->s_data;
 
 	if (!priv || !priv->ser_dev || !priv->dser_dev || !priv->i2c_client)
@@ -325,6 +326,11 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 
 	/* For now no separate power on required for serializer device */
 	max9296_power_on(priv->dser_dev);
+
+	//lecture du gmsl1 link locked
+
+	max9296_read_reg(priv->dser_dev,0xBCB, &value);
+	dev_err(devatto,"before init sensor and serializer MAX9296 link locked value = 0x%x\n",value);
 
 	max9296_read_reg(priv->dser_dev,0xBCA, &val_video_lock);
 	dev_err(devatto, "before init serializer: video lock result 0x%x \n",val_video_lock);
@@ -342,17 +348,22 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	/* proceed even if ser setup failed, to setup deser correctly */
 	//if (err)
 	//	dev_err(dev, "gmsl serializer setup link failed\n");
-
-	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
-	// sensor atto320 Init
-	atto_init(priv->ser_dev,s_data);
-	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
 	// read max9271 ID
 	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
+	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
+	samba_max9271_wake_up(priv->ser_dev,0x4,priv->linkID);
 
-
+	// sensor atto320 Init
+	atto_init(priv->ser_dev,s_data);
 	// Init max9271 registers
 	InitSerdes(priv->dser_dev,priv->ser_dev);
+	// read max971 registers after init sensor
+	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
+	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
+	samba_max9271_wake_up(priv->ser_dev,0x4,priv->linkID);
+
+
+
 
 
 	// Init deser link A or link B
