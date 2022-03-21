@@ -2620,11 +2620,11 @@
 				#size-cells = <0x00>;
 				status = "okay";
 
-				ar0330_a@43 {
+				atto640_a@43 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -2812,11 +2812,11 @@
 					};
 				};
 
-				ar0330_b@44 {
+				atto640_b@44 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3011,11 +3011,11 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				ar0330_c@43 {
+				atto640_c@43 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3203,11 +3203,11 @@
 					};
 				};
 
-				ar0330_d@44 {
+				atto640_d@44 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3402,11 +3402,11 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				ar0330_e@43 {
+				atto640_e@43 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3594,11 +3594,11 @@
 					};
 				};
 
-				ar0330_f@44 {
+				atto640_f@44 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3793,11 +3793,11 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				ar0330_g@43 {
+				atto640_g@43 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3985,11 +3985,11 @@
 					};
 				};
 
-				ar0330_h@44 {
+				atto640_h@44 {
 					status = "okay";
-					compatible = "nvidia,ar0330";
+					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -9377,7 +9377,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-1 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/ar0330_a@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/atto640_a@43";
 					status = "okay";
 				};
 			};
@@ -9390,7 +9390,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-2 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/ar0330_b@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/atto640_b@44";
 					status = "okay";
 				};
 			};
@@ -9403,7 +9403,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-3 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/ar0330_c@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/atto640_c@43";
 					status = "okay";
 				};
 			};
@@ -9416,7 +9416,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-4 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/ar0330_d@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/atto640_d@44";
 					status = "okay";
 				};
 			};
@@ -9429,7 +9429,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-5 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/ar0330_e@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/atto640_e@43";
 					status = "okay";
 				};
 			};
@@ -9442,7 +9442,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-6 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/ar0330_f@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/atto640_f@44";
 					status = "okay";
 				};
 			};
@@ -9455,7 +9455,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-7 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/ar0330_g@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/atto640_g@43";
 					status = "okay";
 				};
 			};
@@ -9468,7 +9468,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-8 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/ar0330_h@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/atto640_h@44";
 					status = "okay";
 				};
 			};
@@ -9587,14 +9587,14 @@
 		dp_aux_ch0_i2c = "/i2c@31b0000";
 		dp_aux_ch2_i2c = "/i2c@31c0000";
 		gen8_i2c = "/i2c@c250000";
-		ecam_ar0330_out0 = "/i2c@c250000/tca9544@72/i2c@0/ar0330_a@43/ports/port@0/endpoint";
-		ecam_ar0330_out1 = "/i2c@c250000/tca9544@72/i2c@0/ar0330_b@44/ports/port@0/endpoint";
-		ecam_ar0330_out2 = "/i2c@c250000/tca9544@72/i2c@1/ar0330_c@43/ports/port@0/endpoint";
-		ecam_ar0330_out3 = "/i2c@c250000/tca9544@72/i2c@1/ar0330_d@44/ports/port@0/endpoint";
-		ecam_ar0330_out4 = "/i2c@c250000/tca9544@72/i2c@2/ar0330_e@43/ports/port@0/endpoint";
-		ecam_ar0330_out5 = "/i2c@c250000/tca9544@72/i2c@2/ar0330_f@44/ports/port@0/endpoint";
-		ecam_ar0330_out6 = "/i2c@c250000/tca9544@72/i2c@3/ar0330_g@43/ports/port@0/endpoint";
-		ecam_ar0330_out7 = "/i2c@c250000/tca9544@72/i2c@3/ar0330_h@44/ports/port@0/endpoint";
+		ecam_atto640_out0 = "/i2c@c250000/tca9544@72/i2c@0/atto640_a@43/ports/port@0/endpoint";
+		ecam_atto640_out1 = "/i2c@c250000/tca9544@72/i2c@0/atto640_b@44/ports/port@0/endpoint";
+		ecam_atto640_out2 = "/i2c@c250000/tca9544@72/i2c@1/atto640_c@43/ports/port@0/endpoint";
+		ecam_atto640_out3 = "/i2c@c250000/tca9544@72/i2c@1/atto640_d@44/ports/port@0/endpoint";
+		ecam_atto640_out4 = "/i2c@c250000/tca9544@72/i2c@2/atto640_e@43/ports/port@0/endpoint";
+		ecam_atto640_out5 = "/i2c@c250000/tca9544@72/i2c@2/atto640_f@44/ports/port@0/endpoint";
+		ecam_atto640_out6 = "/i2c@c250000/tca9544@72/i2c@3/atto640_g@43/ports/port@0/endpoint";
+		ecam_atto640_out7 = "/i2c@c250000/tca9544@72/i2c@3/atto640_h@44/ports/port@0/endpoint";
 		dp_aux_ch3_i2c = "/i2c@31e0000";
 		mttcan0 = "/mttcan@c310000";
 		mttcan1 = "/mttcan@c320000";

@@ -22,3 +22,7 @@ obj-$(CONFIG_I2C_IOEXPANDER_SER_MAX9271) += max9271.o
 obj-$(CONFIG_I2C_IOEXPANDER_DESER_MAX9296) += max9296.o
 obj-$(CONFIG_VIDEO_IMX390) += imx390.o
 obj-$(CONFIG_VIDEO_ATTO320) += atto320.o
+obj-$(CONFIG_VIDEO_ECAM) += ar0330.o
+ar0330-objs := serdes.o ar0330_common.o
+obj-$(CONFIG_VIDEO_ATTO640) += atto640.o
+atto640-objs := serdes_atto640.o atto640_common.o

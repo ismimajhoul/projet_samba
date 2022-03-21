@@ -167,14 +167,23 @@ config VIDEO_IMX390
 
 
 config VIDEO_ATTO320
-	tristate "IMX390 camera sensor support"
+	tristate "ATTO320 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C_IOEXPANDER_SER_MAX9271 && I2C_IOEXPANDER_DESER_MAX9296
+	---help---
+	  This is a Video4Linux2 sensor-level driver for the Sony
+	  ATTO320camera sensor
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called atto320.
+config VIDEO_ATTO640
+	tristate "ATTO640 camera sensor support"
+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	---help---
 	  This is a Video4Linux2 sensor-level driver for the Sony
 	  ATTO320_D camera sensor
 
 	  To compile this driver as a module, choose M here: the module
-	  will be called imx390.
+	  will be called atto640.	  
 endmenu
 
 endif
