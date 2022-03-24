@@ -32,6 +32,8 @@
 #include <media/serdes_atto640.h>
 #include <media/mcu_firmware_atto640.h>
 
+#include <media/max9296.h>
+
 #define DEBUG_PRINTK
 #ifndef DEBUG_PRINTK
 #define debug_printk(s , ... )
@@ -1643,38 +1645,61 @@ static int atto640_mcu_get_fw_version(struct i2c_client *client,
 	mc_data_atto640[0] = CMD_SIGNATURE;
 	mc_data_atto640[1] = CMD_ID_VERSION;
 	err = atto640_write(client, mc_data_atto640, 2);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) MCU CMD ID Write PKT fw Version Error - %d \n", __func__,
 				__LINE__, ret);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) MCU CMD ID Write PKT fw Version OK - %d \n", __func__,	__LINE__, ret);
+	}
 
 	err = atto640_read(client, mc_ret_data_atto640, RX_LEN_PKT);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) MCU CMD ID Read PKT fw Version Error - %d \n", __func__,
 				__LINE__, ret);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) MCU CMD ID Read PKT fw Version OK - %d \n", __func__,
+				__LINE__, ret);
+	}
 
 	/* Verify CRC */
 	orig_crc = mc_ret_data_atto640[4];
 	calc_crc = atto640_errorcheck(&mc_ret_data_atto640[2], 2);
-	if (orig_crc != calc_crc) {
+	if (orig_crc != calc_crc)
+	{
 		dev_err(&client->dev," %s(%d) MCU CMD ID fw Version Error CRC 0x%02x != 0x%02x \n",
 				__func__, __LINE__, orig_crc, calc_crc);
 		ret = -EINVAL;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) MCU CMD ID fw Version OK CRC 0x%02x != 0x%02x \n",
+				__func__, __LINE__, orig_crc, calc_crc);
+	}
 
 
 	errcode = mc_ret_data_atto640[5];
-	if (errcode != ERRCODE_SUCCESS) {
+	if (errcode != ERRCODE_SUCCESS)
+	{
 		dev_err(&client->dev," %s(%d) MCU CMD ID fw Errcode - 0x%02x \n", __func__,
 				__LINE__, errcode);
 		ret = -EIO;
 		goto exit;
+	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) MCU CMD ID fw OK Errcode - 0x%02x \n", __func__,
+				__LINE__, errcode);
 	}
 
 
@@ -1683,46 +1708,72 @@ static int atto640_mcu_get_fw_version(struct i2c_client *client,
 		((mc_ret_data_atto640[2] << 8) | mc_ret_data_atto640[3]) + HEADER_FOOTER_SIZE;
 	memset(mc_ret_data_atto640, 0x00, payload_len);
 	err = atto640_read(client, mc_ret_data_atto640, payload_len);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) MCU fw CMD ID Read Version Error - %d \n", __func__,
 				__LINE__, ret);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) MCU fw CMD ID Read Version OK - %d \n", __func__,
+				__LINE__, ret);
+	}
 
 	/* Verify CRC */
 	orig_crc = mc_ret_data_atto640[payload_len - 2];
 	calc_crc = atto640_errorcheck(&mc_ret_data_atto640[2], 32);
-	if (orig_crc != calc_crc) {
+	if (orig_crc != calc_crc)
+	{
 		dev_err(&client->dev," %s(%d) MCU fw  CMD ID Version CRC ERROR 0x%02x != 0x%02x \n",
 				__func__, __LINE__, orig_crc, calc_crc);
 		ret = -EINVAL;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) MCU fw  CMD ID Version CRC OK 0x%02x != 0x%02x \n",
+				__func__, __LINE__, orig_crc, calc_crc);
+	}
 
 
 	/* Verify Errcode */
 	errcode = mc_ret_data_atto640[payload_len - 1];
-	if (errcode != ERRCODE_SUCCESS) {
+	if (errcode != ERRCODE_SUCCESS)
+	{
 		dev_err(&client->dev," %s(%d) MCU fw CMD ID Read Payload Error - 0x%02x \n", __func__,
 				__LINE__, errcode);
 		ret = -EIO;
 		goto exit;
+	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) MCU fw CMD ID Read Payload OK - 0x%02x \n", __func__,
+				__LINE__, errcode);
 	}
 	for (loop = 0 ; loop < VERSION_SIZE ; loop++ )
 		*(fw_version_atto640+loop) = mc_ret_data_atto640[2+loop];
 
 
 	/* Check for forced/always update field in the text firmware version*/
-	if(txt_fw_version_atto640[17] == '1') {
+	if(txt_fw_version_atto640[17] == '1')
+	{
 		dev_err(&client->dev, "Forced Update Enabled - Firmware Version - (%.4s - %.7s) \n",
 				&fw_version_atto640[2], &fw_version_atto640[18]);
 		ret = 2;
 		goto exit;
-	}		
+	}
+	else
+	{
+		dev_err(&client->dev, "OK Not Forced Update Enabled - Firmware Version - (%.4s - %.7s) \n",
+				&fw_version_atto640[2], &fw_version_atto640[18]);
+	}
 
-	for(i = 0; i < VERSION_SIZE; i++) {
-		if(txt_fw_version_atto640[i] != fw_version_atto640[i]) {
+	for(i = 0; i < VERSION_SIZE; i++)
+	{
+		if(txt_fw_version_atto640[i] != fw_version_atto640[i])
+		{
 			debug_printk("Previous Firmware Version - (%.4s-%.7s)\n",
 					&fw_version_atto640[2], &fw_version_atto640[18]);
 			debug_printk("Current Firmware Version - (%.4s-%.7s)\n", 
@@ -1766,37 +1817,57 @@ static int atto640_mcu_get_sensor_id(struct i2c_client *client, uint16_t * senso
 	mc_data_atto640[0] = CMD_SIGNATURE;
 	mc_data_atto640[1] = CMD_ID_GET_SENSOR_ID;
 	err = atto640_write(client, mc_data_atto640, 2);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
 		       __LINE__, err);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK - %d \n", __func__, __LINE__, err);
+	}
 
 	err = atto640_read(client, mc_ret_data_atto640, RX_LEN_PKT);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
 		       __LINE__, err);
 		ret = -EIO;
 		goto exit;
+	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK - %d \n", __func__,__LINE__, err);
 	}
 
 	/* Verify CRC */
 	orig_crc = mc_ret_data_atto640[4];
 	calc_crc = atto640_errorcheck(&mc_ret_data_atto640[2], 2);
-	if (orig_crc != calc_crc) {
-		dev_err(&client->dev," %s(%d) CRC 0x%02x != 0x%02x \n",
+	if (orig_crc != calc_crc)
+	{
+		dev_err(&client->dev," %s(%d) Different CRC 0x%02x != 0x%02x \n",
 		       __func__, __LINE__, orig_crc, calc_crc);
 		ret = -EINVAL;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) Same CRC 0x%02x == 0x%02x \n",__func__, __LINE__, orig_crc, calc_crc);
+	}
 
 	errcode = mc_ret_data_atto640[5];
-	if (errcode != ERRCODE_SUCCESS) {
+	if (errcode != ERRCODE_SUCCESS)
+	{
 		dev_err(&client->dev," %s(%d) Errcode - 0x%02x \n",
 		       __func__, __LINE__, errcode);
 		ret = -EIO;
 		goto exit;
+	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK Errcode - 0x%02x \n",__func__, __LINE__, errcode);
 	}
 
 	payload_len =
@@ -1804,30 +1875,47 @@ static int atto640_mcu_get_sensor_id(struct i2c_client *client, uint16_t * senso
 
 	memset(mc_ret_data_atto640, 0x00, payload_len);
 	err = atto640_read(client, mc_ret_data_atto640, payload_len);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
 		       __LINE__, err);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK - %d \n", __func__,__LINE__, err);
+	}
 
 	/* Verify CRC */
 	orig_crc = mc_ret_data_atto640[payload_len - 2];
 	calc_crc = atto640_errorcheck(&mc_ret_data_atto640[2], 2);
-	if (orig_crc != calc_crc) {
+	if (orig_crc != calc_crc)
+	{
 		dev_err(&client->dev," %s(%d) CRC 0x%02x != 0x%02x \n",
 		       __func__, __LINE__, orig_crc, calc_crc);
 		ret = -EINVAL;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK CRC 0x%02x != 0x%02x \n",
+		       __func__, __LINE__, orig_crc, calc_crc);
+	}
 
 	/* Verify Errcode */
 	errcode = mc_ret_data_atto640[payload_len - 1];
-	if (errcode != ERRCODE_SUCCESS) {
+	if (errcode != ERRCODE_SUCCESS)
+	{
 		dev_err(&client->dev," %s(%d) Errcode - 0x%02x \n",
 		       __func__, __LINE__, errcode);
 		ret = -EIO;
 		goto exit;
+	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK Errcode - 0x%02x \n",
+		       __func__, __LINE__, errcode);
 	}
 
 	*sensor_id = mc_ret_data_atto640[2] << 8 | mc_ret_data_atto640[3];
@@ -2608,12 +2696,82 @@ static int atto640_disable_phy(struct i2c_client *client, struct atto640 *priv, 
 	return 0;
 }
 
+#if 0
+static struct regmap_config max9296_regmap_config_test = {
+	.reg_bits = 16,
+	.val_bits = 8,
+	.cache_type = REGCACHE_RBTREE,
+};
+
+
+static int max9296_probe_test(struct i2c_client *client)
+{
+	struct max9296 *priv;
+	int err = 0;
+	unsigned int val;
+	unsigned int i;
+
+
+	dev_info(&client->dev, "[MAX9296]: probing GMSL Deserializer\n");
+
+	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+	priv->i2c_client = client;
+	priv->regmap = devm_regmap_init_i2c(priv->i2c_client,&max9296_regmap_config_test);
+	if (IS_ERR(priv->regmap))
+	{
+		dev_err(&client->dev,
+			"regmap init failed: %ld\n", PTR_ERR(priv->regmap));
+		return -ENODEV;
+	}
+
+#if 0
+	err = max9296_parse_dt(priv, client);
+	if (err)
+	{
+		dev_err(&client->dev, "unable to parse dt\n");
+		return -EFAULT;
+	}
+
+	max9296_pipes_reset(priv);
+
+	if (priv->max_src > MAX9296_MAX_SOURCES)
+	{
+		dev_err(&client->dev,
+			"max sources more than currently supported\n");
+		return -EINVAL;
+	}
+#endif
+
+	mutex_init(&priv->lock);
+
+	dev_set_drvdata(&client->dev, priv);
+
+	/* dev communication gets validated when GMSL link setup is done */
+	dev_info(&client->dev, "%s:  success\n", __func__);
+
+	for(i=0;i<32;i++)
+	{
+		client->addr = 0x48;
+		//dev_err(&client->dev,"%s: i2c reg = 0x%x",__func__, i);
+		if(i==0xd)
+			max9296_read_reg(&client->dev,i, &val);
+	}
+	return err;
+}
+#endif
+
+
+
+
+
+
 static int atto640_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
 	struct camera_common_data *common_data;
 	struct device_node *node = client->dev.of_node;
 	struct atto640 *priv;
+	uint8_t val_read = 0;
 
 	unsigned char fw_version_atto640[32] = {0}, txt_fw_version_atto640[32] = {0};
 	int ret, frm_fmt_size = 0, poc_enable = 0, loop;
@@ -2664,18 +2822,22 @@ skip_poc:
 
 
 	priv->pdata = atto640_parse_dt(client);
-	if (!priv->pdata) {
+	if (!priv->pdata)
+	{
 		dev_err(&client->dev, "unable to get platform data\n");
 		return -EFAULT;
 	}
 
 	err = of_property_read_string(node, "phy-id", &str);
-	if (!err) {
+	if (!err)
+	{
 		if (!strcmp(str, "A"))
 			priv->phy = PHY_A;
 		else
 			priv->phy = PHY_B;
-	} else {
+	}
+	else
+	{
 		return -EFAULT;	
 	}
 	
@@ -2695,8 +2857,13 @@ skip_poc:
 	err = atto640_power_on(common_data);
 	if (err)
 		return err;
+// Test max9296
+	//max9296_probe_test(client);
+	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0, &val_read);
+	atto640_serdes_read_16b_reg(client, priv->des_addr, 0xd, &val_read);
 
-	if(priv->phy == PHY_A || priv->phy == PHY_B) {
+	if(priv->phy == PHY_A || priv->phy == PHY_B)
+	{
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B07, 0x0C);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C07, 0x0C);
 		msleep(10);
@@ -2706,7 +2873,8 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0F06, 0x56);
 		
 		/* Address translate */
-		if(priv->phy == PHY_A) {
+		if(priv->phy == PHY_A)
+		{
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
@@ -2715,14 +2883,20 @@ skip_poc:
 			/* Change Serializer slave address */
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR2 << 1);
 
-			if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0) {
+			if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0)
+			{
 				printk(" Error Accessing PHYA serializer \n");
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 				return -EIO;
 			}
-			
+			else
+			{
+				printk(" OK Accessing PHYA serializer \n");
+			}
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
-		} else if (priv->phy == PHY_B) {
+		}
+		else if (priv->phy == PHY_B)
+		{
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
@@ -2732,11 +2906,16 @@ skip_poc:
 			/* Change Serializer slave address */
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
 
-			if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0) {
+			if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0)
+			{
 				printk(" Error Accessing PHYB serializer \n");
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 				return -EIO;
-			}			
+			}
+			else
+			{
+				printk(" OK Accessing PHYB serializer \n");
+			}
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 		}
 
@@ -2776,8 +2955,10 @@ skip_poc:
 
 
 	/* i2c address translated */
-	if(priv->phy == PHY_A) {
-		if(atto640_enable_phy(client, priv, PHY_A) < 0) {
+	if(priv->phy == PHY_A)
+	{
+		if(atto640_enable_phy(client, priv, PHY_A) < 0)
+		{
 			printk("Error Enabling PHYA \n");
 			return -EIO;
 		}
@@ -2787,7 +2968,8 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 
 		/* MCU RESET */
-		if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x0D, 0x8F) < 0) {
+		if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x0D, 0x8F) < 0)
+		{
 				printk(" Error Accessing PHYA serializer \n");
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 				atto640_disable_phy(client, priv, PHY_A);
@@ -2800,8 +2982,12 @@ skip_poc:
 		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x0F, MCU_ADDR2 << 1);
 		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
-	} else if(priv->phy == PHY_B) {
-		if(atto640_enable_phy(client, priv, PHY_B) < 0) {
+		atto640_serdes_read_8b_reg(client, SER_ADDR2, 0xD,&val_read);
+	}
+	else if(priv->phy == PHY_B)
+	{
+		if(atto640_enable_phy(client, priv, PHY_B) < 0)
+		{
 			printk("Error Enabling PHYB \n");
 			return -EIO;
 		}		
@@ -2810,7 +2996,8 @@ skip_poc:
 		priv->ser_addr = SER_ADDR3;
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 		/* MCU RESET */
-		if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x0D, 0x8F) < 0) {
+		if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x0D, 0x8F) < 0)
+		{
 				printk(" Error Accessing PHYA serializer \n");
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 				atto640_disable_phy(client, priv, PHY_B);
@@ -2822,13 +3009,17 @@ skip_poc:
 		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x0F, MCU_ADDR3 << 1);
 		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
+		atto640_serdes_read_8b_reg(client, SER_ADDR3, 0xD,&val_read);
 	}			
 
 	ret = atto640_mcu_get_fw_version(client, fw_version_atto640, txt_fw_version_atto640);
-	if (ret != 0) {
+	if (ret != 0)
+	{
 
-		if(ret > 0) {
-			if((err = atto640_mcu_jump_bload(client)) < 0) {
+		if(ret > 0)
+		{
+			if((err = atto640_mcu_jump_bload(client)) < 0)
+			{
 				dev_err(&client->dev," Cannot go into bootloader mode\n");
 				atto640_disable_phy(client, priv, priv->phy);
 				return -EIO;
@@ -2838,9 +3029,11 @@ skip_poc:
 
 		dev_err(&client->dev," Trying to Detect Bootloader mode\n");
 
-		for(loop = 0;loop < 10; loop++) {
+		for(loop = 0;loop < 10; loop++)
+		{
 			err = atto640_mcu_bload_get_version(client);
-			if (err < 0) {
+			if (err < 0)
+			{
 				/* Trial and Error for 1 second (100ms * 10) */
 				msleep(1);
 				continue;
@@ -2850,7 +3043,8 @@ skip_poc:
 			}
 		}
 
-		if(loop == 10) {
+		if(loop == 10)
+		{
 			dev_err(&client->dev, "Error updating firmware \n");
 			atto640_disable_phy(client, priv, priv->phy);
 			return -EINVAL;
@@ -2868,7 +3062,8 @@ skip_poc:
 			}
 
 		}
-		if( loop == 10) {
+		if( loop == 10)
+		{
 			dev_err( &client->dev, "Error Updating Firmware\n");
 			atto640_disable_phy(client, priv, priv->phy);
 			return -EFAULT;
@@ -2877,7 +3072,8 @@ skip_poc:
 		/* Allow FW Updated Driver to reboot */
 		msleep(10);
 
-		for(loop = 0;loop < 10; loop++) {
+		for(loop = 0;loop < 10; loop++)
+		{
 			err = atto640_mcu_get_fw_version(client, fw_version_atto640, txt_fw_version_atto640);
 			if (err < 0) {
 				msleep(1);
@@ -2902,7 +3098,8 @@ skip_poc:
 				break;
 			}
 		}
-		if(loop == 10) {
+		if(loop == 10)
+		{
 			dev_err(&client->dev, "Error updating firmware \n");
 			atto640_disable_phy(client, priv, priv->phy);
 			return -EINVAL;
@@ -2911,7 +3108,9 @@ skip_poc:
 		debug_printk("Current Firmware Version - (%.4s-%.7s).",
 				&fw_version_atto640[2],&fw_version_atto640[18]);
 
-	} else {
+	}
+	else
+	{
 		/* Same firmware version in MCU and Text File */
 		debug_printk("Current Firmware Version - (%.4s-%.7s)",
 									&fw_version_atto640[2],&fw_version_atto640[18]);
@@ -2990,9 +3189,12 @@ skip_poc:
 
 
 	/* Enable Data Link in GMSL */
-	if(priv->phy == PHY_A) {
+	if(priv->phy == PHY_A)
+	{
 		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x83);
-	} else if(priv->phy == PHY_B) {
+	}
+	else if(priv->phy == PHY_B)
+	{
 		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x83);
 	}						
 	msleep(100);		

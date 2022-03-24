@@ -39,10 +39,14 @@ int atto640_serdes_write_i2c(struct i2c_client *client, u16 sladdr,  u8 * val, u
 	};
 
 	ret = i2c_transfer(client->adapter, &msg, 1);
-	if (ret < 0) {
-		dev_err(&client->dev, "Failed writing register ret = %d!\n",
-			ret);
+	if (ret < 0)
+	{
+		dev_err(&client->dev, "%s: i2c_addr:0x%x Failed writing register ret = %d!\n",__func__,sladdr,ret);
 		return ret;
+	}
+	else
+	{
+		dev_err(&client->dev, "%s: i2c_addr:0x%x OK writing register ret = %d!\n",__func__,sladdr,ret);
 	}
 	return 0;
 }
@@ -61,11 +65,13 @@ int atto640_serdes_read_i2c(struct i2c_client *client, u16 sladdr, u8 * val, u32
 	ret = i2c_transfer(client->adapter, &msg, 1);
 	if (ret < 0)
 		goto err;
+	else
+		dev_err(&client->dev, "%s: i2c_addr:0x%x OK reading register ret = %d!\n",__func__,sladdr,ret);
 
 	return 0;
 
  err:
-	dev_err(&client->dev, "Failed reading register ret = %d!\n", ret);
+	dev_err(&client->dev, "%s: i2c_addr:0x%x Failed reading register ret = %d!\n",__func__,sladdr,ret);
 	return ret;
 }
 
@@ -77,14 +83,24 @@ s32 atto640_serdes_read_8b_reg(struct i2c_client *client, u16 sladdr, u8 reg, u8
 
 	au8RegBuf[0] = reg;
 
-	if (atto640_serdes_write_i2c(client, sladdr, au8RegBuf, bcount) < 0) {
-		dev_err(&client->dev,"%s:write reg error:reg=0x%x\n", __func__, reg);
+	if (atto640_serdes_write_i2c(client, sladdr, au8RegBuf, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x error:reg=0x%x\n", __func__,sladdr,reg);
 		return -EIO;
 	}
+	else
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x OK:reg=0x%x\n", __func__,sladdr,reg);
+	}
 
-	if (atto640_serdes_read_i2c(client,sladdr, au8RdVal, bcount) < 0) {
-		dev_err(&client->dev,"%s:read reg error:reg=0x%x\n", __func__, reg);
+	if (atto640_serdes_read_i2c(client,sladdr, au8RdVal, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:read i2c_addr:0x%x error:reg=0x%x\n", __func__,sladdr,reg);
 		return -EIO;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s:read i2c_addr:0x%x OK:reg=0x%x value:0x%x\n", __func__,sladdr, reg,au8RdVal[0]);
 	}
 
 	*val = au8RdVal[0];
@@ -100,11 +116,15 @@ s32 atto640_serdes_write_8b_reg(struct i2c_client *client, u16 sladdr, u8 reg, u
 	au8Buf[0] = reg;
 	au8Buf[1] = val;
 
-	if (atto640_serdes_write_i2c(client, sladdr,au8Buf, bcount) < 0) {
-		dev_err(&client->dev,
-			"%s:write reg error: reg = 0x%x,val = 0x%x\n", __func__,
-			reg, val);
+	if (atto640_serdes_write_i2c(client, sladdr,au8Buf, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x error: reg = 0x%x,val = 0x%x\n", __func__,sladdr,reg, val);
 		return -EIO;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x OK: reg = 0x%x,val = 0x%x\n",
+				__func__,sladdr,reg, val);
 	}
 
 	return 0;
@@ -120,15 +140,25 @@ s32 atto640_serdes_read_16b_reg(struct i2c_client *client, u16 sladdr, u16 reg, 
 	au8RegBuf[1] = reg & 0xff;
 	bcount = 2;
 
-	if (atto640_serdes_write_i2c(client, sladdr, au8RegBuf, bcount) < 0) {
-		dev_err(&client->dev,"%s:write reg error:reg=0x%x\n", __func__, reg);
+	if (atto640_serdes_write_i2c(client, sladdr, au8RegBuf, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x error:reg=0x%x\n", __func__,sladdr,reg);
 		return -EIO;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x OK:reg=0x%x\n", __func__,sladdr,reg);
 	}
 
 	bcount = 1;
-	if (atto640_serdes_read_i2c(client,sladdr, au8RdVal, bcount) < 0) {
-		dev_err(&client->dev,"%s:read reg error:reg=0x%x\n", __func__, reg);
+	if (atto640_serdes_read_i2c(client,sladdr, au8RdVal, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:read i2c_addr:0x%x error:reg=0x%x\n", __func__,sladdr,reg);
 		return -EIO;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s:read i2c_addr:0x%x OK:reg=0x%x value:0x%x\n",__func__,sladdr, reg,au8RdVal[0]);
 	}
 
 	*val = au8RdVal[0];
@@ -145,11 +175,16 @@ s32 atto640_serdes_write_16b_reg(struct i2c_client *client, u16 sladdr, u16 reg,
 	au8Buf[1] = reg & 0xff;
 	au8Buf[2] = val;
 
-	if (atto640_serdes_write_i2c(client, sladdr,au8Buf, bcount) < 0) {
-		dev_err(&client->dev,
-			"%s:write reg error: reg = 0x%x,val = 0x%x\n", __func__,
-			reg, val);
+	if (atto640_serdes_write_i2c(client, sladdr,au8Buf, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x error: reg = 0x%x,val = 0x%x\n",
+				__func__,sladdr,reg, val);
 		return -EIO;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x OK: reg = 0x%x,val = 0x%x\n",
+				__func__,sladdr,reg, val);
 	}
 
 	return 0;
