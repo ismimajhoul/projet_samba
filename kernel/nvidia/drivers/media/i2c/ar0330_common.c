@@ -2620,8 +2620,10 @@ static int ar0330_probe(struct i2c_client *client,
 	int ret, frm_fmt_size = 0, poc_enable = 0, loop;
 	uint16_t sensor_id = 0;
 	const char *str;
+	u8  val_deser;
 
 	int err = 0;
+	dev_err(&client->dev, "Welcome AR0330\n");
 	
 	if (!(IS_ENABLED(CONFIG_OF)) || !node)
 		return -EINVAL;
@@ -2630,7 +2632,8 @@ static int ar0330_probe(struct i2c_client *client,
 	if(poc_enable > 0) {
 		debug_printk("poc_enable = %d \n", poc_enable);		
 		err = gpio_request(poc_enable,"poc-en");
-		if (err < 0) {
+		if (err < 0)
+		{
 			dev_err(&client->dev,"%s[%d]:GPIO POC Fail, err:%d",__func__,__LINE__, err);
 			goto skip_poc;
 		}		
@@ -3051,8 +3054,11 @@ skip_poc:
 	err = v4l2_async_register_subdev(priv->subdev);
 	if (err)
 		return err;
-	printk("Detected ar0330 sensor\n");
+	serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
+	serdes_read_16b_reg(client, priv->des_addr, 0x0CCA, &val_deser);
+	serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
 
+	printk("Detected ar0330 sensor\n");
 	return 0;
 }
 

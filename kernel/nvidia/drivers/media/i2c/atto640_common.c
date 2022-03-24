@@ -2777,7 +2777,7 @@ static int atto640_probe(struct i2c_client *client,
 	int ret, frm_fmt_size = 0, poc_enable = 0, loop;
 	uint16_t sensor_id = 0;
 	const char *str;
-
+	u8  val_deser;
 	int err = 0;
 	
 	if (!(IS_ENABLED(CONFIG_OF)) || !node)
@@ -2983,6 +2983,7 @@ skip_poc:
 		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		atto640_serdes_read_8b_reg(client, SER_ADDR2, 0xD,&val_read);
+		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0CCA, &val_deser);
 	}
 	else if(priv->phy == PHY_B)
 	{
@@ -3010,7 +3011,11 @@ skip_poc:
 		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 		atto640_serdes_read_8b_reg(client, SER_ADDR3, 0xD,&val_read);
+		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
 	}			
+	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
+
+
 
 	ret = atto640_mcu_get_fw_version(client, fw_version_atto640, txt_fw_version_atto640);
 	if (ret != 0)
@@ -3165,26 +3170,42 @@ skip_poc:
 	}
 
 
-	if (atto640_mcu_isp_init(client) < 0) {
+	if (atto640_mcu_isp_init(client) < 0)
+	{
 		dev_err(&client->dev, "Unable to INIT ISP \n");
 		atto640_disable_phy(client, priv, priv->phy);
 		return -EFAULT;
 	}
+	else
+	{
+		dev_err(&client->dev, "Enable INIT ISP OK\n");
+	}
 
-	for(loop = 0; loop < frm_fmt_size; loop++) {
+	for(loop = 0; loop < frm_fmt_size; loop++)
+	{
 		priv->mcu_cam_frmfmt[loop].framerates = devm_kzalloc(&client->dev, sizeof(int) * MAX_NUM_FRATES, GFP_KERNEL);
-		if(!priv->mcu_cam_frmfmt[loop].framerates) {
+		if(!priv->mcu_cam_frmfmt[loop].framerates)
+		{
 			dev_err(&client->dev, "Unable to allocate memory \n");
 			atto640_disable_phy(client, priv, priv->phy);
 			return -ENOMEM;
 		}
+		else
+		{
+			dev_err(&client->dev, "allocate memory OK\n");
+		}
 	}
 
 	/* Enumerate Formats */
-	if (atto640_mcu_list_fmts(client, priv->stream_info, &frm_fmt_size,priv) < 0) {
+	if (atto640_mcu_list_fmts(client, priv->stream_info, &frm_fmt_size,priv) < 0)
+	{
 		dev_err(&client->dev, "Unable to List Fmts \n");
 		atto640_disable_phy(client, priv, priv->phy);
 		return -EFAULT;
+	}
+	else
+	{
+		dev_err(&client->dev, "Enable List Fmts OK\n");
 	}
 
 
@@ -3192,10 +3213,12 @@ skip_poc:
 	if(priv->phy == PHY_A)
 	{
 		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x83);
+		dev_err(&client->dev, "LINK PHYA Enable OK\n");
 	}
 	else if(priv->phy == PHY_B)
 	{
 		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x83);
+		dev_err(&client->dev, "LINK PHYB Enable OK\n");
 	}						
 	msleep(100);		
 
@@ -3223,10 +3246,15 @@ skip_poc:
 	priv->s_data->dev = &client->dev;
 	priv->prev_index = 0xFFFE;
 
-	err = camera_common_initialize(common_data, "atto640");
-	if (err) {
+	err = camera_common_initialize(common_data, "ar0330");
+	if (err)
+	{
 		dev_err(&client->dev, "Failed to initialize atto640.\n");
 		return err;
+	}
+	else
+	{
+		dev_err(&client->dev, "initialize atto640 successfull OK\n");
 	}
 
 
@@ -3237,7 +3265,14 @@ skip_poc:
 	/* Enumerate Ctrls */
 	err = atto640_ctrls_init(priv, priv->mcu_ctrl_info);
 	if (err)
+	{
+		dev_err(&client->dev, "Enumerate Ctrls atto640 failed\n");
 		return err;
+	}
+	else
+	{
+		dev_err(&client->dev, "Enumerate Ctrls atto640 OK\n");
+	}
 
 	priv->subdev->internal_ops = &atto640_subdev_internal_ops;
 	priv->subdev->flags |=
@@ -3253,11 +3288,15 @@ skip_poc:
 	}
 #endif
 
+
 	err = v4l2_async_register_subdev(priv->subdev);
 	if (err)
+	{
+		printk("v4l2_async_register_subdev error\n");
 		return err;
+	}
 	printk("Detected atto640 sensor\n");
-
+	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
 	return 0;
 }
 

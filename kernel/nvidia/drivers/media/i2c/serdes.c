@@ -121,15 +121,25 @@ s32 serdes_read_16b_reg(struct i2c_client *client, u16 sladdr, u16 reg, u8 * val
 	au8RegBuf[1] = reg & 0xff;
 	bcount = 2;
 
-	if (serdes_write_i2c(client, sladdr, au8RegBuf, bcount) < 0) {
-		dev_err(&client->dev,"%s:write reg error:reg=0x%x\n", __func__, reg);
+	if (serdes_write_i2c(client, sladdr, au8RegBuf, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x error:reg=0x%x\n", __func__,sladdr,reg);
 		return -EIO;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s:write i2c_addr:0x%x OK:reg=0x%x\n", __func__,sladdr,reg);
 	}
 
 	bcount = 1;
-	if (serdes_read_i2c(client,sladdr, au8RdVal, bcount) < 0) {
-		dev_err(&client->dev,"%s:read reg error:reg=0x%x\n", __func__, reg);
+	if (serdes_read_i2c(client,sladdr, au8RdVal, bcount) < 0)
+	{
+		dev_err(&client->dev,"%s:read i2c_addr:0x%x error:reg=0x%x\n", __func__,sladdr,reg);
 		return -EIO;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s:read i2c_addr:0x%x OK:reg=0x%x value:0x%x\n",__func__,sladdr, reg,au8RdVal[0]);
 	}
 
 	*val = au8RdVal[0];

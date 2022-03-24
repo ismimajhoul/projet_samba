@@ -18,8 +18,8 @@ make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j$(nproc) INSTALL_MOD_PATH=$KERNEL_MODULES_
 cd ..
 ln -sf ~/nvidia/nvidia_sdk/JetPack_4.4.1_Linux_JETSON_AGX_XAVIER/Linux_for_Tegra 
 #first remove all the old file in sdkmanager 
-rm Linux_for_Tegra/kernel/zImage
-rm Linux_for_Tegra/kernel/Image
+#rm Linux_for_Tegra/kernel/zImage
+#rm Linux_for_Tegra/kernel/Image
 #rm Linux_for_Tegra/kernel/dtb/tegra194-agx-cti-AGX101-JCB002-IMX390-8CAM.dtb
 
 #installation DTS et KERNEL
@@ -28,12 +28,13 @@ cp build/arch/arm64/boot/Image  Linux_for_Tegra/kernel/
 cp build/arch/arm64/boot/zImage Linux_for_Tegra/kernel/
 
 #installation des modules
-sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/atto640.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
+#sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/atto640.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
+#sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/ar0330.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/
 #sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9296.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/#drivers/media/i2c/
 #sudo cp modules/lib/modules/4.9.140-tegra/kernel/drivers/media/i2c/max9295.ko Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/#drivers/media/i2c/
-sudo cp -r modules/lib/modules/4.9.140-tegra/kernel/drivers/media Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/
+#sudo cp -r modules/lib/modules/4.9.140-tegra/kernel/drivers/media Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/
 
-cd modules/lib/modules/4.9.140-tegra
+#cd modules/lib/modules/4.9.140-tegra
 
-sudo cp modules.symbols modules.alias modules.dep modules.order modules.symbols.bin modules.dep.bin modules.alias.bin ../../../../Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/
+#sudo cp modules.symbols modules.alias modules.dep modules.order modules.symbols.bin modules.dep.bin modules.alias.bin ../../../../Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/
 
