@@ -8,7 +8,7 @@
 	#size-cells = <0x02>;
 	model = "jetson-xavier";
 	nvidia,dtsfilename = "tegra194-agx-cti-AGX101-JCB002-AR0330-8CAM.dts";
-	nvidia,dtbbuildtime = "Apr 14 2021\010:19:38";
+	nvidia,dtbbuildtime = "Apr 14 2021\b:19:38";
 	nvidia,fastboot-usb-vid = <0x955>;
 	nvidia,fastboot-usb-pid = <0xee1e>;
 
@@ -2624,7 +2624,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -2816,7 +2816,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3015,7 +3015,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3207,7 +3207,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3406,7 +3406,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3598,7 +3598,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3797,7 +3797,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x43>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3989,7 +3989,7 @@
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x44>;
-					sensor_model = "ar0330";
+					sensor_model = "atto640";
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;

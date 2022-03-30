@@ -3158,15 +3158,26 @@ skip_poc:
 	}
 
 	priv->mcu_cam_frmfmt = devm_kzalloc(&client->dev, sizeof(struct camera_common_frmfmt) * (frm_fmt_size), GFP_KERNEL);
-	if(!priv->mcu_cam_frmfmt) {
+	if(!priv->mcu_cam_frmfmt)
+	{
 		dev_err(&client->dev, "Unable to allocate memory \n");
 		atto640_disable_phy(client, priv, priv->phy);
 		return -ENOMEM;
 	}
-	if (atto640_mcu_get_sensor_id(client, &sensor_id) < 0) {
+	else
+	{
+		dev_err(&client->dev, "allocate memory OK\n");
+	}
+
+	if (atto640_mcu_get_sensor_id(client, &sensor_id) < 0)
+	{
 		dev_err(&client->dev, "Unable to get MCU Sensor ID \n");
 		atto640_disable_phy(client, priv, priv->phy);
 		return -EFAULT;
+	}
+	else
+	{
+		dev_err(&client->dev, "get MCU Sensor ID OK\n");
 	}
 
 
@@ -3254,7 +3265,7 @@ skip_poc:
 	}
 	else
 	{
-		dev_err(&client->dev, "initialize atto640 successfull OK\n");
+		dev_err(&client->dev, "initialization atto640 successfull OK\n");
 	}
 
 

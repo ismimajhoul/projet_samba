@@ -1,0 +1,224 @@
+/*
+ * Top level DTS file for AGX101.
+ */
+#include "common/tegra194-agx-cti-base.dtsi"
+
+#include "common/tegra194-agx-cti-AGX111-USBC.dtsi"
+
+/{
+    nvidia,dtsfilename = "tegra194-agx-cti-AGX101.dts";
+    nvidia,dtbbuildtime = __DATE__, __TIME__;
+
+
+#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
+   xusb_padctl: xusb_padctl@3520000 {
+        status = "okay";
+
+        pads {
+            usb2 {
+                lanes {
+                    usb2-0 {
+                        status = "okay";
+                    };
+                    usb2-1 {
+                        status = "okay";
+                    };
+                    usb2-2 {
+                        status = "okay";
+                    };
+                    usb2-3 {
+                        status = "okay";
+                    };
+                };
+            };
+            usb3 {
+                lanes {
+                    usb3-0 {
+                        status = "okay";
+                    };
+                    usb3-1 {
+                        status = "disabled";
+                    };
+                    usb3-2 {
+                        status = "okay";
+                    };
+                    usb3-3 {
+                        status = "okay";
+                    };
+                };
+            };
+        };
+       ports {
+            usb2-0 {
+                status = "okay";
+            };
+            usb2-1 {
+                status = "okay";
+            };
+            usb2-2 {
+                status = "okay";
+            };
+            usb2-3 {
+                status = "okay";
+            };
+            usb3-0 {
+                nvidia,usb2-companion = <1>;
+            //    nvidia,usb3-gen1-only= <1>;
+                status = "okay";
+            };
+            usb3-1{
+            //    nvidia,usb2-companion = <1>;
+            //    nvidia,usb3-gen1-only= <1>;
+                status = "disabled";
+            };
+            usb3-2 {
+                nvidia,usb2-companion = <0>;
+            //    nvidia,usb3-gen1-only= <1>;
+                status = "okay";
+            };
+            usb3-3 {
+                nvidia,usb2-companion = <3>;
+            //    nvidia,usb3-gen1-only= <1>;
+                status = "okay";
+            };
+        };
+    };
+#endif
+
+    //remove unused phys from here
+   tegra_xhci: xhci@3610000 {
+#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
+        phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
+            <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
+            <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-2}>,
+            <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-3}>,
+            <&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-0}>,
+            <&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-2}>,
+            <&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-3}>;
+        phy-names = "usb2-0", "usb2-1", "usb2-2", "usb2-3",
+            "usb3-0", "usb3-2", "usb3-3";
+        nvidia,xusb-padctl = <&xusb_padctl>;
+#endif
+    };
+
+    pcie@14160000 {
+        status = "disabled";
+
+        phys =  <&p2u_8>;
+        phy-names = "pcie-p2u-0";
+
+    };
+
+    pcie@14100000 {
+        status = "okay";
+
+
+        phys = <&p2u_0>;
+        phy-names = "pcie-p2u-0";
+    };
+
+    pcie@14140000 {
+        status = "okay";
+
+        phys = <&p2u_7>;
+        phy-names = "pcie-p2u-0";
+    };
+
+    pcie@14180000 {
+        status = "okay";
+    };
+
+
+    pcie@141a0000 {
+        status = "okay";
+
+        phys = <&p2u_12>,
+               <&p2u_13>,
+               <&p2u_14>,
+               <&p2u_15>;
+
+        phy-names = "pcie-p2u-0", "pcie-p2u-1", "pcie-p2u-2", "pcie-p2u-3";
+    };
+
+    pcie_ep@141a0000 {
+        status = "disabled";
+
+        phys =  <&p2u_12>, 
+                <&p2u_13>, 
+                <&p2u_14>,
+                <&p2u_15>,
+                <&p2u_16>,
+                <&p2u_17>,
+                <&p2u_18>,
+                <&p2u_19>;
+        phy-names = "pcie-p2u-0", "pcie-p2u-1", "pcie-p2u-2", "pcie-p2u-3",
+                "pcie-p2u-4", "pcie-p2u-5", "pcie-p2u-6", "pcie-p2u-7";
+
+    };
+
+    ahci-sata@3507000 {
+
+        status = "disabled";
+
+    };
+
+    ether_qos@2490000 {
+        mdio {
+            ethernet-phy@0 {
+                /delete-property/ marvell,copper-mode;
+            };
+        };
+
+    };
+    host1x{
+
+        sor {
+            status = "okay";
+            nvidia,active-panel = <&sor0_hdmi_display>;
+
+            hdmi-display {
+                status = "okay";
+            };
+            dp-display {
+                status = "disabled";
+            };
+
+        };
+
+        sor1 {
+            status = "okay";
+            nvidia,active-panel = <&sor1_hdmi_display>;
+
+            hdmi-display {
+                status = "okay";
+            };
+            dp-display {
+                status = "disabled";
+            };
+
+        };
+
+        sor2 {
+            status = "disabled";
+
+            hdmi-display {
+                status = "disabled";
+            };
+            dp-display {
+                status = "disabled";
+            };
+
+        };
+    };
+
+    spi@3210000{
+        status = "okay";
+        spidev@0 {
+            compatible = "tegra-spidev";
+            reg = <0>;
+            spi-max-frequency=<25000000>;
+        };
+    };
+
+
+};

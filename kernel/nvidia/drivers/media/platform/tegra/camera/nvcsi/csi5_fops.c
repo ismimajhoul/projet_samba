@@ -198,7 +198,7 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 	struct CAPTURE_CONTROL_MSG msg;
 	union nvcsi_tpg_config *tpg_config = NULL;
 
-	dev_dbg(csi->dev, "%s: stream_id=%u, virtual_channel_id=%d\n",
+	dev_err(csi->dev, "%s: stream_id=%u, virtual_channel_id=%d\n",
 		__func__, stream_id, virtual_channel_id);
 
 	/* Set TPG config for a virtual channel */
@@ -279,17 +279,20 @@ static int csi5_start_streaming(struct tegra_csi_channel *chan, int port_idx)
 	struct tegra_csi_port *port = &chan->ports[0];
 	u32 csi_pt, st_id, vc_id;
 
-	if (chan->pg_mode) {
+	if (chan->pg_mode)
+	{
 		csi_pt = NVCSI_PORT_UNSPECIFIED;
 		st_id = port->stream_id;
-	} else {
+	}
+	else
+	{
 		csi_pt = port->csi_port;
 		st_id = csi5_port_to_stream(port->csi_port);
 	}
 	vc_id = port->virtual_channel_id;
 	num_lanes = port->lanes;
 
-	dev_dbg(csi->dev, "%s: csi_pt=%u, st_id=%u, vc_id=%u, pg_mode=0x%x\n",
+	dev_err(csi->dev, "%s: csi_pt=%u, st_id=%u, vc_id=%u, pg_mode=0x%x\n",
 		__func__, csi_pt, st_id, vc_id, chan->pg_mode);
 
 	if (!chan->pg_mode)
@@ -297,7 +300,8 @@ static int csi5_start_streaming(struct tegra_csi_channel *chan, int port_idx)
 
 	csi5_stream_open(chan, st_id, csi_pt);
 
-	if (chan->pg_mode) {
+	if (chan->pg_mode)
+	{
 		err = csi5_stream_tpg_start(chan, st_id, vc_id);
 		if (err)
 			return err;
@@ -321,7 +325,7 @@ static void csi5_stop_streaming(struct tegra_csi_channel *chan, int port_idx)
 	}
 	vc_id = port->virtual_channel_id;
 
-	dev_dbg(csi->dev, "%s: csi_pt=%u, st_id=%u, vc_id=%u, pg_mode=0x%x\n",
+	dev_err(csi->dev, "%s: csi_pt=%u, st_id=%u, vc_id=%u, pg_mode=0x%x\n",
 		__func__, csi_pt, st_id, vc_id, chan->pg_mode);
 
 	if (chan->pg_mode)

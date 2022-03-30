@@ -254,17 +254,26 @@ static int tegra_channel_capture_setup(struct tegra_channel *chan)
 					&setup.iova, GFP_KERNEL);
 	if (chan->request == NULL)
 		dev_err(chan->vi->dev, "dma_alloc_coherent failed\n");
+	else
+		dev_err(chan->vi->dev, "dma_alloc_coherent OK\n");
 
-	if (chan->is_slvsec) {
+	if (chan->is_slvsec)
+	{
 		setup.channel_flags |= CAPTURE_CHANNEL_FLAG_SLVSEC;
 		setup.slvsec_stream_main = SLVSEC_STREAM_MAIN;
 		setup.slvsec_stream_sub = SLVSEC_STREAM_DISABLED;
 	}
 
+	dev_err(chan->vi->dev, "%s call vi_capture_setup\n",__func__);
 	err = vi_capture_setup(chan->tegra_vi_channel, &setup);
-	if (err) {
+	if (err)
+	{
 		dev_err(chan->vi->dev, "vi capture setup failed\n");
 		return err;
+	}
+	else
+	{
+		dev_err(chan->vi->dev, "vi capture setup OK\n");
 	}
 
 	return 0;
@@ -340,13 +349,19 @@ static void vi5_capture_enqueue(struct tegra_channel *chan,
 	request.buffer_index = chan->capture_descr_index;
 
 	err = vi_capture_request(chan->tegra_vi_channel, &request);
-	if (err) {
+	if (err)
+	{
 		dev_err(vi->dev, "uncorr_err: request dispatch err %d\n", err);
 		goto uncorr_err;
 	}
+	else
+	{
+		dev_err(vi->dev, "%s request dispatch OK\n", __func__);
+	}
 
 	spin_lock_irqsave(&chan->capture_state_lock, flags);
-	if (chan->capture_state != CAPTURE_ERROR) {
+	if (chan->capture_state != CAPTURE_ERROR)
+	{
 		chan->capture_state = CAPTURE_GOOD;
 		chan->capture_reqs_enqueued += 1;
 	}
@@ -399,16 +414,17 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 		goto uncorr_err;
 	} else if (descr->status.status != CAPTURE_STATUS_SUCCESS) {
 		if ((descr->status.flags
-				& CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR) != 0) {
+				& CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR) != 0)
+		{
 			chan->queue_error = true;
 			dev_err(vi->dev, "uncorr_err: flags %d, err_data %d\n",
 				descr->status.flags, descr->status.err_data);
 		} else {
 			dev_warn(vi->dev,
 				"corr_err: discarding frame %d, flags: %d, "
-				"err_data %d\n",
+				"err_data %d line %d\n",
 				descr->status.frame_id, descr->status.flags,
-				descr->status.err_data);
+				descr->status.err_data,__LINE__);
 			buf->vb2_state = VB2_BUF_STATE_REQUEUEING;
 			goto done;
 		}
@@ -465,7 +481,8 @@ static int vi5_channel_error_recover(struct tegra_channel *chan,
 	/* stop vi channel */
 	err = vi_capture_release(chan->tegra_vi_channel,
 		CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
-	if (err) {
+	if (err)
+	{
 		dev_err(&chan->video->dev, "vi capture release failed\n");
 		goto done;
 	}
@@ -473,17 +490,20 @@ static int vi5_channel_error_recover(struct tegra_channel *chan,
 	vi_channel_close_ex(chan->id, chan->tegra_vi_channel);
 
 	/* release all previously-enqueued capture buffers to v4l2 */
-	while (!list_empty(&chan->capture)) {
+	while (!list_empty(&chan->capture))
+	{
 		buf = dequeue_buffer(chan, false);
 		if (!buf)
 			break;
 		vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_ERROR);
 	}
-	while (!list_empty(&chan->dequeue)) {
+	while (!list_empty(&chan->dequeue))
+	{
 		buf = dequeue_dequeue_buffer(chan);
 		if (!buf)
 			break;
 		buf->vb2_state = VB2_BUF_STATE_ERROR;
+		dev_err(&chan->video->dev, "%s call vi vi5_capture_dequeue\n",__func__);
 		vi5_capture_dequeue(chan, buf);
 	}
 
@@ -533,17 +553,20 @@ static int tegra_channel_kthread_capture_enqueue(void *data)
 
 	set_freezable();
 
-	while (1) {
+	while (1)
+	{
 		try_to_freeze();
 
 		wait_event_interruptible(chan->start_wait,
 			(kthread_should_stop() || !list_empty(&chan->capture)));
 
-		while (!(kthread_should_stop() || list_empty(&chan->capture))) {
+		while (!(kthread_should_stop() || list_empty(&chan->capture)))
+		{
 			spin_lock_irqsave(&chan->capture_state_lock, flags);
 			if ((chan->capture_state == CAPTURE_ERROR)
 					|| !(chan->capture_reqs_enqueued
-					< chan->capture_queue_depth)) {
+					< chan->capture_queue_depth))
+			{
 				spin_unlock_irqrestore(
 					&chan->capture_state_lock, flags);
 				break;
@@ -556,7 +579,7 @@ static int tegra_channel_kthread_capture_enqueue(void *data)
 				break;
 
 			buf->vb2_state = VB2_BUF_STATE_ACTIVE;
-
+			dev_err(&chan->video->dev, "%s call vi vi5_capture_enqueue\n",__func__);
 			vi5_capture_enqueue(chan, buf);
 		}
 
@@ -576,7 +599,8 @@ static int tegra_channel_kthread_capture_dequeue(void *data)
 
 	set_freezable();
 
-	while (1) {
+	while (1)
+	{
 		try_to_freeze();
 
 		wait_event_interruptible(chan->dequeue_wait,
@@ -590,7 +614,7 @@ static int tegra_channel_kthread_capture_dequeue(void *data)
 			buf = dequeue_dequeue_buffer(chan);
 			if (!buf)
 				break;
-
+			dev_err(&chan->video->dev, "%s call vi vi5_capture_dequeue\n",__func__);
 			vi5_capture_dequeue(chan, buf);
 		}
 
@@ -694,7 +718,8 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 #endif
 
 	/* Skip in bypass mode */
-	if (!chan->bypass) {
+	if (!chan->bypass)
+	{
 		chan->tegra_vi_channel = vi_channel_open_ex(chan->id, false);
 		if (IS_ERR(chan->tegra_vi_channel)) {
 			ret = PTR_ERR(chan);
@@ -766,6 +791,7 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 			}
 		}
 
+		dev_err(&chan->video->dev,"%s call tegra_channel_capture_setup\n",__func__);
 		ret = tegra_channel_capture_setup(chan);
 		if (ret < 0)
 			goto err_setup;
@@ -822,6 +848,7 @@ static int vi5_channel_stop_streaming(struct vb2_queue *vq)
 	struct tegra_channel *chan = vb2_get_drv_priv(vq);
 	long err;
 
+	dev_err(&chan->video->dev,"vi5_channel_stop_streaming\n");
 	if (!chan->bypass)
 		vi5_channel_stop_kthreads(chan);
 
