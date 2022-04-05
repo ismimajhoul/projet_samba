@@ -15,8 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ar0233_common.h"
-//#include "serdes.h"
+#include <linux/slab.h>
+#include <linux/uaccess.h>
+#include <linux/gpio.h>
+#include <linux/module.h>
+
+#include <linux/seq_file.h>
+#include <linux/of.h>
+#include <linux/of_device.h>
+#include <linux/of_gpio.h>
+#include <media/camera_common.h>
+
+#include <media/serdes.h>
 
 int serdes_write_i2c(struct i2c_client *client, u16 sladdr,  u8 * val, u32 count)
 {
@@ -100,6 +110,7 @@ s32 serdes_write_8b_reg(struct i2c_client *client, u16 sladdr, u8 reg, u8 val)
 
 	return 0;
 }
+
 s32 serdes_read_16b_reg(struct i2c_client *client, u16 sladdr, u16 reg, u8 * val)
 {
 	u8 bcount;
@@ -144,4 +155,3 @@ s32 serdes_write_16b_reg(struct i2c_client *client, u16 sladdr, u16 reg, u8 val)
 
 	return 0;
 }
-

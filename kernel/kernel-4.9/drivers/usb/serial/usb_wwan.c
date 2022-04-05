@@ -21,6 +21,7 @@
 
 #define DRIVER_AUTHOR "Matthias Urlichs <smurf@smurf.noris.de>"
 #define DRIVER_DESC "USB Driver for GSM modems"
+#define QUECTEL_VENDOR_ID 0x2c7c
 
 #include <linux/kernel.h>
 #include <linux/jiffies.h>
@@ -504,6 +505,12 @@ static struct urb *usb_wwan_setup_urb(struct usb_serial_port *port,
 	usb_fill_bulk_urb(urb, serial->dev,
 			  usb_sndbulkpipe(serial->dev, endpoint) | dir,
 			  buf, len, callback, ctx);
+
+    if (dir == USB_DIR_OUT) {
+        struct usb_device_descriptor *desc = &serial->dev->descriptor;
+        if (desc->idVendor == cpu_to_le16(QUECTEL_VENDOR_ID))
+            urb->transfer_flags |= URB_ZERO_PACKET;
+    }
 
 	return urb;
 }

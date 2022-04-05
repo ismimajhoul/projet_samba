@@ -29,8 +29,7 @@ obj-$(CONFIG_VIDEO_ADV7393) += adv7393.o
 obj-$(CONFIG_VIDEO_ADV7604) += adv7604.o
 obj-$(CONFIG_VIDEO_ADV7842) += adv7842.o
 obj-$(CONFIG_VIDEO_AD9389B) += ad9389b.o
-#obj-$(CONFIG_VIDEO_ADV7511) += adv7511.o
-obj-$(CONFIG_VIDEO_ADV7511) += adv7511-v4l2.o
+obj-$(CONFIG_VIDEO_ADV7511) += adv7511.o
 obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
 obj-$(CONFIG_VIDEO_VS6624)  += vs6624.o
 obj-$(CONFIG_VIDEO_BT819) += bt819.o
@@ -83,4 +82,6 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
 obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
 obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
 obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
-
+obj-$(CONFIG_VIDEO_ECAM) += ar0330.o
+ar0330-objs := serdes.o ar0330_common.o
+obj-y += e-CAM50_CUNANO/

@@ -4,7 +4,7 @@
 #Pour récupérer le dépot git:
 ============================
 
-git clone https://github.com/Xperience94/linux_samba_4.4.1.git
+git clone https://github.com/ismimajhoul/projet_samba.git
 
 les drivers se trouve dans les repertoires suivants: 
 

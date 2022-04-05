@@ -155,7 +155,7 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
 		buf[0] = val;
 		msg.buf = buf;
 		ret = __i2c_transfer(adap, &msg, 1);
-		//dev_err(&client->dev, "msg.addr = 0x%x val= %x\n",msg.addr,val);
+
 		if (ret >= 0 && ret != 1)
 			ret = -EREMOTEIO;
 	} else {
@@ -164,7 +164,6 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
 					     client->flags,
 					     I2C_SMBUS_WRITE,
 					     val, I2C_SMBUS_BYTE, &data);
-		dev_err(&client->dev, "client->addr = 0x%x val= %x\n",client->addr,val);
 	}
 
 	return ret;
@@ -186,14 +185,10 @@ static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
 
 	/* Only select the channel if its different from the last channel */
 	if (data->last_chan != regval) {
-		//dev_err(&client->dev, "select chan its different from the last channel 0x%x  regval= %x\n",data->last_chan,regval);
 		ret = pca954x_reg_write(muxc->parent, client, regval);
 		data->last_chan = ret < 0 ? 0 : regval;
 	}
-	else{
-		//dev_err(&client->dev, "select chan its not different from the last channel 0x%x  regval= %x\n",data->last_chan,regval);
-	}
-	
+
 	return ret;
 }
 
@@ -309,27 +304,6 @@ static int pca954x_probe(struct i2c_client *client,
 		dev_warn(&client->dev, "probe failed\n");
 		return -ENODEV;
 	}
-
-
-	//////////////////////////////////my function ////////////////////////
-
-
-	dev_dbg(&client->dev, "%s(0x%02x)\n", __func__, 0);
-
-	ret = i2c_smbus_read_byte(client);
-	if (ret < 0){
-		dev_dbg(&client->dev,
-			"%s: register 0x%02x read failed (%d)\n",
-			__func__, 0, ret);
-
-		return ret;
-	}
-	else{
-		dev_err(&client->dev,
-				"value read  = 0x%x", ret);
-	}
-
-	//////////////////////////////////////////////////////////////////////
 
 pca954x_probe_skip_detect:
 	match = of_match_device(of_match_ptr(pca954x_of_match), &client->dev);

@@ -403,23 +403,31 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 
 	/* Dequeue a frame and check its capture status */
 	err = vi_capture_status(chan->tegra_vi_channel, CAPTURE_TIMEOUT_MS);
-	if (err) {
-		if (err == -ETIMEDOUT) {
+	if (err)
+	{
+		if (err == -ETIMEDOUT)
+		{
 			dev_err(vi->dev,
 				"uncorr_err: request timed out after %d ms\n",
 				CAPTURE_TIMEOUT_MS);
-		} else {
+		}
+		else
+		{
 			dev_err(vi->dev, "uncorr_err: request err %d\n", err);
 		}
 		goto uncorr_err;
-	} else if (descr->status.status != CAPTURE_STATUS_SUCCESS) {
+	}
+	else if (descr->status.status != CAPTURE_STATUS_SUCCESS)
+	{
 		if ((descr->status.flags
 				& CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR) != 0)
 		{
 			chan->queue_error = true;
 			dev_err(vi->dev, "uncorr_err: flags %d, err_data %d\n",
 				descr->status.flags, descr->status.err_data);
-		} else {
+		}
+		else
+		{
 			dev_warn(vi->dev,
 				"corr_err: discarding frame %d, flags: %d, "
 				"err_data %d line %d\n",

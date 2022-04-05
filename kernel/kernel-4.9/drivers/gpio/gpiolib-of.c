@@ -97,10 +97,6 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np,
 			__func__, propname, np->full_name, index);
 		return ERR_PTR(ret);
 	}
-	else{
-		pr_err("%s: parse ok '%s' property of node '%s[%d]'\n",
-			__func__, propname, np->full_name, index);
-	}
 
 	chip = of_find_gpiochip_by_xlate(&gpiospec);
 	if (!chip) {
@@ -112,7 +108,7 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np,
 	if (IS_ERR(desc))
 		goto out;
 
-	pr_err("%s: parsed '%s' property of node '%s[%d]' - status (%d)\n",
+	pr_debug("%s: parsed '%s' property of node '%s[%d]' - status (%d)\n",
 		 __func__, propname, np->full_name, index,
 		 PTR_ERR_OR_ZERO(desc));
 

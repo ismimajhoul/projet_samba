@@ -760,21 +760,47 @@ int camera_common_enum_framesizes(struct v4l2_subdev *sd,
 	struct camera_common_data *s_data = to_camera_common_data(sd->dev);
 	int ret;
 
+	dev_err(s_data->dev, "%s: before alloc dma \n",__func__);
+
 	if (!s_data || !s_data->frmfmt)
+	{
+		dev_err(s_data->dev, "%s: s_data frmfmt\n",__func__);
 		return -EINVAL;
+	}
+	else
+	{
+		dev_err(s_data->dev, "%s: s_data ok\n",__func__);
+	}
 
 	if (fse->index >= s_data->numfmts)
+	{
+		dev_err(s_data->dev, "%s: numfmts ko \n",__func__);
 		return -EINVAL;
+	}
+	else
+	{
+		dev_err(s_data->dev, "%s: numfmts ok \n",__func__);
+	}
 	fse->index = array_index_nospec(fse->index, s_data->numfmts);
 
 	ret = camera_common_evaluate_color_format(sd, fse->code);
 	if (ret)
+	{
+		dev_err(s_data->dev, "%s: eval color format ko \n",__func__);
 		return ret;
+	}
+	else
+	{
+		dev_err(s_data->dev, "%s: eval color format ok \n",__func__);
+	}
 
 	fse->min_width = fse->max_width =
 		s_data->frmfmt[fse->index].size.width;
 	fse->min_height = fse->max_height =
 		s_data->frmfmt[fse->index].size.height;
+
+	dev_err(s_data->dev, "%s: width=%d height=%d color format ok \n",
+			__func__,fse->min_width = fse->max_width ,fse->min_height = fse->max_height);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(camera_common_enum_framesizes);

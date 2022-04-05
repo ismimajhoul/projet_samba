@@ -24,14 +24,14 @@
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
-
 #include <media/camera_common.h>
-//#include "camera/camera_gpio.h"
-//#include "./../../../nvidia/drivers/media/platform/tegra/camera/camera_gpio.h"
-#include "../../../../../nvidia/drivers/media/platform/tegra/camera/camera_gpio.h"
-#include "ar0330.h"
 
-#include "mcu_firmware.h"
+#include "../../../../nvidia/drivers/media/platform/tegra/camera/camera_gpio.h"
+
+#include "ar0330.h"
+#include <media/serdes.h>
+
+#include <media/mcu_firmware.h>
 
 #define DEBUG_PRINTK
 #ifndef DEBUG_PRINTK
@@ -47,49 +47,16 @@ static const struct v4l2_ctrl_ops ar0330_ctrl_ops = {
 
 static int ar0330_power_on(struct camera_common_data *s_data)
 {
-	int err = 0;
 	struct ar0330 *priv = (struct ar0330 *)s_data->priv;
 	struct camera_common_power_rail *pw = &priv->power;
 
 	if (!priv || !priv->pdata)
 		return -EINVAL;
-
+	
 	dev_dbg(&priv->i2c_client->dev, "%s: power on\n", __func__);
-
-	if (priv->pdata && priv->pdata->power_on) {
-		err = priv->pdata->power_on(pw);
-		if (err)
-			dev_err(&priv->i2c_client->dev,"%s failed.\n", __func__);
-		else
-			pw->state = SWITCH_ON;
-		return err;
-	}
-
-	if (unlikely(!(pw->avdd || pw->iovdd )))
-		goto skip_power_seqn;
-
-	if (pw->avdd)
-                err = regulator_enable(pw->avdd);
-        if (err)
-                goto ar0330_avdd_fail;
-
-        if (pw->iovdd)
-                err = regulator_enable(pw->iovdd);
-        if (err)
-               goto ar0330_iovdd_fail;
- 
-skip_power_seqn:
-	usleep_range(1350, 1360);
 
 	pw->state = SWITCH_ON;
 	return 0;
-
-ar0330_iovdd_fail:
-       regulator_disable(pw->avdd);
-
-ar0330_avdd_fail:
-        dev_err(&priv->i2c_client->dev,"%s failed.\n", __func__);
-        return -ENODEV;
 }
 
 static int ar0330_power_put(struct ar0330 *priv)
@@ -125,49 +92,42 @@ static int ar0330_power_get(struct ar0330 *priv)
 	struct camera_common_power_rail *pw = &priv->power;
 	struct camera_common_pdata *pdata = priv->pdata;
 	const char *mclk_name;
-        const char *parentclk_name;
-        struct clk *parent;
+	const char *parentclk_name;
+	struct clk *parent;
 	int err = 0;
 
 	if (!priv || !priv->pdata)
 		return -EINVAL;
 
-        if(priv->pdata->mclk_name) {
-	        pw->mclk = devm_clk_get(&priv->i2c_client->dev, mclk_name);
-	    	if (IS_ERR(pw->mclk)) {
-			dev_err(&priv->i2c_client->dev, "unable to get clock %s\n",
-				mclk_name);
-			return PTR_ERR(pw->mclk);
-	        }
-
-		parentclk_name = priv->pdata->parentclk_name;
-	        if (parentclk_name) {
-		        parent = devm_clk_get(&priv->i2c_client->dev, parentclk_name);
-	                if (IS_ERR(parent))
-				dev_err(&priv->i2c_client->dev,
-					"unable to get parent clcok %s",
-					parentclk_name);
-	                else
-			        clk_set_parent(pw->mclk, parent);
-		}
+	mclk_name =
+	    priv->pdata->mclk_name ? priv->pdata->mclk_name : "cam_mclk1";
+	pw->mclk = devm_clk_get(&priv->i2c_client->dev, mclk_name);
+	if (IS_ERR(pw->mclk)) {
+		dev_err(&priv->i2c_client->dev, "unable to get clock %s\n",
+			mclk_name);
+		return PTR_ERR(pw->mclk);
 	}
 
-	if(pdata->regulators.avdd)
-        err |=
-            camera_common_regulator_get(&priv->i2c_client->dev, &pw->avdd,
-                                        pdata->regulators.avdd);
-
-	if(pdata->regulators.iovdd)
-        err |=
-            camera_common_regulator_get(&priv->i2c_client->dev, &pw->iovdd,
-                                        pdata->regulators.iovdd);
-
-	if (err) {
-		dev_err(&priv->i2c_client->dev, "%s: unable to get regulator(s)\n", __func__);
-		goto done;
+	parentclk_name = priv->pdata->parentclk_name;
+	if (parentclk_name) {
+		parent = devm_clk_get(&priv->i2c_client->dev, parentclk_name);
+		if (IS_ERR(parent))
+			dev_err(&priv->i2c_client->dev,
+				"unable to get parent clcok %s",
+				parentclk_name);
+		else
+			clk_set_parent(pw->mclk, parent);
 	}
 
-done :
+
+	err |=
+	    camera_common_regulator_get(&priv->i2c_client->dev, &pw->avdd,
+					pdata->regulators.avdd);
+
+	err |=
+	    camera_common_regulator_get(&priv->i2c_client->dev, &pw->iovdd,
+					pdata->regulators.iovdd);
+
 	pw->state = SWITCH_OFF;
 	return err;
 }
@@ -177,30 +137,19 @@ static int ar0330_s_stream(struct v4l2_subdev *sd, int enable)
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct camera_common_data *s_data = to_camera_common_data(&client->dev);
 	struct ar0330 *priv = (struct ar0330 *)s_data->priv;
-	int err = 0;
 
 	if (!priv || !priv->pdata)
 		return -EINVAL;
 
 	if (!enable) {
 		/* Perform Stream Off Sequence - if any */
-#if 0	/* 	Avoided stream_on/off for green frame issue occurrence */
-		err = mcu_cam_stream_off(client);
-		return err;
-#endif
+		return 0;
 	}
 
-	/* Perform Stream On Sequence - if any  */
-
-#if 0
-	err = mcu_cam_stream_on(client);
-	if(err!= 0){
-		dev_err(&client->dev,"%s (%d) Stream_On \n", __func__, __LINE__);
-		return err;
-	}
+	/* Perform Stream On Sequence - if any */
 
 	mdelay(10);
-#endif
+
 	return 0;
 }
 
@@ -254,11 +203,6 @@ static int ar0330_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *param)
 		     param->parm.capture.timeperframe.denominator)) {
 			priv->frate_index = ret;
 
-			param->parm.capture.capability |= V4L2_CAP_TIMEPERFRAME;
-			param->parm.capture.timeperframe.denominator =
-			priv->mcu_cam_frmfmt[priv->frmfmt_mode].framerates[priv->frate_index];
-			param->parm.capture.timeperframe.numerator = 1;
-
 			/* call stream config with width, height, frame rate */
 			err =
 				mcu_stream_config(client, priv->format_fourcc, priv->frmfmt_mode,
@@ -267,17 +211,14 @@ static int ar0330_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *param)
 				dev_err(&client->dev, "%s: Failed stream_config \n", __func__);
 				return err;
 			}
-			mdelay(10);
 
 			return 0;
 		}
 	}
-
 	param->parm.capture.capability |= V4L2_CAP_TIMEPERFRAME;
-	param->parm.capture.timeperframe.denominator =
-	priv->mcu_cam_frmfmt[priv->frmfmt_mode].framerates[priv->frate_index];
-	param->parm.capture.timeperframe.numerator = 1;
-
+	param->parm.capture.timeperframe.denominator = 	priv->mcu_cam_frmfmt[priv->frmfmt_mode].framerates[priv->frate_index]; 
+	param->parm.capture.timeperframe.numerator = 1;	
+		
 	return 0;
 }
 
@@ -311,25 +252,35 @@ static int ar0330_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 	if (!priv || !priv->pdata)
 		return -EINVAL;
 
-	switch (format->format.code) {
+	format->format.code = MEDIA_BUS_FMT_UYVY8_1X16;
+	switch (format->format.code)
+	{
 	case MEDIA_BUS_FMT_UYVY8_1X16:
 		priv->format_fourcc = V4L2_PIX_FMT_UYVY;
 		break;
 
 	default:
 		/* Not Implemented */
-		if (format->which != V4L2_SUBDEV_FORMAT_TRY) {
+		if (format->which != V4L2_SUBDEV_FORMAT_TRY)
+		{
+			dev_err(&client->dev, "%s: default format KO \n", __func__);
 			return -EINVAL;
+		}
+		else
+		{
+			dev_err(&client->dev, "%s: default format OK \n", __func__);
 		}
 	}
 
-	/* Delay added for green frame issue */
-	msleep(50);
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		ret = camera_common_try_fmt(sd, &format->format);
-	} else {
-
-		for (ret = 0; ret < s_data->numfmts ; ret++) {
+		dev_err(&client->dev, "%s: V4L2_SUBDEV_FORMAT_TRY OK \n", __func__);
+	}
+	else
+	{
+		for (ret = 0; ret < s_data->numfmts ; ret++)
+		{
 			if ((priv->mcu_cam_frmfmt[ret].size.width == format->format.width)
 					&& (priv->mcu_cam_frmfmt[ret].size.height ==
 						format->format.height)) {
@@ -339,20 +290,28 @@ static int ar0330_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 			}
 		}
 
-		if(flag == 0) {
+		if(flag == 0)
+		{
+			dev_err(&client->dev, "%s: flag==0 KO \n", __func__);
 			return -EINVAL;
 		}
-
+		else
+		{
+			dev_err(&client->dev, "%s: flag!=0 OK \n", __func__);
+		}
 		/* call stream config with width, height, frame rate */
 		err =
 			mcu_stream_config(client, priv->format_fourcc, priv->frmfmt_mode,
 					priv->frate_index);
-		if (err < 0) {
+		if (err < 0)
+		{
 			dev_err(&client->dev, "%s: Failed stream_config \n", __func__);
 			return err;
 		}
-
-		mdelay(10);
+		else
+		{
+			dev_err(&client->dev, "%s: stream_config OK\n", __func__);
+		}
 
 		ret = camera_common_s_fmt(sd, &format->format);
 	}
@@ -375,7 +334,7 @@ static struct v4l2_subdev_ops ar0330_subdev_ops = {
 };
 
 static struct of_device_id ar0330_of_match[] = {
-	{.compatible = "nvidia,ecam30",},
+	{.compatible = "nvidia,ar0330",},
 	{},
 };
 
@@ -413,7 +372,11 @@ static int ar0330_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct ar0330 *priv =
 	    container_of(ctrl->handler, struct ar0330, ctrl_handler);
 	struct i2c_client *client = priv->i2c_client;
+	struct camera_common_data *cam_data = priv->s_data;
 	int err = 0;
+	u16 mode;
+
+	mode = cam_data->mode;
 
 	if (!priv || !priv->pdata)
 		return -EINVAL;
@@ -456,7 +419,7 @@ static int ar0330_try_add_ctrls(struct ar0330 *priv, int index,
 		return 0;
 	}
 
-	if(mcu_ctrl->ctrl_id == V4L2_CID_EXPOSURE_AUTO)
+	if(mcu_ctrl->ctrl_id == V4L2_CID_EXPOSURE_AUTO)	
 		goto custom;
 
 
@@ -485,7 +448,7 @@ custom:
 			mcu_ctrl->ctrl_id);
 		return -EIO;
 	}
-
+	
 	/* Fill in Values for Custom Ctrls */
 	custom_ctrl_config.ops = &ar0330_ctrl_ops;
 	custom_ctrl_config.id = mcu_ctrl->ctrl_id;
@@ -505,10 +468,10 @@ custom:
 		custom_ctrl_config.step = 0;
 		custom_ctrl_config.type_ops = NULL;
 
-		custom_ctrl_config.qmenu =
+		custom_ctrl_config.qmenu = 
 			(const char *const *)(mcu_ctrl->ctrl_ui_data.ctrl_menu_info.menu);
 	}
-
+	
 	priv->ctrls[index] =
 	    v4l2_ctrl_new_custom(&priv->ctrl_handler,
 				 &custom_ctrl_config, NULL);
@@ -528,7 +491,6 @@ custom:
 static int ar0330_ctrls_init(struct ar0330 *priv, ISP_CTRL_INFO *mcu_cam_ctrls)
 {
 	struct i2c_client *client = priv->i2c_client;
-	int numctrls = 0;
 	int err = 0, i = 0;
 
 	/* Array of Ctrls */
@@ -585,12 +547,20 @@ static struct camera_common_pdata *ar0330_parse_dt(struct i2c_client *client)
 	if (!board_priv_pdata)
 		return NULL;
 
+	err = camera_common_parse_clocks(&client->dev, board_priv_pdata);
+	if (err) {
+		dev_err(&client->dev, "Failed to find clocks\n");
+		goto error;
+	}
+
+#if 0 /* No PWDN for GMSL cameras */	
 	gpio = of_get_named_gpio(node, "pwdn-gpios", 0);
 	if (gpio < 0) {
 		dev_err(&client->dev, "pwdn gpios not in DT\n");
 		goto error;
 	}
 	board_priv_pdata->pwdn_gpio = (unsigned int)gpio;
+#endif	
 
 	gpio = of_get_named_gpio(node, "reset-gpios", 0);
 	if (gpio < 0) {
@@ -606,11 +576,16 @@ static struct camera_common_pdata *ar0330_parse_dt(struct i2c_client *client)
 	err =
 	    of_property_read_string(node, "avdd-reg",
 				    &board_priv_pdata->regulators.avdd);
-	err |=
+	if (err) {
+		dev_err(&client->dev, "avdd-reg not in DT\n");
+		goto error;
+	}
+	err =
 	    of_property_read_string(node, "iovdd-reg",
 				    &board_priv_pdata->regulators.iovdd);
 	if (err) {
-		dev_dbg(&client->dev, "avdd, iovdd-reg not in DT, assume sensor powered independently\n");
+		dev_err(&client->dev, "iovdd-reg not in DT\n");
+		goto error;
 	}
 
 	board_priv_pdata->has_eeprom =
@@ -618,7 +593,7 @@ static struct camera_common_pdata *ar0330_parse_dt(struct i2c_client *client)
 
 	return board_priv_pdata;
 
-error:
+ error:
 	devm_kfree(&client->dev, board_priv_pdata);
 	return NULL;
 }
@@ -651,6 +626,7 @@ static int ar0330_read(struct i2c_client *client, u8 * val, u32 count)
 	if (ret < 0)
 		goto err;
 
+	msleep(1);
 	return 0;
 
  err:
@@ -675,6 +651,7 @@ static int ar0330_write(struct i2c_client *client, u8 * val, u32 count)
 		return ret;
 	}
 
+	msleep(1);
 	return 0;
 }
 
@@ -690,7 +667,7 @@ int mcu_bload_ascii2hex(unsigned char ascii)
 	return -1;
 }
 
-static void toggle_gpio(unsigned int gpio, int val)
+static void toggle_gpio(unsigned int gpio, int val) 
 {
 	if (gpio_cansleep(gpio)){
 		gpio_direction_output(gpio,val);
@@ -713,6 +690,45 @@ unsigned char errorcheck(char *data, unsigned int len)
 	return crc;
 }
 
+static int mcu_jump_bload(struct i2c_client *client)
+{
+	uint32_t payload_len = 0;
+	int err = 0;
+
+	/*lock semaphore */
+	mutex_lock(&mcu_i2c_mutex);
+	/* First Txn Payload length = 0 */
+	payload_len = 0;
+
+	mc_data[0] = CMD_SIGNATURE;
+	mc_data[1] = CMD_ID_FW_UPDT;
+	mc_data[2] = payload_len >> 8;
+	mc_data[3] = payload_len & 0xFF;
+	mc_data[4] = errorcheck(&mc_data[2], 2);
+
+	err = ar0330_write(client, mc_data, TX_LEN_PKT);
+	if (err !=0 ) {
+		dev_err(&client->dev, " %s(%d) Error - %d \n",
+				__func__, __LINE__, err);
+		goto exit;
+	}
+
+	mc_data[0] = CMD_SIGNATURE;
+	mc_data[1] = CMD_ID_FW_UPDT;
+	err = ar0330_write(client, mc_data, 2);
+	if (err != 0) {
+		dev_err(&client->dev, " %s(%d) Error - %d \n",
+			__func__, __LINE__, err);
+		goto exit;
+	} 
+
+ exit:
+	/* unlock semaphore */
+	mutex_unlock(&mcu_i2c_mutex);
+	return err;
+
+}
+
 static int mcu_stream_config(struct i2c_client *client, uint32_t format,
 			     int mode, int frate_index)
 {
@@ -728,29 +744,38 @@ static int mcu_stream_config(struct i2c_client *client, uint32_t format,
 	/* lock semaphore */
 	mutex_lock(&mcu_i2c_mutex);
 
-	cmd_id = CMD_ID_UNKNOWN;
-	if (mcu_get_cmd_status(client, &cmd_id, &cmd_status, &retcode) < 0) {
+	cmd_id = CMD_ID_STREAM_CONFIG;
+	if (mcu_get_cmd_status(client, &cmd_id, &cmd_status, &retcode) < 0)
+	{
 		dev_err(&client->dev," %s(%d) Error \n", __func__, __LINE__);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK \n", __func__, __LINE__);
+	}
 
-#if 0 /* Disable debug prints */
 	debug_printk
 	    (" %s(%d) ISP Status = 0x%04x , Ret code = 0x%02x \n",
 	     __func__, __LINE__, cmd_status, retcode);
-#endif
 
 	if ((cmd_status != MCU_CMD_STATUS_SUCCESS) ||
-	    (retcode != ERRCODE_SUCCESS)) {
+	    (retcode != ERRCODE_SUCCESS))
+	{
 		debug_printk
 		    (" ISP is Unintialized or Busy STATUS = 0x%04x Errcode = 0x%02x !! \n",
 		     cmd_status, retcode);
 		ret = -EBUSY;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) ISP Init OK \n", __func__, __LINE__);
+	}
 
-	for (loop = 0;(&priv->streamdb[loop]) != NULL; loop++) {
+	for (loop = 0;(&priv->streamdb[loop]) != NULL; loop++)
+	{
 		if (priv->streamdb[loop] == mode) {
 			index = loop + frate_index;
 			break;
@@ -763,15 +788,22 @@ static int mcu_stream_config(struct i2c_client *client, uint32_t format,
 		     priv->mcu_cam_frmfmt[mode].size.height,
 		     priv->mcu_cam_frmfmt[mode].framerates[frate_index]);
 
-	if (index == 0xFFFF) {
+	if (index == 0xFFFF)
+	{
 		ret = -EINVAL;
+		dev_err(&client->dev," %s(%d) index=0xFFFF \n", __func__, __LINE__);
 		goto exit;
 	}
 
-	if(priv->prev_index == index) {
+	if(priv->prev_index == index)
+	{
 		debug_printk("Skipping Previous mode set ... \n");
 		ret = 0;
 		goto exit;
+	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) Not skipping previous mode set \n", __func__, __LINE__);
 	}
 
 issue_cmd:
@@ -815,43 +847,78 @@ issue_cmd:
 
 	mc_data[16] = errorcheck(&mc_data[2], 14);
 	err = ar0330_write(client, mc_data, 17);
-	if (err != 0) {
+
+	dev_err(&client->dev," %s(%d) OK - %d w1:0x%x w2:0x%x h1:0x%x h2:0x%x\n",
+		    __func__,__LINE__, err,mc_data[8],mc_data[9],mc_data[10],mc_data[11]);
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
 		       __LINE__, err);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK - %d \n", __func__,
+				       __LINE__, err);
+	}
 
-	while (--retry > 0) {
+	while (--retry > 0)
+	{
 		cmd_id = CMD_ID_STREAM_CONFIG;
 		if (mcu_get_cmd_status
-		    (client, &cmd_id, &cmd_status, &retcode) < 0) {
+		    (client, &cmd_id, &cmd_status, &retcode) < 0)
+		{
 			dev_err(&client->dev,
 				" %s(%d) MCU GET CMD Status Error : loop : %d \n",
 				__func__, __LINE__, loop);
 			ret = -EIO;
 			goto exit;
 		}
+		else
+		{
+			dev_err(&client->dev,
+							" %s(%d) MCU GET CMD Status OK : loop : %d \n",
+							__func__, __LINE__, loop);
+		}
 
 		if ((cmd_status == MCU_CMD_STATUS_SUCCESS) &&
-		    (retcode == ERRCODE_SUCCESS)) {
+		    (retcode == ERRCODE_SUCCESS))
+		{
 			ret = 0;
+			dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
+					       __LINE__, err);
 			goto exit;
 		}
-
-		if(retcode == ERRCODE_AGAIN) {
-			/* Issue Command Again if Set */
-			retry = 1000;
-			goto issue_cmd;
+		else
+		{
+			dev_err(&client->dev," %s(%d) OK - %d \n", __func__,
+					       __LINE__, err);
 		}
 
+		if(retcode == ERRCODE_AGAIN)
+		{
+			/* Issue Command Again if Set */
+			retry = 1000;
+			dev_err(&client->dev," %s(%d) got to issue_cmd - %d \n", __func__,
+					       __LINE__, err);
+			goto issue_cmd;
+		}						
+
 		if ((retcode != ERRCODE_BUSY) &&
-		    ((cmd_status != MCU_CMD_STATUS_PENDING))) {
+		    ((cmd_status != MCU_CMD_STATUS_PENDING)))
+		{
 			dev_err(&client->dev,
 				"(%s) %d Error STATUS = 0x%04x RET = 0x%02x\n",
 				__func__, __LINE__, cmd_status, retcode);
 			ret = -EIO;
 			goto exit;
+		}
+		else
+		{
+			dev_err(&client->dev,
+				"(%s) %d OK STATUS = 0x%04x RET = 0x%02x\n",
+				__func__, __LINE__, cmd_status, retcode);
 		}
 
 		/* Delay after retry */
@@ -860,7 +927,7 @@ issue_cmd:
 
 	dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
 			__LINE__, err);
-	ret = -ETIMEDOUT;
+	ret = -ETIMEDOUT;		
 
 exit:
 	if(!ret)
@@ -919,8 +986,7 @@ static int mcu_get_ctrl(struct i2c_client *client, uint32_t arg_ctrl_id,
 	mc_data[1] = CMD_ID_GET_CTRL;
 	mc_data[2] = index >> 8;
 	mc_data[3] = index & 0xFF;
-	mc_data[4] = errorcheck(&mc_data[2], 2);
-	err = ar0330_write(client, mc_data, 5);
+	err = ar0330_write(client, mc_data, 2);
 	if (err != 0) {
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
 		       __LINE__, err);
@@ -1018,6 +1084,7 @@ static int mcu_set_ctrl(struct i2c_client *client, uint32_t arg_ctrl_id,
 {
 	struct camera_common_data *s_data = to_camera_common_data(&client->dev);
 	struct ar0330 *priv = (struct ar0330 *)s_data->priv;
+
 	uint32_t payload_len = 0;
 
 	uint16_t cmd_status = 0, index = 0xFFFF;
@@ -1122,7 +1189,7 @@ static int mcu_set_ctrl(struct i2c_client *client, uint32_t arg_ctrl_id,
 	return ret;
 }
 
-static int mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *stream_info, int *frm_fmt_size, struct ar0330 *priv)
+static int mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *stream_info, int *frm_fmt_size,struct ar0330 *priv)
 {
 	uint32_t payload_len = 0, err = 0;
 	uint8_t errcode = ERRCODE_SUCCESS, orig_crc = 0, calc_crc = 0, skip = 0;
@@ -1233,6 +1300,7 @@ static int mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *stream_info
 			ret = -EIO;
 			goto exit;
 		}
+
 		if(stream_info != NULL) {
 		/* check if any other format than UYVY is queried - do not append in array */
 		stream_info->fmt_fourcc =
@@ -1276,7 +1344,6 @@ static int mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *stream_info
 #endif
 			continue;
 		}
-
 		switch (stream_info->fmt_fourcc) {
 		case V4L2_PIX_FMT_UYVY:
 			/* ar0330_codes is already populated with V4L2_MBUS_FMT_UYVY8_1X16 */
@@ -1619,12 +1686,15 @@ static int mcu_list_ctrls(struct i2c_client *client,
 
 }
 
-static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_version, unsigned char *txt_fw_version)
+static int mcu_get_fw_version(struct i2c_client *client, 
+									unsigned char *fw_version, 
+										unsigned char *txt_fw_version)
 {
 	uint32_t payload_len = 0;
 	uint8_t errcode = ERRCODE_SUCCESS, orig_crc = 0, calc_crc = 0;
 	int ret = 0, err = 0, loop, i=0;
 	unsigned long txt_fw_pos = ARRAY_SIZE(g_mcu_fw_buf)-VERSION_FILE_OFFSET;
+
 
 	/* lock semaphore */
 	mutex_lock(&mcu_i2c_mutex);
@@ -1636,7 +1706,7 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 		i++;
 	}
 
-		/* Query firmware version from MCU */
+	/* Query firmware version from MCU */
 	payload_len = 0;
 
 	mc_data[0] = CMD_SIGNATURE;
@@ -1675,6 +1745,7 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 		goto exit;
 	}
 
+
 	errcode = mc_ret_data[5];
 	if (errcode != ERRCODE_SUCCESS) {
 		dev_err(&client->dev," %s(%d) MCU CMD ID fw Errcode - 0x%02x \n", __func__,
@@ -1683,9 +1754,10 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 		goto exit;
 	}
 
+
 	/* Read the actual version from MCU*/
 	payload_len =
-	    ((mc_ret_data[2] << 8) | mc_ret_data[3]) + HEADER_FOOTER_SIZE;
+		((mc_ret_data[2] << 8) | mc_ret_data[3]) + HEADER_FOOTER_SIZE;
 	memset(mc_ret_data, 0x00, payload_len);
 	err = ar0330_read(client, mc_ret_data, payload_len);
 	if (err != 0) {
@@ -1695,7 +1767,7 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 		goto exit;
 	}
 
-		/* Verify CRC */
+	/* Verify CRC */
 	orig_crc = mc_ret_data[payload_len - 2];
 	calc_crc = errorcheck(&mc_ret_data[2], 32);
 	if (orig_crc != calc_crc) {
@@ -1705,6 +1777,7 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 		goto exit;
 	}
 
+
 	/* Verify Errcode */
 	errcode = mc_ret_data[payload_len - 1];
 	if (errcode != ERRCODE_SUCCESS) {
@@ -1713,9 +1786,9 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 		ret = -EIO;
 		goto exit;
 	}
-
 	for (loop = 0 ; loop < VERSION_SIZE ; loop++ )
 		*(fw_version+loop) = mc_ret_data[2+loop];
+
 
 	/* Check for forced/always update field in the text firmware version*/
 	if(txt_fw_version[17] == '1') {
@@ -1723,7 +1796,7 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 				&fw_version[2], &fw_version[18]);
 		ret = 2;
 		goto exit;
-	}			
+	}		
 
 	for(i = 0; i < VERSION_SIZE; i++) {
 		if(txt_fw_version[i] != fw_version[i]) {
@@ -1735,6 +1808,8 @@ static int mcu_get_fw_version(struct i2c_client *client, unsigned char *fw_versi
 			goto exit;
 		}
 	}
+
+	ret = ERRCODE_SUCCESS;
 exit:
 	/* unlock semaphore */
 	mutex_unlock(&mcu_i2c_mutex);
@@ -1897,146 +1972,6 @@ static int mcu_get_cmd_status(struct i2c_client *client,
 	return 0;
 }
 
-static int mcu_cam_stream_on(struct i2c_client *client)
-{
-        unsigned char mc_data[100];
-        uint32_t payload_len = 0;
-
-        uint16_t cmd_status = 0;
-        uint8_t retcode = 0, cmd_id = 0;
-	int retry = 1000, err = 0;
-
-	/*lock semaphore*/
-        mutex_lock(&mcu_i2c_mutex);
-
-        /* First Txn Payload length = 0 */
-        payload_len = 0;
-
-        mc_data[0] = CMD_SIGNATURE;
-        mc_data[1] = CMD_ID_STREAM_ON;
-        mc_data[2] = payload_len >> 8;
-        mc_data[3] = payload_len & 0xFF;
-        mc_data[4] = errorcheck(&mc_data[2], 2);
-
-        ar0330_write(client, mc_data, TX_LEN_PKT);
-
-        mc_data[0] = CMD_SIGNATURE;
-        mc_data[1] = CMD_ID_STREAM_ON;
-        err = ar0330_write(client, mc_data, 2);
-        if (err != 0) {
-                dev_err(&client->dev," %s(%d) MCU Stream On Write Error - %d \n", __func__,
-                       __LINE__, err);
-                goto exit;
-        }
-
-        while (--retry > 0) {
-                /* Some Sleep for init to process */
-                yield();
-
-                cmd_id = CMD_ID_STREAM_ON;
-                if (mcu_get_cmd_status(client, &cmd_id, &cmd_status, &retcode) <
-                    0) {
-                       dev_err(&client->dev," %s(%d) MCU Get CMD Stream On Error \n", __func__,
-                               __LINE__);
-		       err = -1;
-                        goto exit;
-                }
-
-                if ((cmd_status == MCU_CMD_STATUS_SUCCESS) &&
-                    (retcode == ERRCODE_SUCCESS)) {
-                        debug_printk(" %s %dMCU Stream On Success !! \n", __func__, __LINE__);
-			err = 0;
-                        goto exit;
-                }
-
-                if ((retcode != ERRCODE_BUSY) &&
-                    ((cmd_status != MCU_CMD_STATUS_PENDING))) {
-                       dev_err(&client->dev,
-                            "(%s) %d MCU Get CMD Stream On Error STATUS = 0x%04x RET = 0x%02x\n",
-                             __func__, __LINE__, cmd_status, retcode);
-		       err = -1;
-                        goto exit;
-                }
-		mdelay(1);
-        }
- exit:
-	/* unlock semaphore */
-	        mutex_unlock(&mcu_i2c_mutex);
-		return err;
-
-}
-
-
-
-static int mcu_cam_stream_off(struct i2c_client *client)
-{
-        unsigned char mc_data[100];
-        uint32_t payload_len = 0;
-
-        uint16_t cmd_status = 0;
-        uint8_t retcode = 0, cmd_id = 0;
-	int retry = 1000, err = 0;
-        /* call ISP init command */
-
-	/*lock semaphore*/
-        mutex_lock(&mcu_i2c_mutex);
-
-        /* First Txn Payload length = 0 */
-        payload_len = 0;
-
-        mc_data[0] = CMD_SIGNATURE;
-        mc_data[1] = CMD_ID_STREAM_OFF;
-        mc_data[2] = payload_len >> 8;
-        mc_data[3] = payload_len & 0xFF;
-        mc_data[4] = errorcheck(&mc_data[2], 2);
-
-        ar0330_write(client, mc_data, TX_LEN_PKT);
-
-        mc_data[0] = CMD_SIGNATURE;
-        mc_data[1] = CMD_ID_STREAM_OFF;
-        err = ar0330_write(client, mc_data, 2);
-        if (err != 0) {
-                dev_err(&client->dev," %s(%d) MCU Stream OFF Write Error - %d \n", __func__,
-                       __LINE__, err);
-                goto exit;
-        }
-
-        while (--retry > 0) {
-                /* Some Sleep for init to process */
-                yield();
-
-                cmd_id = CMD_ID_STREAM_OFF;
-                if (mcu_get_cmd_status(client, &cmd_id, &cmd_status, &retcode) <
-                    0) {
-                       dev_err(&client->dev," %s(%d) MCU Get CMD Stream Off Error \n", __func__,
-                               __LINE__);
-		       err = -1;
-                        goto exit;
-                }
-
-                if ((cmd_status == MCU_CMD_STATUS_SUCCESS) &&
-                    (retcode == ERRCODE_SUCCESS)) {
-                        debug_printk(" %s %d MCU Get CMD Stream off Success !! \n", __func__, __LINE__ );
-			err = 0;
-                        goto exit;
-                }
-
-                if ((retcode != ERRCODE_BUSY) &&
-                    ((cmd_status != MCU_CMD_STATUS_PENDING))) {
-                       dev_err(&client->dev, 
-                            "(%s) %d MCU Get CMD Stream off Error STATUS = 0x%04x RET = 0x%02x\n",
-                             __func__, __LINE__, cmd_status, retcode);
-		       err = -1;
-                        goto exit;
-                }
-		mdelay(1);
-        }
-exit:
-	/* unlock semaphore */
-	mutex_unlock(&mcu_i2c_mutex);
-	return err;
-}
-
 static int mcu_isp_init(struct i2c_client *client)
 {
 	uint32_t payload_len = 0;
@@ -2044,8 +1979,7 @@ static int mcu_isp_init(struct i2c_client *client)
 	uint16_t cmd_status = 0;
 	uint8_t retcode = 0, cmd_id = 0;
 	int retry = 1000, err = 0;
-	
-	pr_info("mcu_isp_init\n");
+
 	/* check current status - if initialized, no need for Init */
 	cmd_id = CMD_ID_INIT_CAM;
 	if (mcu_get_cmd_status(client, &cmd_id, &cmd_status, &retcode) < 0) {
@@ -2055,7 +1989,7 @@ static int mcu_isp_init(struct i2c_client *client)
 
 	if ((cmd_status == MCU_CMD_STATUS_SUCCESS) &&
 	    (retcode == ERRCODE_SUCCESS)) {
-		dev_err(&client->dev," Already Initialized !! \n");
+		debug_printk(" Already Initialized !! \n");
 		return 0;
 	}
 
@@ -2083,7 +2017,7 @@ static int mcu_isp_init(struct i2c_client *client)
 
 	while (--retry > 0) {
 		/* Some Sleep for init to process */
-		mdelay(500);
+		mdelay(5);
 
 		cmd_id = CMD_ID_INIT_CAM;
 		if (mcu_get_cmd_status
@@ -2095,8 +2029,7 @@ static int mcu_isp_init(struct i2c_client *client)
 
 		if ((cmd_status == MCU_CMD_STATUS_SUCCESS) &&
 		    ((retcode == ERRCODE_SUCCESS) || (retcode == ERRCODE_ALREADY))) {
-			dev_err(&client->dev,"ISP Already Initialized !! \n");
-			//dev_err(" ISP Already Initialized !! \n");
+			debug_printk(" ISP Already Initialized !! \n");
 			return 0;
 		}
 
@@ -2108,7 +2041,7 @@ static int mcu_isp_init(struct i2c_client *client)
 			return -EIO;
 		}
 	}
-	dev_err(&client->dev,"ETIMEDOUT Error\n");
+
 	return -ETIMEDOUT;
 }
 
@@ -2226,7 +2159,7 @@ int mcu_bload_parse_send_cmd(struct i2c_client *client,
 		/*   Flash Data into Flashaddr */
 
 		g_bload_flashaddr =
-		    (g_bload_flashaddr & 0xFFFF0000) | (ihex_rec->addr);
+		    (g_bload_flashaddr & 0xFFFF0000) | (ihex_rec->addr);	
 		g_bload_crc16 ^=
 		    mcu_bload_calc_crc16(ihex_rec->recdata, ihex_rec->datasize);
 
@@ -2668,7 +2601,7 @@ static int mcu_fw_update(struct i2c_client *client, unsigned char *mcu_fw_versio
 	int ret = 0;
 	g_bload_crc16 = 0;
 
-	/* Read Firmware version from bootloader MCU */
+	/* Read Firmware version from bootloader MCU */	
 	ret = mcu_bload_get_version(client);
 	if (ret < 0) {
 		dev_err(&client->dev," Error in Get Version \n");
@@ -2677,7 +2610,7 @@ static int mcu_fw_update(struct i2c_client *client, unsigned char *mcu_fw_versio
 
 	debug_printk(" Get Version SUCCESS !! \n");
 
-	/* Erase firmware present in the MCU and flash new firmware*/
+	/* Erase firmware present in the MCU and flash new firmware*/	
 	ret = mcu_bload_erase_flash(client);
 	if (ret < 0) {
 		dev_err(&client->dev," Error in Erase Flash \n");
@@ -2686,7 +2619,7 @@ static int mcu_fw_update(struct i2c_client *client, unsigned char *mcu_fw_versio
 
 	debug_printk("Erase Flash Success !! \n");
 
-	/* Read the firmware present in the text file */
+	/* Read the firmware present in the text file */	
 	if ((ret = mcu_bload_update_fw(client)) < 0) {
 		dev_err(&client->dev," Write Flash FAIL !! \n");
 		goto exit;
@@ -2704,13 +2637,52 @@ static int mcu_fw_update(struct i2c_client *client, unsigned char *mcu_fw_versio
 		dev_err(&client->dev," i2c_bload_go FAIL !! \n");
 		goto exit;
 	}
-	
+
 	if(mcu_fw_version) {
 		debug_printk("(%s) - Firmware Updated - (%.4s - %.7s)\n",
 				__func__, &mcu_fw_version[2], &mcu_fw_version[18]);
 	}
+	
  exit:
 	return ret;
+}
+
+int enable_phy(struct i2c_client *client, struct ar0330 *priv, uint8_t phy)
+{
+	uint8_t linken = 0;
+	serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);		
+	printk(" LINKEN  = 0x%02x \n", linken);
+	
+	if(phy == PHY_A)
+		linken |= 0x01;
+	else if(phy == PHY_B)
+		linken |= 0x02;
+
+	serdes_write_16b_reg(client, priv->des_addr, 0x0F00, linken);												
+
+	linken = 0;
+	serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);		
+	printk(" Changed LINKEN to = 0x%02x \n", linken);					
+	return 0;
+}
+
+int disable_phy(struct i2c_client *client, struct ar0330 *priv, uint8_t phy)
+{
+	uint8_t linken = 0;
+	serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);		
+	printk(" LINKEN  = 0x%02x \n", linken);
+	
+	if(phy == PHY_A)
+		linken &= ~0x01;
+	else if(phy == PHY_B)
+		linken &= ~0x02;
+
+	serdes_write_16b_reg(client, priv->des_addr, 0x0F00, linken);												
+
+	linken = 0;
+	serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);		
+	printk(" Changed LINKEN to = 0x%02x \n", linken);					
+	return 0;
 }
 
 static int ar0330_probe(struct i2c_client *client,
@@ -2721,42 +2693,34 @@ static int ar0330_probe(struct i2c_client *client,
 	struct ar0330 *priv;
 
 	unsigned char fw_version[32] = {0}, txt_fw_version[32] = {0};
-	int ret, frm_fmt_size = 0, loop;
-	uint16_t sensor_id = 0, reset_gpio = 0, pwdn_gpio = 0;
+	int ret, frm_fmt_size = 0, poc_enable = 0, loop;
+	uint16_t sensor_id = 0;
+	const char *str;
 
-	int err = 0, pwdn_gpio_toggle = 0;
-	if (!IS_ENABLED(CONFIG_OF) || !node)
+	int err = 0;
+	
+	if (!(IS_ENABLED(CONFIG_OF)) || !node)
 		return -EINVAL;
 
-
-	err = of_get_named_gpio(node, "reset-gpios", 0);
-	if(err < 0) {
-		dev_err(&client->dev, "Unable to toggle GPIO\n");
-		return -EINVAL;
-	}
-	reset_gpio = of_get_named_gpio(node, "reset-gpios", 0);
-
-	err = of_get_named_gpio(node, "pwdn-gpios", 0);
-       	//printk("BOOT = %x \n",pwdn_gpio);
-       	if(err < 0) {
-               dev_err(&client->dev, "Unable to toggle GPIO\n");
-               return -EINVAL;
-       	}
-	pwdn_gpio = of_get_named_gpio(node, "pwdn-gpios", 0);
-
-	err = gpio_request(reset_gpio,"cam-reset");
-	if (err < 0) {
-		dev_err(&client->dev,"%s[%d]:GPIO reset Fail, err:%d",__func__,__LINE__, err);
-		return -EINVAL;
+	poc_enable = of_get_named_gpio(node, "poc-gpio", 0);
+	if(poc_enable > 0) {
+		debug_printk("poc_enable = %d \n", poc_enable);		
+		err = gpio_request(poc_enable,"poc-en");
+		if (err < 0) {
+			dev_err(&client->dev,"%s[%d]:GPIO POC Fail, err:%d",__func__,__LINE__, err);
+			goto skip_poc;
+		}		
+		toggle_gpio(poc_enable, 1);
+		msleep(500);		
+		toggle_gpio(poc_enable, 0);
+		msleep(500);		
+		toggle_gpio(poc_enable, 1);
+		msleep(500);		
+		serdes_write_16b_reg(client, DES_ADDR1, 0x0010, 0x80);
+		msleep(200);
 	}
 
-	err = gpio_request(pwdn_gpio,"cam-boot");
-        if (err < 0) {
-                dev_err(&client->dev,"%s[%d]:%dGPIO boot Fail\n",__func__,__LINE__,err);
-                return -EINVAL;
-        }
-
-       // err = gpio_direction_output(pwdn_gpio, 0);
+skip_poc:	
 	common_data =
 	    devm_kzalloc(&client->dev,
 			 sizeof(struct camera_common_data), GFP_KERNEL);
@@ -2766,7 +2730,7 @@ static int ar0330_probe(struct i2c_client *client,
 	priv =
 	    devm_kzalloc(&client->dev,
 			 sizeof(struct ar0330) +
-			 sizeof(struct v4l2_ctrl *) * AR0330_NUM_CONTROLS /**num_ctrls*/,
+			 sizeof(struct v4l2_ctrl *) * AR0330_NUM_CONTROLS,
 			 GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
@@ -2777,6 +2741,19 @@ static int ar0330_probe(struct i2c_client *client,
 		dev_err(&client->dev, "unable to get platform data\n");
 		return -EFAULT;
 	}
+
+	err = of_property_read_string(node, "phy-id", &str);
+	if (!err) {
+		if (!strcmp(str, "A"))
+			priv->phy = PHY_A;
+		else
+			priv->phy = PHY_B;
+	} else {
+		return -EFAULT;	
+	}
+	
+	priv->ser_addr = SER_ADDR1;
+	priv->des_addr = DES_ADDR1;
 	priv->i2c_client = client;
 	priv->s_data = common_data;
 	priv->subdev = &common_data->subdev;
@@ -2788,101 +2765,255 @@ static int ar0330_probe(struct i2c_client *client,
 	if (err)
 		return err;
 
-
 	err = ar0330_power_on(common_data);
 	if (err)
 		return err;
 
-	/* Reset Release for MCU */
-	toggle_gpio(pwdn_gpio, 0);
-	msleep(10);
-	toggle_gpio(reset_gpio, 0);
-	msleep(10);
-	toggle_gpio(reset_gpio, 1);
-	msleep(100);
+	if(priv->phy == PHY_A || priv->phy == PHY_B) {
+		serdes_write_16b_reg(client, priv->des_addr, 0x0B07, 0x0C);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0C07, 0x0C);
+		msleep(10);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x80);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0C0D, 0x80);		
+		serdes_write_16b_reg(client, priv->des_addr, 0x0F05, 0x26);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0F06, 0x56);
+		
+		/* Address translate */
+		if(priv->phy == PHY_A) {
+			serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
+			serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
+			msleep(100);	
+			serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
+
+			/* Change Serializer slave address */
+			serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR2 << 1);
+
+			if(serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0) {
+				printk(" Error Accessing PHYA serializer \n");
+				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);			
+				return -EIO;
+			}
+			
+			serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
+		} else if (priv->phy == PHY_B) {
+			serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
+			serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
+			msleep(100);	
+
+			serdes_write_16b_reg(client, priv->des_addr, 0x0C0D, 0x00);
+			
+			/* Change Serializer slave address */
+			serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
+
+			if(serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0) {
+				printk(" Error Accessing PHYB serializer \n");
+				serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);			
+				return -EIO;
+			}			
+			serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);			
+		}
+
+
+		/* Link configuration */
+		serdes_write_16b_reg(client, priv->des_addr, 0x0320, 0x2F);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0323, 0x2F);
+
+		serdes_write_16b_reg(client, priv->des_addr, 0x044A, 0xC8);
+		serdes_write_16b_reg(client, priv->des_addr, 0x048A, 0xC8);
+
+		serdes_write_16b_reg(client, priv->des_addr, 0x0313, 0x82);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0314, 0x10);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0316, 0x5E);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0317, 0x0E);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0319, 0x10);
+		serdes_write_16b_reg(client, priv->des_addr, 0x031D, 0xEF);		
+
+		serdes_write_16b_reg(client, priv->des_addr, 0x0B96, 0x9B);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0C96, 0x9B);
+		
+		serdes_write_16b_reg(client, priv->des_addr, 0x0B06, 0xE8);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0C06, 0xE8);		
+		serdes_write_16b_reg(client, priv->des_addr, 0x01DA, 0x18);
+		serdes_write_16b_reg(client, priv->des_addr, 0x01FA, 0x18);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0BA7, 0x45);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0CA7, 0x45);
+		serdes_write_16b_reg(client, priv->des_addr, 0x040B, 0x07);
+		serdes_write_16b_reg(client, priv->des_addr, 0x042D, 0x15);
+		serdes_write_16b_reg(client, priv->des_addr, 0x040D, 0x1E);
+		serdes_write_16b_reg(client, priv->des_addr, 0x040E, 0x1E);
+		serdes_write_16b_reg(client, priv->des_addr, 0x040F, 0x00);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0410, 0x00);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0411, 0x01);
+		serdes_write_16b_reg(client, priv->des_addr, 0x0412, 0x01);		
+	}
+
+
+	/* i2c address translated */
+	if(priv->phy == PHY_A) {
+		if(enable_phy(client, priv, PHY_A) < 0) {
+			printk("Error Enabling PHYA \n");
+			return -EIO;
+		}
+
+		printk(" Translating i2c address for PHYA... \n");
+		priv->ser_addr = SER_ADDR2;
+		serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
+
+		/* MCU RESET */
+		if(serdes_write_8b_reg(client, SER_ADDR2, 0x0D, 0x8F) < 0) {
+				printk(" Error Accessing PHYA serializer \n");
+				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);		
+				disable_phy(client, priv, PHY_A);
+				return -EIO;
+		}
+
+		msleep(100);	
+		printk("MCU address modification - PHYA \n");
+		priv->ser_addr = SER_ADDR2;
+		serdes_write_8b_reg(client, SER_ADDR2, 0x0F, MCU_ADDR2 << 1);
+		serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));				
+		serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);		
+	} else if(priv->phy == PHY_B) {
+		if(enable_phy(client, priv, PHY_B) < 0) {
+			printk("Error Enabling PHYB \n");
+			return -EIO;
+		}		
+
+		printk(" Translating i2c address for PHYB... \n");
+		priv->ser_addr = SER_ADDR3;
+		serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
+		/* MCU RESET */
+		if(serdes_write_8b_reg(client, SER_ADDR3, 0x0D, 0x8F) < 0) {
+				printk(" Error Accessing PHYA serializer \n");
+				serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);		
+				disable_phy(client, priv, PHY_B);
+				return -EIO;
+		}
+		msleep(100);			
+		printk("MCU address modification - PHYB \n");
+		priv->ser_addr = SER_ADDR3;
+		serdes_write_8b_reg(client, SER_ADDR3, 0x0F, MCU_ADDR3 << 1);
+		serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));				
+		serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);		
+	}			
 
 	ret = mcu_get_fw_version(client, fw_version, txt_fw_version);
-	if (ret != 0) {	
+	if (ret != 0) {
+
+		if(ret > 0) {
+			if((err = mcu_jump_bload(client)) < 0) {
+				dev_err(&client->dev," Cannot go into bootloader mode\n");
+				disable_phy(client, priv, priv->phy);
+				return -EIO;
+			}			
+			msleep(1);
+		}
+
 		dev_err(&client->dev," Trying to Detect Bootloader mode\n");
-	
-		toggle_gpio(reset_gpio, 0);
-                msleep(10);
-                toggle_gpio(pwdn_gpio, 1);
-                msleep(100);
-                toggle_gpio(reset_gpio, 1);
-                msleep(100);
 
 		for(loop = 0;loop < 10; loop++) {
 			err = mcu_bload_get_version(client);
 			if (err < 0) {
 				/* Trial and Error for 1 second (100ms * 10) */
-				msleep(100);
+				msleep(1);
 				continue;
 			} else {
 				dev_err(&client->dev," Get Bload Version Success\n");
-				pwdn_gpio_toggle = 1;
 				break;
 			}
 		}
-		
+
 		if(loop == 10) {
 			dev_err(&client->dev, "Error updating firmware \n");
+			disable_phy(client, priv, priv->phy);
 			return -EINVAL;
+		}				
+		
+		for( loop = 0; loop < 10; loop++) {
+			err = mcu_fw_update(client, NULL);
+			if(err < 0) {
+				dev_err(&client->dev, "%s(%d) Error updating firmware... Retry.. \n\n", __func__, __LINE__);
+				
+				continue;
+			} else {
+				dev_err (&client->dev, "Firmware Updated Successfully\n");
+				break;	
+			}
+
+		}
+		if( loop == 10) {
+			dev_err( &client->dev, "Error Updating Firmware\n");
+			disable_phy(client, priv, priv->phy);
+			return -EFAULT;
 		}
 
-		if (mcu_fw_update(client, NULL) < 0)
-			return -EFAULT;
-
-		if( pwdn_gpio_toggle == 1)
-                     toggle_gpio(pwdn_gpio, 0);
-
 		/* Allow FW Updated Driver to reboot */
-		msleep(500);
+		msleep(10);
 
-		for(loop = 0;loop < 100; loop++) {
+		for(loop = 0;loop < 10; loop++) {
 			err = mcu_get_fw_version(client, fw_version, txt_fw_version);
 			if (err < 0) {
-				/* Trial and Error for 10 seconds (100ms * 100) */
-				msleep(100);
+				msleep(1);
+
+				/* See if it is a empty MCU */
+				err = mcu_bload_get_version(client);
+				if (err < 0) {
+					dev_err(&client->dev," Get Bload Version Fail\n");
+				} else {
+					dev_err(&client->dev," Get Bload Version Success\n");
+
+					/* Re-issue GO command to get into user mode */
+					if (mcu_bload_go(client) < 0) {
+						dev_err(&client->dev," i2c_bload_go FAIL !! \n");
+					}					
+					msleep(1);
+				}						
+
 				continue;
 			} else {
 				dev_err(&client->dev," Get FW Version Success\n");
 				break;
 			}
 		}
-		if(loop == 100) {
+		if(loop == 10) {
 			dev_err(&client->dev, "Error updating firmware \n");
+			disable_phy(client, priv, priv->phy);
 			return -EINVAL;
 		}						
+
 		debug_printk("Current Firmware Version - (%.4s-%.7s).",
 				&fw_version[2],&fw_version[18]);
+
 	} else {
 		/* Same firmware version in MCU and Text File */
 		debug_printk("Current Firmware Version - (%.4s-%.7s)",
-				&fw_version[2],&fw_version[18]);
+									&fw_version[2],&fw_version[18]);
 	}
-		
-	/* Query the number of controls from MCU*/
+
 	if(mcu_list_ctrls(client, NULL, priv) < 0) {
 		dev_err(&client->dev, "%s, Failed to init controls \n", __func__);
+			disable_phy(client, priv, priv->phy);
 		return -EFAULT;
 	}
 
 	/*Query the number for Formats available from MCU */
-	if(mcu_list_fmts(client, NULL, &frm_fmt_size, priv) < 0) {
+	if(mcu_list_fmts(client, NULL, &frm_fmt_size,priv) < 0) {
 		dev_err(&client->dev, "%s, Failed to init formats \n", __func__);
+			disable_phy(client, priv, priv->phy);
 		return -EFAULT;
 	}
 
 	priv->mcu_ctrl_info = devm_kzalloc(&client->dev, sizeof(ISP_CTRL_INFO) * priv->num_ctrls, GFP_KERNEL);
 	if(!priv->mcu_ctrl_info) {
 		dev_err(&client->dev, "Unable to allocate memory \n");
+			disable_phy(client, priv, priv->phy);
 		return -ENOMEM;
 	}
 
 	priv->ctrldb = devm_kzalloc(&client->dev, sizeof(uint32_t) * priv->num_ctrls, GFP_KERNEL);
 	if(!priv->ctrldb) {
 		dev_err(&client->dev, "Unable to allocate memory \n");
+			disable_phy(client, priv, priv->phy);
 		return -ENOMEM;
 	}
 
@@ -2891,46 +3022,53 @@ static int ar0330_probe(struct i2c_client *client,
 	priv->streamdb = devm_kzalloc(&client->dev, sizeof(int) * (frm_fmt_size + 1), GFP_KERNEL);
 	if(!priv->streamdb) {
 		dev_err(&client->dev,"Unable to allocate memory \n");
+			disable_phy(client, priv, priv->phy);
 		return -ENOMEM;
 	}
 
 	priv->mcu_cam_frmfmt = devm_kzalloc(&client->dev, sizeof(struct camera_common_frmfmt) * (frm_fmt_size), GFP_KERNEL);
 	if(!priv->mcu_cam_frmfmt) {
 		dev_err(&client->dev, "Unable to allocate memory \n");
+			disable_phy(client, priv, priv->phy);
 		return -ENOMEM;
 	}
+	if (mcu_get_sensor_id(client, &sensor_id) < 0) {
+		dev_err(&client->dev, "Unable to get MCU Sensor ID \n");
+			disable_phy(client, priv, priv->phy);
+		return -EFAULT;
+	}
+
 
 	if (mcu_isp_init(client) < 0) {
 		dev_err(&client->dev, "Unable to INIT ISP \n");
+			disable_phy(client, priv, priv->phy);
 		return -EFAULT;
-	}
-
-	if (mcu_get_sensor_id(client, &sensor_id) < 0) {
-		dev_err(&client->dev, "Unable to get MCU Sensor ID \n");
-		return -EFAULT;
-	}
-
-	printk("SENSOR ID=0x%04x\n",sensor_id);
-
-	err = mcu_cam_stream_off(client);
-	if(err!= 0){
-		dev_err(&client->dev,"%s (%d) Stream_Off \n", __func__, __LINE__);
-		return err;
 	}
 
 	for(loop = 0; loop < frm_fmt_size; loop++) {
 		priv->mcu_cam_frmfmt[loop].framerates = devm_kzalloc(&client->dev, sizeof(int) * MAX_NUM_FRATES, GFP_KERNEL);
 		if(!priv->mcu_cam_frmfmt[loop].framerates) {
 			dev_err(&client->dev, "Unable to allocate memory \n");
+			disable_phy(client, priv, priv->phy);
 			return -ENOMEM;
 		}
 	}
 
 	/* Enumerate Formats */
-	if (mcu_list_fmts(client, priv->stream_info, &frm_fmt_size, priv) < 0) {
+	if (mcu_list_fmts(client, priv->stream_info, &frm_fmt_size,priv) < 0) {
 		dev_err(&client->dev, "Unable to List Fmts \n");
+			disable_phy(client, priv, priv->phy);
 		return -EFAULT;
 	}
+
+
+	/* Enable Data Link in GMSL */
+	if(priv->phy == PHY_A) {
+		serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x83);
+	} else if(priv->phy == PHY_B) {
+		serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x83);
+	}						
+	msleep(100);		
 
 	common_data->ops = NULL;
 	common_data->ctrl_handler = &priv->ctrl_handler;
@@ -2979,7 +3117,7 @@ static int ar0330_probe(struct i2c_client *client,
 #if defined(CONFIG_MEDIA_CONTROLLER)
 	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
 	priv->subdev->entity.ops = &ar0330_media_ops;
-	err = tegra_media_entity_init(&priv->subdev->entity, 1, &priv->pad, true, true);
+	err = tegra_media_entity_init(&priv->subdev->entity, 1, &priv->pad, true , true);
 	if (err < 0) {
 		dev_err(&client->dev, "unable to init media entity\n");
 		return err;
@@ -2989,6 +3127,7 @@ static int ar0330_probe(struct i2c_client *client,
 	err = v4l2_async_register_subdev(priv->subdev);
 	if (err)
 		return err;
+	printk("Detected ar0330 sensor\n");
 
 	return 0;
 }
@@ -3044,7 +3183,7 @@ static int ar0330_remove(struct i2c_client *client)
 }
 
 static const struct i2c_device_id ar0330_id[] = {
-	{"ecam30", 0},
+	{"ar0330", 0},
 	{}
 };
 
@@ -3052,7 +3191,7 @@ MODULE_DEVICE_TABLE(i2c, ar0330_id);
 
 static struct i2c_driver ar0330_i2c_driver = {
 	.driver = {
-		   .name = "ecam30",
+		   .name = "ar0330",
 		   .owner = THIS_MODULE,
 		   .of_match_table = of_match_ptr(ar0330_of_match),
 		   },
@@ -3063,6 +3202,6 @@ static struct i2c_driver ar0330_i2c_driver = {
 
 module_i2c_driver(ar0330_i2c_driver);
 
-MODULE_DESCRIPTION("V4L2 driver for e-con cameras");
+MODULE_DESCRIPTION("V4L2 driver for e-con Cameras");
 MODULE_AUTHOR("E-Con Systems");
 MODULE_LICENSE("GPL v2");
