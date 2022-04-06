@@ -84,4 +84,6 @@ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
 obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
 obj-$(CONFIG_VIDEO_ECAM) += ar0330.o
 ar0330-objs := serdes.o ar0330_common.o
+obj-$(CONFIG_VIDEO_ECAM) += atto640.o
+atto640-objs := serdes_atto640.o atto640_common.o
 obj-y += e-CAM50_CUNANO/

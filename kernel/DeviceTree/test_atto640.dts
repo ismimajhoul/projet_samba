@@ -8,7 +8,7 @@
 	#size-cells = <0x02>;
 	model = "jetson-xavier";
 	nvidia,dtsfilename = "tegra194-agx-cti-AGX101-JCB002-AR0330-8CAM.dts";
-	nvidia,dtbbuildtime = "Apr 14 2021\010:19:38";
+	nvidia,dtbbuildtime = "Apr 29 2021\09:49:02";
 	nvidia,fastboot-usb-vid = <0x955>;
 	nvidia,fastboot-usb-pid = <0xee1e>;
 
@@ -27,8 +27,8 @@
 		nvidia,disable-features = "devslp\0dipm";
 		nvidia,link-flags = "max_power";
 		status = "disabled";
-		linux,phandle = <0xcd>;
-		phandle = <0xcd>;
+		linux,phandle = <0xcc>;
+		phandle = <0xcc>;
 
 		prod-settings {
 			#prod-cells = <0x04>;
@@ -55,40 +55,40 @@
 			compatible = "nvidia,tegra194-disb-pd";
 			#power-domain-cells = <0x00>;
 			partition-id = <0x03>;
-			linux,phandle = <0xce>;
-			phandle = <0xce>;
+			linux,phandle = <0xcd>;
+			phandle = <0xcd>;
 		};
 
 		disc-pd {
 			compatible = "nvidia,tegra194-disc-pd";
 			#power-domain-cells = <0x00>;
 			partition-id = <0x04>;
-			linux,phandle = <0xcf>;
-			phandle = <0xcf>;
+			linux,phandle = <0xce>;
+			phandle = <0xce>;
 		};
 
 		xusba-pd {
 			compatible = "nvidia,tegra194-xusba-pd";
 			#power-domain-cells = <0x00>;
 			partition-id = <0x0e>;
-			linux,phandle = <0xd0>;
-			phandle = <0xd0>;
+			linux,phandle = <0xcf>;
+			phandle = <0xcf>;
 		};
 
 		xusbb-pd {
 			compatible = "nvidia,tegra194-xusbb-pd";
 			#power-domain-cells = <0x00>;
 			partition-id = <0x0f>;
-			linux,phandle = <0xd1>;
-			phandle = <0xd1>;
+			linux,phandle = <0xd0>;
+			phandle = <0xd0>;
 		};
 
 		xusbc-pd {
 			compatible = "nvidia,tegra194-xusbc-pd";
 			#power-domain-cells = <0x00>;
 			partition-id = <0x10>;
-			linux,phandle = <0xd2>;
-			phandle = <0xd2>;
+			linux,phandle = <0xd1>;
+			phandle = <0xd1>;
 		};
 	};
 
@@ -181,8 +181,8 @@
 		};
 
 		vbus_en0_oc_tristate {
-			linux,phandle = <0xd3>;
-			phandle = <0xd3>;
+			linux,phandle = <0xd2>;
+			phandle = <0xd2>;
 
 			usb_vbus_en0_pz1 {
 				nvidia,pins = "usb_vbus_en0_pz1";
@@ -194,8 +194,8 @@
 		};
 
 		vbus_en1_oc_tristate {
-			linux,phandle = <0xd4>;
-			phandle = <0xd4>;
+			linux,phandle = <0xd3>;
+			phandle = <0xd3>;
 
 			usb_vbus_en1_pz2 {
 				nvidia,pins = "usb_vbus_en1_pz2";
@@ -207,8 +207,8 @@
 		};
 
 		vbus_en0_oc_passthrough {
-			linux,phandle = <0xd5>;
-			phandle = <0xd5>;
+			linux,phandle = <0xd4>;
+			phandle = <0xd4>;
 
 			usb_vbus_en0_pz1 {
 				nvidia,pins = "usb_vbus_en0_pz1";
@@ -220,8 +220,8 @@
 		};
 
 		vbus_en1_oc_passthrough {
-			linux,phandle = <0xd6>;
-			phandle = <0xd6>;
+			linux,phandle = <0xd5>;
+			phandle = <0xd5>;
 
 			usb_vbus_en1_pz2 {
 				nvidia,pins = "usb_vbus_en1_pz2";
@@ -233,8 +233,8 @@
 		};
 
 		vbus_en0_default {
-			linux,phandle = <0xd7>;
-			phandle = <0xd7>;
+			linux,phandle = <0xd6>;
+			phandle = <0xd6>;
 
 			usb_vbus_en0_pz1 {
 				nvidia,pins = "usb_vbus_en0_pz1";
@@ -245,8 +245,8 @@
 		};
 
 		vbus_en1_default {
-			linux,phandle = <0xd8>;
-			phandle = <0xd8>;
+			linux,phandle = <0xd7>;
+			phandle = <0xd7>;
 
 			usb_vbus_en1_pz2 {
 				nvidia,pins = "usb_vbus_en1_pz2";
@@ -283,8 +283,8 @@
 			interrupt-names = "intr";
 			nvidia,uphy-id = <0x01>;
 			#phy-cells = <0x00>;
-			linux,phandle = <0xd9>;
-			phandle = <0xd9>;
+			linux,phandle = <0xd8>;
+			phandle = <0xd8>;
 		};
 
 		p2u@03e30000 {
@@ -343,8 +343,8 @@
 			interrupt-names = "intr";
 			nvidia,uphy-id = <0x06>;
 			#phy-cells = <0x00>;
-			linux,phandle = <0xda>;
-			phandle = <0xda>;
+			linux,phandle = <0xd9>;
+			phandle = <0xd9>;
 		};
 
 		p2u@03e80000 {
@@ -379,8 +379,8 @@
 			interrupt-names = "intr";
 			nvidia,uphy-id = <0x09>;
 			#phy-cells = <0x00>;
-			linux,phandle = <0xdb>;
-			phandle = <0xdb>;
+			linux,phandle = <0xda>;
+			phandle = <0xda>;
 		};
 
 		p2u@03f30000 {
@@ -391,8 +391,8 @@
 			interrupt-names = "intr";
 			nvidia,uphy-id = <0x0a>;
 			#phy-cells = <0x00>;
-			linux,phandle = <0xdc>;
-			phandle = <0xdc>;
+			linux,phandle = <0xdb>;
+			phandle = <0xdb>;
 		};
 
 		p2u@03f40000 {
@@ -403,8 +403,8 @@
 			interrupt-names = "intr";
 			nvidia,uphy-id = <0x0b>;
 			#phy-cells = <0x00>;
-			linux,phandle = <0xdd>;
-			phandle = <0xdd>;
+			linux,phandle = <0xdc>;
+			phandle = <0xdc>;
 		};
 	};
 
@@ -1033,8 +1033,8 @@
 		resets = <0x05 0x64>;
 		reset-names = "serial";
 		status = "okay";
-		linux,phandle = <0xde>;
-		phandle = <0xde>;
+		linux,phandle = <0xdd>;
+		phandle = <0xdd>;
 	};
 
 	serial@3110000 {
@@ -1052,8 +1052,8 @@
 		resets = <0x05 0x65>;
 		reset-names = "serial";
 		status = "okay";
-		linux,phandle = <0xdf>;
-		phandle = <0xdf>;
+		linux,phandle = <0xde>;
+		phandle = <0xde>;
 	};
 
 	serial@c280000 {
@@ -1071,8 +1071,8 @@
 		resets = <0x05 0x66>;
 		reset-names = "serial";
 		status = "disabled";
-		linux,phandle = <0xe0>;
-		phandle = <0xe0>;
+		linux,phandle = <0xdf>;
+		phandle = <0xdf>;
 	};
 
 	serial@3130000 {
@@ -1090,8 +1090,8 @@
 		resets = <0x05 0x67>;
 		reset-names = "serial";
 		status = "disabled";
-		linux,phandle = <0xe1>;
-		phandle = <0xe1>;
+		linux,phandle = <0xe0>;
+		phandle = <0xe0>;
 	};
 
 	serial@3140000 {
@@ -1109,8 +1109,8 @@
 		resets = <0x05 0x68>;
 		reset-names = "serial";
 		status = "okay";
-		linux,phandle = <0xe2>;
-		phandle = <0xe2>;
+		linux,phandle = <0xe1>;
+		phandle = <0xe1>;
 	};
 
 	serial@3150000 {
@@ -1128,8 +1128,8 @@
 		resets = <0x05 0x69>;
 		reset-names = "serial";
 		status = "disabled";
-		linux,phandle = <0xe3>;
-		phandle = <0xe3>;
+		linux,phandle = <0xe2>;
+		phandle = <0xe2>;
 	};
 
 	serial@c290000 {
@@ -1147,8 +1147,8 @@
 		resets = <0x05 0x6a>;
 		reset-names = "serial";
 		status = "disabled";
-		linux,phandle = <0xe4>;
-		phandle = <0xe4>;
+		linux,phandle = <0xe3>;
+		phandle = <0xe3>;
 	};
 
 	serial@3170000 {
@@ -1166,8 +1166,8 @@
 		resets = <0x05 0x6b>;
 		reset-names = "serial";
 		status = "disabled";
-		linux,phandle = <0xe5>;
-		phandle = <0xe5>;
+		linux,phandle = <0xe4>;
+		phandle = <0xe4>;
 	};
 
 	combined-uart {
@@ -1187,8 +1187,8 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <0x20>;
 		status = "okay";
-		linux,phandle = <0xe6>;
-		phandle = <0xe6>;
+		linux,phandle = <0xe5>;
+		phandle = <0xe5>;
 
 		sdmmc1_e_33V_enable {
 			linux,phandle = <0x24>;
@@ -1384,8 +1384,8 @@
 		vqmmc-supply = <0x1e>;
 		uhs-mask = <0x00>;
 		nvidia,enable-hwcq;
-		linux,phandle = <0xe7>;
-		phandle = <0xe7>;
+		linux,phandle = <0xe6>;
+		phandle = <0xe6>;
 
 		prod-settings {
 			#prod-cells = <0x04>;
@@ -1459,8 +1459,8 @@
 		uhs-mask = <0x08>;
 		nvidia,en-periodic-calib;
 		status = "disabled";
-		linux,phandle = <0xe8>;
-		phandle = <0xe8>;
+		linux,phandle = <0xe7>;
+		phandle = <0xe7>;
 
 		prod-settings {
 			#prod-cells = <0x04>;
@@ -1550,8 +1550,8 @@
 		mmc-ocr-mask = <0x00>;
 		cd-gpios = <0x13 0x37 0x00>;
 		nvidia,cd-wakeup-capable;
-		linux,phandle = <0xe9>;
-		phandle = <0xe9>;
+		linux,phandle = <0xe8>;
+		phandle = <0xe8>;
 
 		prod-settings {
 			#prod-cells = <0x04>;
@@ -1629,8 +1629,8 @@
 		vccq-supply = <0x29>;
 		vccq2-supply = <0x1e>;
 		nvidia,enable-hs-mode;
-		linux,phandle = <0xea>;
-		phandle = <0xea>;
+		linux,phandle = <0xe9>;
+		phandle = <0xe9>;
 
 		ufs_variant {
 			compatible = "tegra,ufs_variant";
@@ -1654,8 +1654,8 @@
 		resets = <0x05 0x5b>;
 		reset-names = "spi";
 		status = "okay";
-		linux,phandle = <0xeb>;
-		phandle = <0xeb>;
+		linux,phandle = <0xea>;
+		phandle = <0xea>;
 
 		spidev@0 {
 			compatible = "spidev";
@@ -1676,13 +1676,13 @@
 		dma-names = "rx\0tx";
 		spi-max-frequency = <0x3dfd240>;
 		nvidia,clk-parents = "pll_p\0osc";
-		clocks = <0x04 0x88 0x04 0x5b>;
+		clocks = <0x04 0x88 0x04 0x5e 0x04 0x5b>;
 		clock-names = "spi\0pll_p\0osc";
 		resets = <0x05 0x5c>;
 		reset-names = "spi";
 		status = "disabled";
-		linux,phandle = <0xec>;
-		phandle = <0xec>;
+		linux,phandle = <0xeb>;
+		phandle = <0xeb>;
 	};
 
 	spi@3230000 {
@@ -1702,8 +1702,8 @@
 		resets = <0x05 0x5d>;
 		reset-names = "spi";
 		status = "disabled";
-		linux,phandle = <0xed>;
-		phandle = <0xed>;
+		linux,phandle = <0xec>;
+		phandle = <0xec>;
 	};
 
 	spi@3270000 {
@@ -1723,8 +1723,8 @@
 		resets = <0x05 0x4c>;
 		reset-names = "qspi";
 		status = "disabled";
-		linux,phandle = <0xee>;
-		phandle = <0xee>;
+		linux,phandle = <0xed>;
+		phandle = <0xed>;
 	};
 
 	spi@3300000 {
@@ -1744,8 +1744,8 @@
 		resets = <0x05 0x4d>;
 		reset-names = "qspi";
 		status = "disabled";
-		linux,phandle = <0xef>;
-		phandle = <0xef>;
+		linux,phandle = <0xee>;
+		phandle = <0xee>;
 	};
 
 	pwm@3280000 {
@@ -1758,8 +1758,8 @@
 		resets = <0x05 0x44>;
 		reset-names = "pwm";
 		status = "disabled";
-		linux,phandle = <0xf0>;
-		phandle = <0xf0>;
+		linux,phandle = <0xef>;
+		phandle = <0xef>;
 	};
 
 	pwm@3290000 {
@@ -1772,8 +1772,8 @@
 		resets = <0x05 0x45>;
 		reset-names = "pwm";
 		status = "disabled";
-		linux,phandle = <0xf1>;
-		phandle = <0xf1>;
+		linux,phandle = <0xf0>;
+		phandle = <0xf0>;
 	};
 
 	pwm@32a0000 {
@@ -1786,8 +1786,8 @@
 		resets = <0x05 0x46>;
 		reset-names = "pwm";
 		status = "disabled";
-		linux,phandle = <0xf2>;
-		phandle = <0xf2>;
+		linux,phandle = <0xf1>;
+		phandle = <0xf1>;
 	};
 
 	pwm@c340000 {
@@ -1814,8 +1814,8 @@
 		resets = <0x05 0x48>;
 		reset-names = "pwm";
 		status = "okay";
-		linux,phandle = <0xf3>;
-		phandle = <0xf3>;
+		linux,phandle = <0xf2>;
+		phandle = <0xf2>;
 	};
 
 	pwm@32d0000 {
@@ -1828,8 +1828,8 @@
 		resets = <0x05 0x49>;
 		reset-names = "pwm";
 		status = "disabled";
-		linux,phandle = <0xf4>;
-		phandle = <0xf4>;
+		linux,phandle = <0xf3>;
+		phandle = <0xf3>;
 	};
 
 	pwm@32e0000 {
@@ -1842,8 +1842,8 @@
 		resets = <0x05 0x4a>;
 		reset-names = "pwm";
 		status = "disabled";
-		linux,phandle = <0xf5>;
-		phandle = <0xf5>;
+		linux,phandle = <0xf4>;
+		phandle = <0xf4>;
 	};
 
 	pwm@32f0000 {
@@ -1856,8 +1856,8 @@
 		resets = <0x05 0x4b>;
 		reset-names = "pwm";
 		status = "okay";
-		linux,phandle = <0xf6>;
-		phandle = <0xf6>;
+		linux,phandle = <0xf5>;
+		phandle = <0xf5>;
 	};
 
 	i2c@3160000 {
@@ -1963,8 +1963,8 @@
 			#address-cells = <0x01>;
 			#size-cells = <0x00>;
 			#io-channel-cells = <0x01>;
-			linux,phandle = <0xf7>;
-			phandle = <0xf7>;
+			linux,phandle = <0xf6>;
+			phandle = <0xf6>;
 
 			channel@0 {
 				reg = <0x00>;
@@ -1997,8 +1997,8 @@
 			#address-cells = <0x01>;
 			#size-cells = <0x00>;
 			#io-channel-cells = <0x01>;
-			linux,phandle = <0xf8>;
-			phandle = <0xf8>;
+			linux,phandle = <0xf7>;
+			phandle = <0xf7>;
 
 			channel@0 {
 				reg = <0x00>;
@@ -2076,8 +2076,8 @@
 			reg = <0x74>;
 			vcc-supply = <0x2c>;
 			status = "okay";
-			linux,phandle = <0xf9>;
-			phandle = <0xf9>;
+			linux,phandle = <0xf8>;
+			phandle = <0xf8>;
 
 			tca9539_74_outlow {
 				gpio-hog;
@@ -2148,8 +2148,8 @@
 		status = "okay";
 		nvidia,hw-instance-id = <0x04>;
 		adapter = <0x05>;
-		linux,phandle = <0xfa>;
-		phandle = <0xfa>;
+		linux,phandle = <0xf9>;
+		phandle = <0xf9>;
 
 		spmic@3c {
 			compatible = "maxim,max20024";
@@ -2227,8 +2227,8 @@
 				wdt-boot-timeout = <0x20>;
 				wdt-suspend-timeout = <0x78>;
 				status = "disabled";
-				linux,phandle = <0xfb>;
-				phandle = <0xfb>;
+				linux,phandle = <0xfa>;
+				phandle = <0xfa>;
 			};
 
 			fps {
@@ -2328,8 +2328,8 @@
 					regulator-disable-ramp-delay = <0x514>;
 					ramp-rate-setting = <0x6b6c>;
 					regulator-ramp-delay = <0x2bc>;
-					linux,phandle = <0xfc>;
-					phandle = <0xfc>;
+					linux,phandle = <0xfb>;
+					phandle = <0xfb>;
 				};
 
 				ldo0 {
@@ -2341,8 +2341,8 @@
 					regulator-disable-ramp-delay = <0x1180>;
 					ramp-rate-setting = <0x186a0>;
 					regulator-ramp-delay = <0xc8>;
-					linux,phandle = <0xfd>;
-					phandle = <0xfd>;
+					linux,phandle = <0xfc>;
+					phandle = <0xfc>;
 				};
 
 				ldo1 {
@@ -2352,8 +2352,8 @@
 					regulator-disable-ramp-delay = <0x514>;
 					ramp-rate-setting = <0x186a0>;
 					regulator-ramp-delay = <0x47e>;
-					linux,phandle = <0xfe>;
-					phandle = <0xfe>;
+					linux,phandle = <0xfd>;
+					phandle = <0xfd>;
 				};
 
 				ldo2 {
@@ -2364,8 +2364,8 @@
 					regulator-enable-ramp-delay = <0x123e>;
 					ramp-rate-setting = <0x186a0>;
 					regulator-ramp-delay = <0x5dc>;
-					linux,phandle = <0xff>;
-					phandle = <0xff>;
+					linux,phandle = <0xfe>;
+					phandle = <0xfe>;
 				};
 
 				ldo3 {
@@ -2387,8 +2387,8 @@
 					regulator-disable-ramp-delay = <0x7b2>;
 					ramp-rate-setting = <0x186a0>;
 					regulator-ramp-delay = <0x898>;
-					linux,phandle = <0x100>;
-					phandle = <0x100>;
+					linux,phandle = <0xff>;
+					phandle = <0xff>;
 				};
 
 				ldo5 {
@@ -2411,8 +2411,8 @@
 					regulator-enable-ramp-delay = <0x1252>;
 					ramp-rate-setting = <0x186a0>;
 					regulator-ramp-delay = <0x5dc>;
-					linux,phandle = <0x101>;
-					phandle = <0x101>;
+					linux,phandle = <0x100>;
+					phandle = <0x100>;
 				};
 
 				ldo7 {
@@ -2435,8 +2435,8 @@
 					regulator-disable-ramp-delay = <0x294>;
 					ramp-rate-setting = <0x186a0>;
 					regulator-ramp-delay = <0x8ca>;
-					linux,phandle = <0x102>;
-					phandle = <0x102>;
+					linux,phandle = <0x101>;
+					phandle = <0x101>;
 				};
 			};
 		};
@@ -2577,8 +2577,8 @@
 		reset-names = "i2c";
 		dmas = <0x1f 0x00 0x1f 0x00>;
 		dma-names = "rx\0tx";
-		linux,phandle = <0x103>;
-		phandle = <0x103>;
+		linux,phandle = <0x102>;
+		phandle = <0x102>;
 
 		prod-settings {
 			#prod-cells = <0x04>;
@@ -2620,9 +2620,9 @@
 				#size-cells = <0x00>;
 				status = "okay";
 
-				atto640_a@43 {
+				ar0330_a@43 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x43>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";
@@ -2651,8 +2651,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -2682,8 +2682,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -2713,8 +2713,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -2744,8 +2744,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -2775,8 +2775,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -2812,9 +2812,9 @@
 					};
 				};
 
-				atto640_b@44 {
+				ar0330_b@44 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x44>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";
@@ -2873,8 +2873,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -2904,8 +2904,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -2935,8 +2935,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -2966,8 +2966,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						pix_clk_hz = "1152000000";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
@@ -3011,9 +3011,9 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				atto640_c@43 {
+				ar0330_c@43 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x43>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";
@@ -3042,8 +3042,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3073,8 +3073,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3104,8 +3104,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3135,8 +3135,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3166,8 +3166,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3203,9 +3203,9 @@
 					};
 				};
 
-				atto640_d@44 {
+				ar0330_d@44 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x44>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";
@@ -3264,8 +3264,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -3295,8 +3295,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -3326,8 +3326,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -3357,8 +3357,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						pix_clk_hz = "1152000000";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
@@ -3402,7 +3402,7 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				atto640_e@43 {
+				ar0330_e@43 {
 					status = "okay";
 					compatible = "nvidia,atto640";
 					reg = <0x43>;
@@ -3433,8 +3433,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3464,8 +3464,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3495,8 +3495,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3526,8 +3526,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3557,8 +3557,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3594,9 +3594,9 @@
 					};
 				};
 
-				atto640_f@44 {
+				ar0330_f@44 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x44>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";
@@ -3655,8 +3655,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -3686,8 +3686,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -3717,8 +3717,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -3748,8 +3748,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						pix_clk_hz = "1152000000";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
@@ -3793,9 +3793,9 @@
 				#address-cells = <0x01>;
 				#size-cells = <0x00>;
 
-				atto640_g@43 {
+				ar0330_g@43 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x43>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";
@@ -3824,8 +3824,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3855,8 +3855,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3886,8 +3886,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3917,8 +3917,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3948,8 +3948,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
 						pix_clk_hz = "1152000000";
@@ -3985,9 +3985,9 @@
 					};
 				};
 
-				atto640_h@44 {
+				ar0330_h@44 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x44>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";
@@ -4046,8 +4046,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1280";
-						active_h = "720";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -4077,8 +4077,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "1920";
-						active_h = "1080";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -4108,8 +4108,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1296";
+						active_w = "640";
+						active_h = "480";
 						readout_orientation = [30 00];
 						pix_clk_hz = "1152000000";
 						deskew_initial_enable = "false";
@@ -4139,8 +4139,8 @@
 						mode_type = "yuv";
 						pixel_phase = "uyvy";
 						pixel_t = "uyvy";
-						active_w = "2304";
-						active_h = "1536";
+						active_w = "640";
+						active_h = "480";
 						pix_clk_hz = "1152000000";
 						readout_orientation = [30 00];
 						deskew_initial_enable = "false";
@@ -4229,17 +4229,17 @@
 		reg = <0x00 0xc310000 0x00 0x400 0x00 0xc311000 0x00 0x32 0x00 0xc312000 0x00 0x1000>;
 		reg-names = "can-regs\0glue-regs\0msg-ram";
 		interrupts = <0x00 0x28 0x04>;
-		pll_source = "osc";
-		clocks = <0x04 0x11c 0x04 0x0a 0x04 0x09 0x04 0x5b>;
-		clock-names = "can_core\0can_host\0can\0osc";
+		pll_source = "pllc";
+		clocks = <0x04 0x11c 0x04 0x0a 0x04 0x09 0x04 0x5b 0x04 0x13a>;
+		clock-names = "can_core\0can_host\0can\0pllc";
 		resets = <0x05 0x04>;
 		reset-names = "can";
 		mram-params = <0x00 0x10 0x10 0x20 0x00 0x00 0x10 0x10 0x10>;
 		tx-config = <0x00 0x10 0x00 0x40>;
 		rx-config = <0x40 0x40 0x40>;
 		status = "okay";
-		linux,phandle = <0x104>;
-		phandle = <0x104>;
+		linux,phandle = <0x103>;
+		phandle = <0x103>;
 	};
 
 	mttcan@c320000 {
@@ -4247,17 +4247,17 @@
 		reg = <0x00 0xc320000 0x00 0x400 0x00 0xc321000 0x00 0x32 0x00 0xc322000 0x00 0x1000>;
 		reg-names = "can-regs\0glue-regs\0msg-ram";
 		interrupts = <0x00 0x2a 0x04>;
-		pll_source = "osc";
-		clocks = <0x04 0x11d 0x04 0x0c 0x04 0x0b 0x04 0x5b>;
-		clock-names = "can_core\0can_host\0can\0osc";
+		pll_source = "pllc";
+		clocks = <0x04 0x11d 0x04 0x0c 0x04 0x0b 0x04 0x5b 0x04 0x13a>;
+		clock-names = "can_core\0can_host\0can\0pllc";
 		resets = <0x05 0x05>;
 		reset-names = "can";
 		mram-params = <0x00 0x10 0x10 0x20 0x00 0x00 0x10 0x10 0x10>;
 		tx-config = <0x00 0x10 0x00 0x40>;
 		rx-config = <0x40 0x40 0x40>;
 		status = "okay";
-		linux,phandle = <0x105>;
-		phandle = <0x105>;
+		linux,phandle = <0x104>;
+		phandle = <0x104>;
 	};
 
 	sound {
@@ -4308,8 +4308,8 @@
 			clocks = <0x04 0x06>;
 			clock-names = "clk";
 			status = "disabled";
-			linux,phandle = <0x106>;
-			phandle = <0x106>;
+			linux,phandle = <0x105>;
+			phandle = <0x105>;
 		};
 
 		agic-controller@2a61000 {
@@ -4321,8 +4321,8 @@
 			clocks = <0x04 0x06>;
 			clock-names = "clk";
 			status = "disabled";
-			linux,phandle = <0x107>;
-			phandle = <0x107>;
+			linux,phandle = <0x106>;
+			phandle = <0x106>;
 		};
 
 		adsp@2993000 {
@@ -4370,8 +4370,8 @@
 			#address-cells = <0x02>;
 			#size-cells = <0x02>;
 			ranges;
-			linux,phandle = <0x108>;
-			phandle = <0x108>;
+			linux,phandle = <0x107>;
+			phandle = <0x107>;
 
 			admaif@290f000 {
 				compatible = "nvidia,tegra186-admaif";
@@ -4381,8 +4381,8 @@
 				dmas = <0x3a 0x01 0x3a 0x01 0x3a 0x02 0x3a 0x02 0x3a 0x03 0x3a 0x03 0x3a 0x04 0x3a 0x04 0x3a 0x05 0x3a 0x05 0x3a 0x06 0x3a 0x06 0x3a 0x07 0x3a 0x07 0x3a 0x08 0x3a 0x08 0x3a 0x09 0x3a 0x09 0x3a 0x0a 0x3a 0x0a 0x3a 0x0b 0x3a 0x0b 0x3a 0x0c 0x3a 0x0c 0x3a 0x0d 0x3a 0x0d 0x3a 0x0e 0x3a 0x0e 0x3a 0x0f 0x3a 0x0f 0x3a 0x10 0x3a 0x10 0x3a 0x11 0x3a 0x11 0x3a 0x12 0x3a 0x12 0x3a 0x13 0x3a 0x13 0x3a 0x14 0x3a 0x14>;
 				dma-names = "rx1\0tx1\0rx2\0tx2\0rx3\0tx3\0rx4\0tx4\0rx5\0tx5\0rx6\0tx6\0rx7\0tx7\0rx8\0tx8\0rx9\0tx9\0rx10\0tx10\0rx11\0tx11\0rx12\0tx12\0rx13\0tx13\0rx14\0tx14\0rx15\0tx15\0rx16\0tx16\0rx17\0tx17\0rx18\0tx18\0rx19\0tx19\0rx20\0tx20";
 				status = "disabled";
-				linux,phandle = <0x109>;
-				phandle = <0x109>;
+				linux,phandle = <0x108>;
+				phandle = <0x108>;
 			};
 
 			sfc@2902000 {
@@ -4390,8 +4390,8 @@
 				reg = <0x00 0x2902000 0x00 0x200>;
 				nvidia,ahub-sfc-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x10a>;
-				phandle = <0x10a>;
+				linux,phandle = <0x109>;
+				phandle = <0x109>;
 			};
 
 			sfc@2902200 {
@@ -4399,8 +4399,8 @@
 				reg = <0x00 0x2902200 0x00 0x200>;
 				nvidia,ahub-sfc-id = <0x01>;
 				status = "disabled";
-				linux,phandle = <0x10b>;
-				phandle = <0x10b>;
+				linux,phandle = <0x10a>;
+				phandle = <0x10a>;
 			};
 
 			sfc@2902400 {
@@ -4408,8 +4408,8 @@
 				reg = <0x00 0x2902400 0x00 0x200>;
 				nvidia,ahub-sfc-id = <0x02>;
 				status = "disabled";
-				linux,phandle = <0x10c>;
-				phandle = <0x10c>;
+				linux,phandle = <0x10b>;
+				phandle = <0x10b>;
 			};
 
 			sfc@2902600 {
@@ -4417,8 +4417,8 @@
 				reg = <0x00 0x2902600 0x00 0x200>;
 				nvidia,ahub-sfc-id = <0x03>;
 				status = "disabled";
-				linux,phandle = <0x10d>;
-				phandle = <0x10d>;
+				linux,phandle = <0x10c>;
+				phandle = <0x10c>;
 			};
 
 			spkprot@2908c00 {
@@ -4426,8 +4426,8 @@
 				reg = <0x00 0x2908c00 0x00 0x400>;
 				nvidia,ahub-spkprot-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x10e>;
-				phandle = <0x10e>;
+				linux,phandle = <0x10d>;
+				phandle = <0x10d>;
 			};
 
 			amixer@290bb00 {
@@ -4435,8 +4435,8 @@
 				reg = <0x00 0x290bb00 0x00 0x800>;
 				nvidia,ahub-amixer-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x10f>;
-				phandle = <0x10f>;
+				linux,phandle = <0x10e>;
+				phandle = <0x10e>;
 			};
 
 			i2s@2901000 {
@@ -4450,8 +4450,8 @@
 				assigned-clock-rates = <0x177000>;
 				fsync-width = <0x1f>;
 				status = "disabled";
-				linux,phandle = <0x110>;
-				phandle = <0x110>;
+				linux,phandle = <0x10f>;
+				phandle = <0x10f>;
 			};
 
 			i2s@2901100 {
@@ -4465,8 +4465,8 @@
 				assigned-clock-rates = <0x177000>;
 				fsync-width = <0x1f>;
 				status = "disabled";
-				linux,phandle = <0x111>;
-				phandle = <0x111>;
+				linux,phandle = <0x110>;
+				phandle = <0x110>;
 			};
 
 			i2s@2901200 {
@@ -4480,8 +4480,8 @@
 				assigned-clock-rates = <0x177000>;
 				fsync-width = <0x1f>;
 				status = "disabled";
-				linux,phandle = <0x112>;
-				phandle = <0x112>;
+				linux,phandle = <0x111>;
+				phandle = <0x111>;
 			};
 
 			i2s@2901300 {
@@ -4495,8 +4495,8 @@
 				assigned-clock-rates = <0x177000>;
 				fsync-width = <0x1f>;
 				status = "disabled";
-				linux,phandle = <0x113>;
-				phandle = <0x113>;
+				linux,phandle = <0x112>;
+				phandle = <0x112>;
 			};
 
 			i2s@2901400 {
@@ -4510,8 +4510,8 @@
 				assigned-clock-rates = <0x177000>;
 				fsync-width = <0x1f>;
 				status = "disabled";
-				linux,phandle = <0x114>;
-				phandle = <0x114>;
+				linux,phandle = <0x113>;
+				phandle = <0x113>;
 			};
 
 			i2s@2901500 {
@@ -4525,8 +4525,8 @@
 				assigned-clock-rates = <0x177000>;
 				fsync-width = <0x1f>;
 				status = "disabled";
-				linux,phandle = <0x115>;
-				phandle = <0x115>;
+				linux,phandle = <0x114>;
+				phandle = <0x114>;
 			};
 
 			amx@2903000 {
@@ -4534,8 +4534,8 @@
 				reg = <0x00 0x2903000 0x00 0x100>;
 				nvidia,ahub-amx-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x116>;
-				phandle = <0x116>;
+				linux,phandle = <0x115>;
+				phandle = <0x115>;
 			};
 
 			amx@2903100 {
@@ -4543,8 +4543,8 @@
 				reg = <0x00 0x2903100 0x00 0x100>;
 				nvidia,ahub-amx-id = <0x01>;
 				status = "disabled";
-				linux,phandle = <0x117>;
-				phandle = <0x117>;
+				linux,phandle = <0x116>;
+				phandle = <0x116>;
 			};
 
 			amx@2903200 {
@@ -4552,8 +4552,8 @@
 				reg = <0x00 0x2903200 0x00 0x100>;
 				nvidia,ahub-amx-id = <0x02>;
 				status = "disabled";
-				linux,phandle = <0x118>;
-				phandle = <0x118>;
+				linux,phandle = <0x117>;
+				phandle = <0x117>;
 			};
 
 			amx@2903300 {
@@ -4561,8 +4561,8 @@
 				reg = <0x00 0x2903300 0x00 0x100>;
 				nvidia,ahub-amx-id = <0x03>;
 				status = "disabled";
-				linux,phandle = <0x119>;
-				phandle = <0x119>;
+				linux,phandle = <0x118>;
+				phandle = <0x118>;
 			};
 
 			adx@2903800 {
@@ -4570,8 +4570,8 @@
 				reg = <0x00 0x2903800 0x00 0x100>;
 				nvidia,ahub-adx-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x11a>;
-				phandle = <0x11a>;
+				linux,phandle = <0x119>;
+				phandle = <0x119>;
 			};
 
 			adx@2903900 {
@@ -4579,8 +4579,8 @@
 				reg = <0x00 0x2903900 0x00 0x100>;
 				nvidia,ahub-adx-id = <0x01>;
 				status = "disabled";
-				linux,phandle = <0x11b>;
-				phandle = <0x11b>;
+				linux,phandle = <0x11a>;
+				phandle = <0x11a>;
 			};
 
 			adx@2903a00 {
@@ -4588,8 +4588,8 @@
 				reg = <0x00 0x2903a00 0x00 0x100>;
 				nvidia,ahub-adx-id = <0x02>;
 				status = "disabled";
-				linux,phandle = <0x11c>;
-				phandle = <0x11c>;
+				linux,phandle = <0x11b>;
+				phandle = <0x11b>;
 			};
 
 			adx@2903b00 {
@@ -4597,8 +4597,8 @@
 				reg = <0x00 0x2903b00 0x00 0x100>;
 				nvidia,ahub-adx-id = <0x03>;
 				status = "disabled";
-				linux,phandle = <0x11d>;
-				phandle = <0x11d>;
+				linux,phandle = <0x11c>;
+				phandle = <0x11c>;
 			};
 
 			dmic@2904000 {
@@ -4611,8 +4611,8 @@
 				assigned-clock-parents = <0x04 0x68>;
 				assigned-clock-rates = <0x2ee000>;
 				status = "disabled";
-				linux,phandle = <0x11e>;
-				phandle = <0x11e>;
+				linux,phandle = <0x11d>;
+				phandle = <0x11d>;
 			};
 
 			dmic@2904100 {
@@ -4625,8 +4625,8 @@
 				assigned-clock-parents = <0x04 0x68>;
 				assigned-clock-rates = <0x2ee000>;
 				status = "disabled";
-				linux,phandle = <0x11f>;
-				phandle = <0x11f>;
+				linux,phandle = <0x11e>;
+				phandle = <0x11e>;
 			};
 
 			dmic@2904200 {
@@ -4639,8 +4639,8 @@
 				assigned-clock-parents = <0x04 0x68>;
 				assigned-clock-rates = <0x2ee000>;
 				status = "disabled";
-				linux,phandle = <0x120>;
-				phandle = <0x120>;
+				linux,phandle = <0x11f>;
+				phandle = <0x11f>;
 			};
 
 			dmic@2904300 {
@@ -4653,8 +4653,8 @@
 				assigned-clock-parents = <0x04 0x68>;
 				assigned-clock-rates = <0x2ee000>;
 				status = "disabled";
-				linux,phandle = <0x121>;
-				phandle = <0x121>;
+				linux,phandle = <0x120>;
+				phandle = <0x120>;
 			};
 
 			afc@2907000 {
@@ -4662,8 +4662,8 @@
 				reg = <0x00 0x2907000 0x00 0x100>;
 				nvidia,ahub-afc-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x122>;
-				phandle = <0x122>;
+				linux,phandle = <0x121>;
+				phandle = <0x121>;
 			};
 
 			afc@2907100 {
@@ -4671,8 +4671,8 @@
 				reg = <0x00 0x2907100 0x00 0x100>;
 				nvidia,ahub-afc-id = <0x01>;
 				status = "disabled";
-				linux,phandle = <0x123>;
-				phandle = <0x123>;
+				linux,phandle = <0x122>;
+				phandle = <0x122>;
 			};
 
 			afc@2907200 {
@@ -4680,8 +4680,8 @@
 				reg = <0x00 0x2907200 0x00 0x100>;
 				nvidia,ahub-afc-id = <0x02>;
 				status = "disabled";
-				linux,phandle = <0x124>;
-				phandle = <0x124>;
+				linux,phandle = <0x123>;
+				phandle = <0x123>;
 			};
 
 			afc@2907300 {
@@ -4689,8 +4689,8 @@
 				reg = <0x00 0x2907300 0x00 0x100>;
 				nvidia,ahub-afc-id = <0x03>;
 				status = "disabled";
-				linux,phandle = <0x125>;
-				phandle = <0x125>;
+				linux,phandle = <0x124>;
+				phandle = <0x124>;
 			};
 
 			afc@2907400 {
@@ -4698,8 +4698,8 @@
 				reg = <0x00 0x2907400 0x00 0x100>;
 				nvidia,ahub-afc-id = <0x04>;
 				status = "disabled";
-				linux,phandle = <0x126>;
-				phandle = <0x126>;
+				linux,phandle = <0x125>;
+				phandle = <0x125>;
 			};
 
 			afc@2907500 {
@@ -4707,8 +4707,8 @@
 				reg = <0x00 0x2907500 0x00 0x100>;
 				nvidia,ahub-afc-id = <0x05>;
 				status = "disabled";
-				linux,phandle = <0x127>;
-				phandle = <0x127>;
+				linux,phandle = <0x126>;
+				phandle = <0x126>;
 			};
 
 			mvc@290a000 {
@@ -4716,8 +4716,8 @@
 				reg = <0x00 0x290a000 0x00 0x200>;
 				nvidia,ahub-mvc-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x128>;
-				phandle = <0x128>;
+				linux,phandle = <0x127>;
+				phandle = <0x127>;
 			};
 
 			mvc@290a200 {
@@ -4725,8 +4725,8 @@
 				reg = <0x00 0x290a200 0x00 0x200>;
 				nvidia,ahub-mvc-id = <0x01>;
 				status = "disabled";
-				linux,phandle = <0x129>;
-				phandle = <0x129>;
+				linux,phandle = <0x128>;
+				phandle = <0x128>;
 			};
 
 			iqc@290e000 {
@@ -4736,8 +4736,8 @@
 				clocks = <0x04 0x44>;
 				clock-names = "iqc";
 				status = "disabled";
-				linux,phandle = <0x12a>;
-				phandle = <0x12a>;
+				linux,phandle = <0x129>;
+				phandle = <0x129>;
 			};
 
 			asrc@2910000 {
@@ -4745,8 +4745,8 @@
 				reg = <0x00 0x2910000 0x00 0x2000>;
 				nvidia,ahub-asrc-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x12b>;
-				phandle = <0x12b>;
+				linux,phandle = <0x12a>;
+				phandle = <0x12a>;
 			};
 
 			arad@290e400 {
@@ -4754,8 +4754,8 @@
 				reg = <0x00 0x290e400 0x00 0x400>;
 				nvidia,ahub-arad-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x12c>;
-				phandle = <0x12c>;
+				linux,phandle = <0x12b>;
+				phandle = <0x12b>;
 			};
 
 			ahc@290b900 {
@@ -4764,8 +4764,8 @@
 				interrupt-parent = <0x39>;
 				interrupts = <0x00 0x38 0x04 0x00>;
 				status = "disabled";
-				linux,phandle = <0x12d>;
-				phandle = <0x12d>;
+				linux,phandle = <0x12c>;
+				phandle = <0x12c>;
 			};
 
 			ope@2908000 {
@@ -4773,8 +4773,8 @@
 				reg = <0x00 0x2908000 0x00 0x100 0x00 0x2908100 0x00 0x100 0x00 0x2908200 0x00 0x200>;
 				nvidia,ahub-ope-id = <0x00>;
 				status = "disabled";
-				linux,phandle = <0x12e>;
-				phandle = <0x12e>;
+				linux,phandle = <0x12d>;
+				phandle = <0x12d>;
 			};
 
 			dspk@2905000 {
@@ -4787,8 +4787,8 @@
 				assigned-clock-parents = <0x04 0x68>;
 				assigned-clock-rates = <0xbb8000>;
 				status = "disabled";
-				linux,phandle = <0x12f>;
-				phandle = <0x12f>;
+				linux,phandle = <0x12e>;
+				phandle = <0x12e>;
 			};
 
 			dspk@2905100 {
@@ -4801,8 +4801,8 @@
 				assigned-clock-parents = <0x04 0x68>;
 				assigned-clock-rates = <0xbb8000>;
 				status = "disabled";
-				linux,phandle = <0x130>;
-				phandle = <0x130>;
+				linux,phandle = <0x12f>;
+				phandle = <0x12f>;
 			};
 		};
 
@@ -4819,8 +4819,8 @@
 			interrupt-parent = <0x39>;
 			interrupts = <0x00 0x10 0x04 0x04 0x00 0x11 0x04 0x04 0x00 0x12 0x04 0x04 0x00 0x13 0x04 0x04 0x00 0x14 0x04 0x04 0x00 0x15 0x04 0x04 0x00 0x16 0x04 0x04 0x00 0x17 0x04 0x04 0x00 0x18 0x04 0x04 0x00 0x19 0x04 0x04 0x00 0x1a 0x04 0x04 0x00 0x1b 0x04 0x04 0x00 0x1c 0x04 0x04 0x00 0x1d 0x04 0x04 0x00 0x1e 0x04 0x04 0x00 0x1f 0x04 0x04>;
 			status = "disabled";
-			linux,phandle = <0x131>;
-			phandle = <0x131>;
+			linux,phandle = <0x130>;
+			phandle = <0x130>;
 		};
 	};
 
@@ -4883,8 +4883,8 @@
 		reg-names = "ast-cpu\0ast-dma";
 		iommus = <0x02 0x1f>;
 		nvidia,ivc-channels = <0x3b 0x02 0x90000000 0x10000>;
-		linux,phandle = <0x132>;
-		phandle = <0x132>;
+		linux,phandle = <0x131>;
+		phandle = <0x131>;
 
 		hsp {
 			compatible = "nvidia,tegra186-hsp-mailbox";
@@ -5135,8 +5135,8 @@
 			iommus = <0x02 0x38>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x133>;
-			phandle = <0x133>;
+			linux,phandle = <0x132>;
+			phandle = <0x132>;
 		};
 
 		ctx1 {
@@ -5144,8 +5144,8 @@
 			iommus = <0x02 0x39>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x134>;
-			phandle = <0x134>;
+			linux,phandle = <0x133>;
+			phandle = <0x133>;
 		};
 
 		ctx2 {
@@ -5153,8 +5153,8 @@
 			iommus = <0x02 0x3a>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x135>;
-			phandle = <0x135>;
+			linux,phandle = <0x134>;
+			phandle = <0x134>;
 		};
 
 		ctx3 {
@@ -5162,8 +5162,8 @@
 			iommus = <0x02 0x3b>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x136>;
-			phandle = <0x136>;
+			linux,phandle = <0x135>;
+			phandle = <0x135>;
 		};
 
 		ctx4 {
@@ -5171,8 +5171,8 @@
 			iommus = <0x02 0x3c>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x137>;
-			phandle = <0x137>;
+			linux,phandle = <0x136>;
+			phandle = <0x136>;
 		};
 
 		ctx5 {
@@ -5180,8 +5180,8 @@
 			iommus = <0x02 0x3d>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x138>;
-			phandle = <0x138>;
+			linux,phandle = <0x137>;
+			phandle = <0x137>;
 		};
 
 		ctx6 {
@@ -5189,8 +5189,8 @@
 			iommus = <0x02 0x3e>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x139>;
-			phandle = <0x139>;
+			linux,phandle = <0x138>;
+			phandle = <0x138>;
 		};
 
 		ctx7 {
@@ -5198,8 +5198,8 @@
 			iommus = <0x02 0x3f>;
 			dma-coherent;
 			status = "okay";
-			linux,phandle = <0x13a>;
-			phandle = <0x13a>;
+			linux,phandle = <0x139>;
+			phandle = <0x139>;
 		};
 
 		vic@15340000 {
@@ -5373,8 +5373,8 @@
 			avdd_hdmi-supply = <0x52>;
 			avdd_hdmi_pll-supply = <0x53>;
 			vdd_hdmi_5v0-supply = <0x1d>;
-			linux,phandle = <0x13b>;
-			phandle = <0x13b>;
+			linux,phandle = <0x13a>;
+			phandle = <0x13a>;
 		};
 
 		nvdisplay@15210000 {
@@ -5415,8 +5415,8 @@
 			vdd-dp-pad-supply = <0x1d>;
 			vdd_hdmi_5v0-supply = <0x1d>;
 			avdd_hdmi = <0x1d>;
-			linux,phandle = <0x13c>;
-			phandle = <0x13c>;
+			linux,phandle = <0x13b>;
+			phandle = <0x13b>;
 		};
 
 		nvdisplay@15220000 {
@@ -5456,8 +5456,8 @@
 			vdd-edp-sec-mode-supply = <0x1d>;
 			vdd-dp-pad-supply = <0x1d>;
 			vdd_hdmi_5v0-supply = <0x1d>;
-			linux,phandle = <0x13d>;
-			phandle = <0x13d>;
+			linux,phandle = <0x13c>;
+			phandle = <0x13c>;
 		};
 
 		nvdisplay@15230000 {
@@ -5486,8 +5486,8 @@
 			pinctrl-6 = <0x4f>;
 			pinctrl-7 = <0x50>;
 			vdd_hdmi_5v0-supply = <0x1d>;
-			linux,phandle = <0x13e>;
-			phandle = <0x13e>;
+			linux,phandle = <0x13d>;
+			phandle = <0x13d>;
 		};
 
 		sor {
@@ -5529,8 +5529,8 @@
 				status = "disabled";
 				nvidia,is_ext_dp_panel = <0x01>;
 				nvidia,pc2-disabled;
-				linux,phandle = <0x13f>;
-				phandle = <0x13f>;
+				linux,phandle = <0x13e>;
+				phandle = <0x13e>;
 
 				disp-default-out {
 					nvidia,out-type = <0x03>;
@@ -5657,8 +5657,8 @@
 				status = "disabled";
 				nvidia,is_ext_dp_panel = <0x01>;
 				nvidia,pc2-disabled;
-				linux,phandle = <0x140>;
-				phandle = <0x140>;
+				linux,phandle = <0x13f>;
+				phandle = <0x13f>;
 
 				disp-default-out {
 					nvidia,out-type = <0x03>;
@@ -5785,8 +5785,8 @@
 				status = "disabled";
 				nvidia,is_ext_dp_panel = <0x01>;
 				nvidia,pc2-disabled;
-				linux,phandle = <0x141>;
-				phandle = <0x141>;
+				linux,phandle = <0x140>;
+				phandle = <0x140>;
 
 				disp-default-out {
 					nvidia,out-type = <0x03>;
@@ -5887,15 +5887,15 @@
 			reset-names = "sor3\0hda_rst\0hda2codec_2x_rst\0hda2hdmi_rst";
 			nvidia,hpd-gpio = <0x13 0x63 0x00>;
 			nvidia,ddc-i2c-bus = <0x60>;
-			linux,phandle = <0x142>;
-			phandle = <0x142>;
+			linux,phandle = <0x141>;
+			phandle = <0x141>;
 
 			hdmi-display {
 				compatible = "hdmi,display";
 				status = "disabled";
 				generic-infoframe-type = <0x87>;
-				linux,phandle = <0x143>;
-				phandle = <0x143>;
+				linux,phandle = <0x142>;
+				phandle = <0x142>;
 
 				disp-default-out {
 					nvidia,out-type = <0x01>;
@@ -5911,8 +5911,8 @@
 				status = "disabled";
 				nvidia,is_ext_dp_panel = <0x01>;
 				nvidia,pc2-disabled;
-				linux,phandle = <0x144>;
-				phandle = <0x144>;
+				linux,phandle = <0x143>;
+				phandle = <0x143>;
 
 				disp-default-out {
 					nvidia,out-type = <0x03>;
@@ -6107,8 +6107,8 @@
 			};
 
 			pinmux@0 {
-				linux,phandle = <0x145>;
-				phandle = <0x145>;
+				linux,phandle = <0x144>;
+				phandle = <0x144>;
 
 				dpaux3_pins {
 					pins = "dpaux3-3";
@@ -6124,8 +6124,8 @@
 			interrupts = <0x00 0xa2 0x04>;
 			clocks = <0x04 0x0d>;
 			clock-names = "cec";
-			linux,phandle = <0x146>;
-			phandle = <0x146>;
+			linux,phandle = <0x145>;
+			phandle = <0x145>;
 		};
 
 		vi@15c10000 {
@@ -6635,8 +6635,8 @@
 			nvidia,vi-device = <0x62>;
 			interrupt-names = "slvs-ec\0syncgen";
 			status = "disabled";
-			linux,phandle = <0x147>;
-			phandle = <0x147>;
+			linux,phandle = <0x146>;
+			phandle = <0x146>;
 		};
 
 		pva0 {
@@ -6865,8 +6865,8 @@
 		compatible = "nvidia,tegra-aon-clks";
 		#clock-cells = <0x01>;
 		status = "okay";
-		linux,phandle = <0xcc>;
-		phandle = <0xcc>;
+		linux,phandle = <0x147>;
+		phandle = <0x147>;
 	};
 
 	cpus {
@@ -8482,19 +8482,19 @@
 
 			usb2-1 {
 				status = "okay";
-				vbus-supply = <0xb9>;
+				vbus-supply = <0x1d>;
 				mode = "host";
 			};
 
 			usb2-2 {
 				status = "okay";
-				vbus-supply = <0xb9>;
+				vbus-supply = <0x1d>;
 				mode = "host";
 			};
 
 			usb2-3 {
 				status = "okay";
-				vbus-supply = <0xb9>;
+				vbus-supply = <0x1d>;
 				mode = "host";
 			};
 
@@ -9325,7 +9325,7 @@
 		status = "okay";
 
 		disable {
-			clocks = <0xcc 0x5e 0x04 0x09 0x04 0x0b>;
+			clocks = <0x04 0x09 0x04 0x0b>;
 		};
 	};
 
@@ -9377,7 +9377,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-1 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/atto640_a@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/ar0330_a@43";
 					status = "okay";
 				};
 			};
@@ -9390,7 +9390,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-2 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/atto640_b@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@0/ar0330_b@44";
 					status = "okay";
 				};
 			};
@@ -9403,7 +9403,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-3 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/atto640_c@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/ar0330_c@43";
 					status = "okay";
 				};
 			};
@@ -9416,7 +9416,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-4 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/atto640_d@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@1/ar0330_d@44";
 					status = "okay";
 				};
 			};
@@ -9429,7 +9429,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-5 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/atto640_e@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/ar0330_e@43";
 					status = "okay";
 				};
 			};
@@ -9442,7 +9442,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-6 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/atto640_f@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@2/ar0330_f@44";
 					status = "okay";
 				};
 			};
@@ -9455,7 +9455,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-7 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/atto640_g@43";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/ar0330_g@43";
 					status = "okay";
 				};
 			};
@@ -9468,7 +9468,7 @@
 				drivernode0 {
 					pcl_id = "v4l2_sensor";
 					devname = "NileCAM30_TX2-8 ";
-					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/atto640_h@44";
+					proc-device-tree = "/proc/device-tree/i2c@c250000/tca9544@72/i2c@3/ar0330_h@44";
 					status = "okay";
 				};
 			};
@@ -9587,14 +9587,14 @@
 		dp_aux_ch0_i2c = "/i2c@31b0000";
 		dp_aux_ch2_i2c = "/i2c@31c0000";
 		gen8_i2c = "/i2c@c250000";
-		ecam_atto640_out0 = "/i2c@c250000/tca9544@72/i2c@0/atto640_a@43/ports/port@0/endpoint";
-		ecam_atto640_out1 = "/i2c@c250000/tca9544@72/i2c@0/atto640_b@44/ports/port@0/endpoint";
-		ecam_atto640_out2 = "/i2c@c250000/tca9544@72/i2c@1/atto640_c@43/ports/port@0/endpoint";
-		ecam_atto640_out3 = "/i2c@c250000/tca9544@72/i2c@1/atto640_d@44/ports/port@0/endpoint";
-		ecam_atto640_out4 = "/i2c@c250000/tca9544@72/i2c@2/atto640_e@43/ports/port@0/endpoint";
-		ecam_atto640_out5 = "/i2c@c250000/tca9544@72/i2c@2/atto640_f@44/ports/port@0/endpoint";
-		ecam_atto640_out6 = "/i2c@c250000/tca9544@72/i2c@3/atto640_g@43/ports/port@0/endpoint";
-		ecam_atto640_out7 = "/i2c@c250000/tca9544@72/i2c@3/atto640_h@44/ports/port@0/endpoint";
+		ecam_ar0330_out0 = "/i2c@c250000/tca9544@72/i2c@0/ar0330_a@43/ports/port@0/endpoint";
+		ecam_ar0330_out1 = "/i2c@c250000/tca9544@72/i2c@0/ar0330_b@44/ports/port@0/endpoint";
+		ecam_ar0330_out2 = "/i2c@c250000/tca9544@72/i2c@1/ar0330_c@43/ports/port@0/endpoint";
+		ecam_ar0330_out3 = "/i2c@c250000/tca9544@72/i2c@1/ar0330_d@44/ports/port@0/endpoint";
+		ecam_ar0330_out4 = "/i2c@c250000/tca9544@72/i2c@2/ar0330_e@43/ports/port@0/endpoint";
+		ecam_ar0330_out5 = "/i2c@c250000/tca9544@72/i2c@2/ar0330_f@44/ports/port@0/endpoint";
+		ecam_ar0330_out6 = "/i2c@c250000/tca9544@72/i2c@3/ar0330_g@43/ports/port@0/endpoint";
+		ecam_ar0330_out7 = "/i2c@c250000/tca9544@72/i2c@3/ar0330_h@44/ports/port@0/endpoint";
 		dp_aux_ch3_i2c = "/i2c@31e0000";
 		mttcan0 = "/mttcan@c310000";
 		mttcan1 = "/mttcan@c320000";
