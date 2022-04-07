@@ -142,7 +142,8 @@ static int atto640_s_stream(struct v4l2_subdev *sd, int enable)
 	if (!priv || !priv->pdata)
 		return -EINVAL;
 
-	if (!enable) {
+	if (!enable)
+	{
 		/* Perform Stream Off Sequence - if any */
 		return 0;
 	}
@@ -253,40 +254,48 @@ static int atto640_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config
 	if (!priv || !priv->pdata)
 		return -EINVAL;
 
-	switch (format->format.code) {
+	format->format.code = MEDIA_BUS_FMT_UYVY8_1X16;
+	switch (format->format.code)
+	{
 	case MEDIA_BUS_FMT_UYVY8_1X16:
 		priv->format_fourcc = V4L2_PIX_FMT_UYVY;
 		break;
 
 	default:
 		/* Not Implemented */
-		if (format->which != V4L2_SUBDEV_FORMAT_TRY) {		
+		if (format->which != V4L2_SUBDEV_FORMAT_TRY)
+		{
 			return -EINVAL;
 		}
 	}
 
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		ret = camera_common_try_fmt(sd, &format->format);
-	} else {
-		for (ret = 0; ret < s_data->numfmts ; ret++) {
+	}
+	else
+	{
+		for (ret = 0; ret < s_data->numfmts ; ret++)
+		{
 			if ((priv->mcu_cam_frmfmt[ret].size.width == format->format.width)
 					&& (priv->mcu_cam_frmfmt[ret].size.height ==
-						format->format.height)) {
+						format->format.height))
+			{
 				priv->frmfmt_mode = priv->mcu_cam_frmfmt[ret].mode;
 				flag = 1;
 				break;
 			}
 		}
 
-		if(flag == 0) {
+		if(flag == 0)
+		{
 			return -EINVAL;
 		}
 
 		/* call stream config with width, height, frame rate */
-		err =
-				atto640_mcu_stream_config(client, priv->format_fourcc, priv->frmfmt_mode,
-					priv->frate_index);
-		if (err < 0) {
+		err = atto640_mcu_stream_config(client, priv->format_fourcc, priv->frmfmt_mode,priv->frate_index);
+		if (err < 0)
+		{
 			dev_err(&client->dev, "%s: Failed stream_config \n", __func__);
 			return err;
 		}
@@ -371,6 +380,7 @@ static int atto640_s_ctrl(struct v4l2_ctrl *ctrl)
 	return err;
 }
 
+
 static int atto640_try_add_ctrls(struct atto640 *priv, int index,
 				ISP_CTRL_INFO * mcu_ctrl)
 {
@@ -390,7 +400,8 @@ static int atto640_try_add_ctrls(struct atto640 *priv, int index,
 			      mcu_ctrl->ctrl_data.std.ctrl_max,
 			      mcu_ctrl->ctrl_data.std.ctrl_step,
 			      mcu_ctrl->ctrl_data.std.ctrl_def);
-	if (priv->ctrls[index] != NULL) {
+	if (priv->ctrls[index] != NULL)
+	{
 		debug_printk("%d. Initialized Control 0x%08x - %s \n",
 			     index, mcu_ctrl->ctrl_id,
 			     priv->ctrls[index]->name);
@@ -409,23 +420,36 @@ static int atto640_try_add_ctrls(struct atto640 *priv, int index,
 				   mcu_ctrl->ctrl_id,
 				   mcu_ctrl->ctrl_data.std.ctrl_max,
 				   0, mcu_ctrl->ctrl_data.std.ctrl_def);
-	if (priv->ctrls[index] != NULL) {
-		debug_printk("%d. Initialized Control Menu 0x%08x - %s \n",
+	if (priv->ctrls[index] != NULL)
+	{
+		printk("%d. Initialized Control Menu 0x%08x - %s \n",
 			     index, mcu_ctrl->ctrl_id,
 			     priv->ctrls[index]->name);
 		return 0;
+	}
+	else
+	{
+		printk("%d. Control Menu Not yet Initialized 0x%08x - %s \n",
+					     index, mcu_ctrl->ctrl_id,
+					     priv->ctrls[index]->name);
 	}
 
 
 custom:
 	priv->ctrl_handler.error = 0;
 	memset(&custom_ctrl_config, 0x0, sizeof(struct v4l2_ctrl_config));
-
-	if (atto640_mcu_get_ctrl_ui(client, mcu_ctrl, index)!= ERRCODE_SUCCESS) {
+#if 0
+	if (atto640_mcu_get_ctrl_ui(client, mcu_ctrl, index)!= ERRCODE_SUCCESS)
+	{
 		dev_err(&client->dev, "Error Enumerating Control 0x%08x !! \n",
 			mcu_ctrl->ctrl_id);
 		return -EIO;
 	}
+	else
+	{
+		dev_err(&client->dev, "OK Enumerating Control 0x%08x !! \n",mcu_ctrl->ctrl_id);
+	}
+#endif
 	
 	/* Fill in Values for Custom Ctrls */
 	custom_ctrl_config.ops = &atto640_ctrl_ops;
@@ -442,7 +466,8 @@ custom:
 	custom_ctrl_config.step = mcu_ctrl->ctrl_data.std.ctrl_step;
 	custom_ctrl_config.def = mcu_ctrl->ctrl_data.std.ctrl_def;
 
-	if (custom_ctrl_config.type == V4L2_CTRL_TYPE_MENU) {
+	if (custom_ctrl_config.type == V4L2_CTRL_TYPE_MENU)
+	{
 		custom_ctrl_config.step = 0;
 		custom_ctrl_config.type_ops = NULL;
 
@@ -450,11 +475,11 @@ custom:
 			(const char *const *)(mcu_ctrl->ctrl_ui_data.ctrl_menu_info.menu);
 	}
 	
-	priv->ctrls[index] =
-	    v4l2_ctrl_new_custom(&priv->ctrl_handler,
+	priv->ctrls[index] = v4l2_ctrl_new_custom(&priv->ctrl_handler,
 				 &custom_ctrl_config, NULL);
-	if (priv->ctrls[index] != NULL) {
-		debug_printk("%d. Initialized Custom Ctrl 0x%08x - %s \n",
+	if (priv->ctrls[index] != NULL)
+	{
+		printk("%d. OK Initialized Custom Ctrl 0x%08x - %s \n",
 			     index, mcu_ctrl->ctrl_id,
 			     priv->ctrls[index]->name);
 		return 0;
@@ -466,10 +491,14 @@ custom:
 	return -EINVAL;
 }
 
+
+
 static int atto640_ctrls_init(struct atto640 *priv, ISP_CTRL_INFO *mcu_cam_ctrls)
 {
+	int err = 0;
+	int i = 0;
 	struct i2c_client *client = priv->i2c_client;
-	int err = 0, i = 0;
+
 
 	/* Array of Ctrls */
 
@@ -477,19 +506,27 @@ static int atto640_ctrls_init(struct atto640 *priv, ISP_CTRL_INFO *mcu_cam_ctrls
 	if (!priv || !priv->pdata)
 		return -EINVAL;
 
-	if (atto640_mcu_list_ctrls(client, mcu_cam_ctrls, priv) < 0) {
+	if (atto640_mcu_list_ctrls(client, mcu_cam_ctrls, priv) < 0)
+	{
 		dev_err(&client->dev, "Failed to init ctrls\n");
 		goto error;
+	}
+	else
+	{
+		dev_err(&client->dev, "%s OK to init ctrls\n",__func__);
 	}
 
 	v4l2_ctrl_handler_init(&priv->ctrl_handler, priv->num_ctrls+1);
 	priv->subdev->ctrl_handler = &priv->ctrl_handler;
-	for (i = 0; i < priv->num_ctrls; i++) {
-
-		if (mcu_cam_ctrls[i].ctrl_type == CTRL_STANDARD) {
+	for (i = 0; i < priv->num_ctrls; i++)
+	{
+		if (mcu_cam_ctrls[i].ctrl_type == CTRL_STANDARD)
+		{
 				atto640_try_add_ctrls(priv, i,
 						     &mcu_cam_ctrls[i]);
-		} else {
+		}
+		else
+		{
 			/* Not Implemented */
 		}
 	}
@@ -712,6 +749,8 @@ static int atto640_mcu_jump_bload(struct i2c_client *client)
 static int atto640_mcu_stream_config(struct i2c_client *client, uint32_t format,
 			     int mode, int frate_index)
 {
+	int ret = 0;
+#if 0
 	struct camera_common_data *s_data = to_camera_common_data(&client->dev);
 	struct atto640 *priv = (struct atto640 *)s_data->priv;
 
@@ -719,51 +758,64 @@ static int atto640_mcu_stream_config(struct i2c_client *client, uint32_t format,
 
 	uint16_t cmd_status = 0, index = 0xFFFF;
 	uint8_t retcode = 0, cmd_id = 0;
-	int loop = 0, ret = 0, err = 0, retry = 1000;
+	int loop = 0, err = 0, retry = 1000;
 
 	/* lock semaphore */
 	mutex_lock(&atto640_mcu_i2c_mutex);
 
 	cmd_id = CMD_ID_STREAM_CONFIG;
-	if (atto640_mcu_get_cmd_status(client, &cmd_id, &cmd_status, &retcode) < 0) {
+	if (atto640_mcu_get_cmd_status(client, &cmd_id, &cmd_status, &retcode) < 0)
+	{
 		dev_err(&client->dev," %s(%d) Error \n", __func__, __LINE__);
 		ret = -EIO;
 		goto exit;
 	}
+	else
+	{
+		dev_err(&client->dev," %s(%d) OK \n", __func__, __LINE__);
+	}
 
-	debug_printk
-	    (" %s(%d) ISP Status = 0x%04x , Ret code = 0x%02x \n",
+	printk(" %s(%d) ISP Status = 0x%04x , Ret code = 0x%02x \n",
 	     __func__, __LINE__, cmd_status, retcode);
 
 	if ((cmd_status != MCU_CMD_STATUS_SUCCESS) ||
-	    (retcode != ERRCODE_SUCCESS)) {
-		debug_printk
-		    (" ISP is Unintialized or Busy STATUS = 0x%04x Errcode = 0x%02x !! \n",
+	    (retcode != ERRCODE_SUCCESS))
+	{
+		printk(" ISP is Unintialized or Busy STATUS = 0x%04x Errcode = 0x%02x !! \n",
 		     cmd_status, retcode);
 		ret = -EBUSY;
 		goto exit;
 	}
+	else
+	{
+		printk(" ISP is initialized STATUS = 0x%04x Errcode = 0x%02x !! \n",
+				     cmd_status, retcode);
+	}
 
-	for (loop = 0;(&priv->streamdb[loop]) != NULL; loop++) {
-		if (priv->streamdb[loop] == mode) {
+	for (loop = 0;(&priv->streamdb[loop]) != NULL; loop++)
+	{
+		if (priv->streamdb[loop] == mode)
+		{
 			index = loop + frate_index;
 			break;
 		}
 	}
 
-	debug_printk(" Index = 0x%04x , format = 0x%08x, width = %hu,"
+	printk(" Index = 0x%04x , format = 0x%08x, width = %hu,"
 		     " height = %hu, frate num = %hu \n", index, format,
 		     priv->mcu_cam_frmfmt[mode].size.width,
 		     priv->mcu_cam_frmfmt[mode].size.height,
 		     priv->mcu_cam_frmfmt[mode].framerates[frate_index]);
 
-	if (index == 0xFFFF) {
+	if (index == 0xFFFF)
+	{
 		ret = -EINVAL;
 		goto exit;
 	}
 
-	if(priv->prev_index == index) {
-		debug_printk("Skipping Previous mode set ... \n");
+	if(priv->prev_index == index)
+	{
+		printk("Skipping Previous mode set ... \n");
 		ret = 0;
 		goto exit;
 	}
@@ -809,14 +861,16 @@ issue_cmd:
 
 	mc_data_atto640[16] = atto640_errorcheck(&mc_data_atto640[2], 14);
 	err = atto640_write(client, mc_data_atto640, 17);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
 		       __LINE__, err);
 		ret = -EIO;
 		goto exit;
 	}
 
-	while (--retry > 0) {
+	while (--retry > 0)
+	{
 		cmd_id = CMD_ID_STREAM_CONFIG;
 		if (atto640_mcu_get_cmd_status
 		    (client, &cmd_id, &cmd_status, &retcode) < 0) {
@@ -828,19 +882,22 @@ issue_cmd:
 		}
 
 		if ((cmd_status == MCU_CMD_STATUS_SUCCESS) &&
-		    (retcode == ERRCODE_SUCCESS)) {
+		    (retcode == ERRCODE_SUCCESS))
+		{
 			ret = 0;
 			goto exit;
 		}
 
-		if(retcode == ERRCODE_AGAIN) {
+		if(retcode == ERRCODE_AGAIN)
+		{
 			/* Issue Command Again if Set */
 			retry = 1000;			
 			goto issue_cmd;
 		}						
 
 		if ((retcode != ERRCODE_BUSY) &&
-		    ((cmd_status != MCU_CMD_STATUS_PENDING))) {
+		    ((cmd_status != MCU_CMD_STATUS_PENDING)))
+		{
 			dev_err(&client->dev,
 				"(%s) %d Error STATUS = 0x%04x RET = 0x%02x\n",
 				__func__, __LINE__, cmd_status, retcode);
@@ -862,7 +919,7 @@ exit:
 
 	/* unlock semaphore */
 	mutex_unlock(&atto640_mcu_i2c_mutex);
-
+#endif
 	return ret;
 }
 
@@ -886,14 +943,17 @@ static int atto640_mcu_get_ctrl(struct i2c_client *client, uint32_t arg_ctrl_id,
 
 	/* Read the Ctrl Value from Micro controller */
 
-	for (loop = 0; loop < priv->num_ctrls; loop++) {
-		if (priv->ctrldb[loop] == ctrl_id) {
+	for (loop = 0; loop < priv->num_ctrls; loop++)
+	{
+		if (priv->ctrldb[loop] == ctrl_id)
+		{
 			index = loop;
 			break;
 		}
 	}
 
-	if (index == 0xFFFF) {
+	if (index == 0xFFFF)
+	{
 		ret = -EINVAL;
 		goto exit;
 	}
@@ -954,7 +1014,7 @@ static int atto640_mcu_get_ctrl(struct i2c_client *client, uint32_t arg_ctrl_id,
 
 	payload_len =
 	    ((mc_ret_data_atto640[2] << 8) | mc_ret_data_atto640[3]) + HEADER_FOOTER_SIZE;
-	memset(mc_ret_data_atto640, 0x00, payload_len);
+	memset(mc_ret_data_atto640, 0x00, MCU_BUFFER_SIZE);
 	err = atto640_read(client, mc_ret_data_atto640, payload_len);
 	if (err != 0) {
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
@@ -986,8 +1046,10 @@ static int atto640_mcu_get_ctrl(struct i2c_client *client, uint32_t arg_ctrl_id,
 	/* Ctrl type starts from index 6 */
 
 	*ctrl_type = mc_ret_data_atto640[6];
+	*ctrl_type = CTRL_STANDARD;
 
-	switch (*ctrl_type) {
+	switch (*ctrl_type)
+	{
 	case CTRL_STANDARD:
 		*curr_val =
 		    mc_ret_data_atto640[7] << 24 | mc_ret_data_atto640[8] << 16 | mc_ret_data_atto640[9]
@@ -1158,14 +1220,21 @@ static int atto640_mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *str
 			ret = -EIO;
 			//goto exit;
 		}
+		else
+		{
+			dev_err(&client->dev," %s(%d) OK - %d \n",__func__, __LINE__, err);
+		}
 
 		err = atto640_read(client, mc_ret_data_atto640, RX_LEN_PKT);
 		if (err != 0)
 		{
-			dev_err(&client->dev," %s(%d) Error - %d \n",
-			       __func__, __LINE__, err);
+			dev_err(&client->dev," %s(%d) Error - %d \n",__func__, __LINE__, err);
 			ret = -EIO;
 			//goto exit;
+		}
+		else
+		{
+			dev_err(&client->dev," %s(%d) OK - %d \n",__func__, __LINE__, err);
 		}
 
 		/* Verify CRC */
@@ -1179,22 +1248,37 @@ static int atto640_mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *str
 			ret = -EINVAL;
 			//goto exit;
 		}
+		else
+		{
+			printk(" %s(%d) CRC 0x%02x == 0x%02x \n",
+			     __func__, __LINE__, orig_crc, calc_crc);
+		}
+
 
 		printk("mc_ret_data_atto640[2]=0x%x mc_ret_data_atto640[3]=0x%x \n",mc_ret_data_atto640[2],mc_ret_data_atto640[3]);
-		mc_ret_data_atto640[2] = 0;
-		mc_ret_data_atto640[3] = 0x0d;
-
+		if(index!=9)
+		{
+			mc_ret_data_atto640[2] = 0;
+			mc_ret_data_atto640[3] = 0x0d;
+			printk("atto640 index 0d: %d\n",index);
+		}
+		else
+		{
+			mc_ret_data_atto640[2] = 0;
+			mc_ret_data_atto640[3] = 0x0;
+			printk("atto640 index 00: %d\n",index);
+		}
 		if (((mc_ret_data_atto640[2] << 8) | mc_ret_data_atto640[3]) == 0)
 		{
 			if(stream_info == NULL)
 			{
 				*frm_fmt_size = index;
-				printk("atto640 index\n");
+				printk("atto640 index: %d\n",index);
 			}
 			else
 			{
 				*frm_fmt_size = mode;
-				printk("atto640 mode\n");
+				printk("atto640 mode:%d\n",mode);
 			}
 			printk("break atto640_mcu_list_fmts\n");
 			break;
@@ -1216,8 +1300,13 @@ static int atto640_mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *str
 			ret = -EIO;
 			//goto exit;
 		}
+		else
+		{
+			printk(" %s(%d) OK  - %d \n",__func__, __LINE__, err);
+		}
 
-		memset(mc_ret_data_atto640, 0x00, payload_len);
+
+		memset(mc_ret_data_atto640, 0x00, MCU_BUFFER_SIZE);
 		err = atto640_read(client, mc_ret_data_atto640, payload_len);
 		if (err != 0)
 		{
@@ -1225,6 +1314,10 @@ static int atto640_mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *str
 			       __func__, __LINE__, err);
 			ret = -1;
 			//goto exit;
+		}
+		else
+		{
+			dev_err(&client->dev," %s(%d) OK - %d \n",__func__, __LINE__, err);
 		}
 
 		/* Verify CRC */
@@ -1238,6 +1331,10 @@ static int atto640_mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *str
 			ret = -EINVAL;
 			//goto exit;
 		}
+		else
+		{
+			dev_err(&client->dev," %s(%d) OK - %d \n",__func__, __LINE__, err);
+		}
 
 		/* Verify Errcode */
 		errcode = mc_ret_data_atto640[payload_len - 1];
@@ -1248,6 +1345,10 @@ static int atto640_mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *str
 			     __func__, __LINE__, errcode);
 			ret = -EIO;
 			//goto exit;
+		}
+		else
+		{
+			dev_err(&client->dev," %s(%d) OK - %d \n",__func__, __LINE__, err);
 		}
 
 		if(stream_info != NULL)
@@ -1379,7 +1480,7 @@ static int atto640_mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *str
 }
 
 
-
+#if 0
 static int atto640_mcu_get_ctrl_ui(struct i2c_client *client,
 			   ISP_CTRL_INFO * mcu_ui_info, int index)
 {
@@ -1442,7 +1543,7 @@ static int atto640_mcu_get_ctrl_ui(struct i2c_client *client,
 		goto exit;
 	}
 
-	memset(mc_ret_data_atto640, 0x00, payload_len);
+	memset(mc_ret_data_atto640, 0x00, MCU_BUFFER_SIZE);
 	err = atto640_read(client, mc_ret_data_atto640, payload_len);
 	if (err != 0) {
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
@@ -1502,6 +1603,7 @@ static int atto640_mcu_get_ctrl_ui(struct i2c_client *client,
 	return ret;
 
 }
+#endif
 
 static int atto640_mcu_list_ctrls(struct i2c_client *client,
 			  ISP_CTRL_INFO * mcu_cam_ctrl, struct atto640 *priv)
@@ -1537,8 +1639,8 @@ static int atto640_mcu_list_ctrls(struct i2c_client *client,
 		if (err != 0)
 		{
 			dev_err(&client->dev," %s(%d) Error - %d \n",__func__, __LINE__, err);
-			ret = -EIO;
-			goto exit;
+			//ret = -EIO;
+			//goto exit;
 		}
 		else
 		{
@@ -1549,8 +1651,8 @@ static int atto640_mcu_list_ctrls(struct i2c_client *client,
 		if (err != 0)
 		{
 			dev_err(&client->dev," %s(%d) Error - %d \n",__func__, __LINE__, err);
-			ret = -EIO;
-			goto exit;
+			//ret = -EIO;
+			//goto exit;
 		}
 		else
 		{
@@ -1560,39 +1662,61 @@ static int atto640_mcu_list_ctrls(struct i2c_client *client,
 		/* Verify CRC */
 		orig_crc = mc_ret_data_atto640[4];
 		calc_crc = atto640_errorcheck(&mc_ret_data_atto640[2], 2);
-		if (orig_crc != calc_crc) {
+		if (orig_crc != calc_crc)
+		{
 			dev_err(&client->dev,
 			    " %s(%d) CRC 0x%02x != 0x%02x \n",
 			     __func__, __LINE__, orig_crc, calc_crc);
-			ret = -EINVAL;
-			goto exit;
+			//ret = -EINVAL;
+			//goto exit;
+		}
+
+		mc_ret_data_atto640[2] = 0x0;
+		mc_ret_data_atto640[3] = 0x15;
+
+		printk("mc_ret_data_atto640[2]=0x%x mc_ret_data_atto640[3]=0x%x\n",
+				mc_ret_data_atto640[2],mc_ret_data_atto640[3]);
+
+		if(index>=10)
+		{
+			mc_ret_data_atto640[2] = 0;
+			mc_ret_data_atto640[3] = 0;
+		}
+		else
+		{
+			mc_ret_data_atto640[2] = 0x0;
+			mc_ret_data_atto640[3] = 0x98;
 		}
 
 		if (((mc_ret_data_atto640[2] << 8) | mc_ret_data_atto640[3]) == 0)
 		{
 			priv->num_ctrls = index;
+			printk("%s break while\n",__func__);
 			break;
+		}
+		else
+		{
+			printk("%s no break while\n",__func__);
 		}
 
 		payload_len =
 		    ((mc_ret_data_atto640[2] << 8) | mc_ret_data_atto640[3]) +
 		    HEADER_FOOTER_SIZE;
 		errcode = mc_ret_data_atto640[5];
-		if (errcode != ERRCODE_SUCCESS) {
-			dev_err(&client->dev,
-			    " %s(%d) Errcode - 0x%02x \n",
-			     __func__, __LINE__, errcode);
-			ret = -EIO;
-			goto exit;
+		if (errcode != ERRCODE_SUCCESS)
+		{
+			dev_err(&client->dev," %s(%d) Errcode - 0x%02x \n",__func__, __LINE__, errcode);
+			//ret = -EIO;
+			//goto exit;
 		}
 
-		memset(mc_ret_data_atto640, 0x00, payload_len);
+		memset(mc_ret_data_atto640, 0x00, MCU_BUFFER_SIZE);
 		err = atto640_read(client, mc_ret_data_atto640, payload_len);
-		if (err != 0) {
-			dev_err(&client->dev," %s(%d) Error - %d \n",
-			       __func__, __LINE__, err);
-			ret = -1;
-			goto exit;
+		if (err != 0)
+		{
+			dev_err(&client->dev," %s(%d) Error - %d \n",__func__, __LINE__, err);
+			//ret = -1;
+			//goto exit;
 		}
 
 		/* Verify CRC */
@@ -1600,25 +1724,51 @@ static int atto640_mcu_list_ctrls(struct i2c_client *client,
 		calc_crc =
 				atto640_errorcheck(&mc_ret_data_atto640[2],
 				 payload_len - HEADER_FOOTER_SIZE);
-		if (orig_crc != calc_crc) {
+		if (orig_crc != calc_crc)
+		{
 			dev_err(&client->dev,
 			    " %s(%d) CRC 0x%02x != 0x%02x \n",
 			     __func__, __LINE__, orig_crc, calc_crc);
-			ret = -EINVAL;
-			goto exit;
+			//ret = -EINVAL;
+			//goto exit;
 		}
 
 		/* Verify Errcode */
 		errcode = mc_ret_data_atto640[payload_len - 1];
-		if (errcode != ERRCODE_SUCCESS) {
+		if (errcode != ERRCODE_SUCCESS)
+		{
 			dev_err(&client->dev,
 			    " %s(%d) Errcode - 0x%02x \n",
 			     __func__, __LINE__, errcode);
-			ret = -EINVAL;
-			goto exit;
+			//ret = -EINVAL;
+			//goto exit;
 		}
+		mc_ret_data_atto640[0] = 0x43;
+		mc_ret_data_atto640[1] = 0x3;
+		mc_ret_data_atto640[2] = 0x0;
+		mc_ret_data_atto640[3] = 0x98;
+		mc_ret_data_atto640[4] = 0x9;
+		mc_ret_data_atto640[5] = 0x0;
+		mc_ret_data_atto640[6] = 0x1;
+		mc_ret_data_atto640[7] = 0xff;
+		mc_ret_data_atto640[8] = 0xff;
+		mc_ret_data_atto640[9] = 0xff;
+		mc_ret_data_atto640[10] = 0xf1;
+		mc_ret_data_atto640[11] = 0x0;
+		mc_ret_data_atto640[12] = 0x0;
+		mc_ret_data_atto640[13] = 0x0;
+		mc_ret_data_atto640[14] = 0x0;
+		mc_ret_data_atto640[15] = 0x0;
+		mc_ret_data_atto640[16] = 0x0;
+		mc_ret_data_atto640[17] = 0x0;
+		mc_ret_data_atto640[18] = 0x0;
+		mc_ret_data_atto640[19] = 0x0;
+		mc_ret_data_atto640[20] = 0x0;
+		mc_ret_data_atto640[21] = 0x0;
+		mc_ret_data_atto640[22] = 0x1;
 
-		if(mcu_cam_ctrl != NULL) {
+		if(mcu_cam_ctrl != NULL)
+		{
 
 			/* append ctrl info in array */
 			mcu_cam_ctrl[index].ctrl_id =
@@ -1626,7 +1776,8 @@ static int atto640_mcu_list_ctrls(struct i2c_client *client,
 				<< 8 | mc_ret_data_atto640[5];
 			mcu_cam_ctrl[index].ctrl_type = mc_ret_data_atto640[6];
 
-			switch (mcu_cam_ctrl[index].ctrl_type) {
+			switch (mcu_cam_ctrl[index].ctrl_type)
+			{
 				case CTRL_STANDARD:
 					mcu_cam_ctrl[index].ctrl_data.std.ctrl_min =
 						mc_ret_data_atto640[7] << 24 | mc_ret_data_atto640[8] << 16
@@ -1655,10 +1806,14 @@ static int atto640_mcu_list_ctrls(struct i2c_client *client,
 
 			priv->ctrldb[index] = mcu_cam_ctrl[index].ctrl_id;
 		}
+		else
+		{
+			printk("%s mcu_cam_ctrl is NULL\n",__func__);
+		}
 		index++;
 	}
 
- exit:
+ //exit:
 	/* unlock semaphore */
 	mutex_unlock(&atto640_mcu_i2c_mutex);
 
@@ -1762,7 +1917,7 @@ static int atto640_mcu_get_fw_version(struct i2c_client *client,
 	/* Read the actual version from MCU*/
 	payload_len =
 		((mc_ret_data_atto640[2] << 8) | mc_ret_data_atto640[3]) + HEADER_FOOTER_SIZE;
-	memset(mc_ret_data_atto640, 0x00, payload_len);
+	memset(mc_ret_data_atto640, 0x00, MCU_BUFFER_SIZE);
 	err = atto640_read(client, mc_ret_data_atto640, payload_len);
 	if (err != 0)
 	{
@@ -1932,7 +2087,7 @@ static int atto640_mcu_get_sensor_id(struct i2c_client *client, uint16_t * senso
 	payload_len =
 	    ((mc_ret_data_atto640[2] << 8) | mc_ret_data_atto640[3]) + HEADER_FOOTER_SIZE;
 
-	memset(mc_ret_data_atto640, 0x00, payload_len);
+	memset(mc_ret_data_atto640, 0x00, MCU_BUFFER_SIZE);
 	err = atto640_read(client, mc_ret_data_atto640, payload_len);
 	if (err != 0)
 	{
@@ -2020,7 +2175,7 @@ static int atto640_mcu_get_cmd_status(struct i2c_client *client,
 	}
 
 	payload_len = CMD_STATUS_MSG_LEN;
-	memset(mc_ret_data_atto640, 0x00, payload_len);
+	memset(mc_ret_data_atto640, 0x00, MCU_BUFFER_SIZE);
 	err = atto640_read(client, mc_ret_data_atto640, payload_len);
 	if (err != 0) {
 		dev_err(&client->dev," %s(%d) Error - %d \n", __func__,
@@ -2725,7 +2880,7 @@ static int atto640_mcu_fw_update(struct i2c_client *client, unsigned char *mcu_f
 }
 #endif
 
-
+#if 0
 static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy)
 {
 	uint8_t linken = 0;
@@ -2744,6 +2899,7 @@ static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, u
 	printk(" Changed LINKEN to = 0x%02x \n", linken);					
 	return 0;
 }
+#endif
 
 static int atto640_disable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy)
 {
@@ -2947,10 +3103,27 @@ skip_poc:
 		if(priv->phy == PHY_A)
 		{
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
+			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x05, 0x80);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x06, 0x50);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x07, 0x6);
+
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x08, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x09, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0A, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0B, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0C, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
+
 			msleep(100);	
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
-
+#if 0
 			/* Change Serializer slave address */
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR2 << 1);
 
@@ -2964,19 +3137,36 @@ skip_poc:
 			{
 				printk(" OK Accessing PHYA serializer 0x%x\n",SER_ADDR2);
 			}
+#endif
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		}
 		else if (priv->phy == PHY_B)
 		{
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
+			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
 
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x05, 0x80);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x06, 0x50);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x07, 0x6);
+
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x08, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x09, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0A, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0B, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0C, 0x0);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C0D, 0x00);
 			
+#if 0
 			/* Change Serializer slave address */
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
-
+			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
 			if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0)
 			{
 				printk(" Error Accessing PHYB serializer 0x%x\n",SER_ADDR3);
@@ -2987,6 +3177,8 @@ skip_poc:
 			{
 				printk(" OK Accessing PHYB serializer 0x%x\n",SER_ADDR3);
 			}
+#endif
+
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 		}
 
@@ -3022,9 +3214,25 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0410, 0x00);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0411, 0x01);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0412, 0x01);
+
+		// ajout ATTO
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D0, 0x30);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D1, 0x31);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D2, 0x32);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D3, 0x33);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D4, 0x34);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D5, 0x35);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D6, 0x36);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D7, 0x37);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D8, 0x1A);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D9, 0x19);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01DA, 0x58);
+
+
+
 	}
 
-
+#if 0
 	/* i2c address translated */
 	if(priv->phy == PHY_A)
 	{
@@ -3099,7 +3307,8 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 		atto640_serdes_read_8b_reg(client, SER_ADDR3, 0xD,&val_read);
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
-	}			
+	}
+#endif
 	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
 
 
@@ -3172,20 +3381,26 @@ skip_poc:
 
 				/* See if it is a empty MCU */
 				err = atto640_mcu_bload_get_version(client);
-				if (err < 0) {
+				if (err < 0)
+				{
 					dev_err(&client->dev," Get Bload Version Fail\n");
-				} else {
+				}
+				else
+				{
 					dev_err(&client->dev," Get Bload Version Success\n");
 
 					/* Re-issue GO command to get into user mode */
-					if (atto640_mcu_bload_go(client) < 0) {
+					if (atto640_mcu_bload_go(client) < 0)
+					{
 						dev_err(&client->dev," i2c_bload_go FAIL !! \n");
 					}					
 					msleep(1);
 				}						
 
 				continue;
-			} else {
+			}
+			else
+			{
 				dev_err(&client->dev," Get FW Version Success\n");
 				break;
 			}
@@ -3207,13 +3422,19 @@ skip_poc:
 		debug_printk("Current Firmware Version - (%.4s-%.7s)",
 									&fw_version_atto640[2],&fw_version_atto640[18]);
 	}
+#endif
 
-	if(atto640_mcu_list_ctrls(client, NULL, priv) < 0) {
+	if(atto640_mcu_list_ctrls(client, NULL, priv) < 0)
+	{
 		dev_err(&client->dev, "%s, Failed to init controls \n", __func__);
 		atto640_disable_phy(client, priv, priv->phy);
 		return -EFAULT;
 	}
-#endif
+	else
+	{
+		dev_err(&client->dev, "%s, OK to init controls \n", __func__);
+	}
+
 
 	/*Query the number for Formats available from MCU */
 	if(atto640_mcu_list_fmts(client, NULL, &frm_fmt_size,priv) < 0)
@@ -3224,7 +3445,7 @@ skip_poc:
 	}
 	else
 	{
-		dev_err(&client->dev, "%s, 1 OK to init formats \n", __func__);
+		dev_err(&client->dev, "%s, 1 OK to init formats frm_fmt_size:%d \n", __func__,frm_fmt_size);
 	}
 
 
@@ -3384,7 +3605,6 @@ skip_poc:
 	/* Get CAM FW version to find the availabity of MC chip */
 
 	v4l2_i2c_subdev_init(priv->subdev, client, &atto640_subdev_ops);
-
 	/* Enumerate Ctrls */
 	err = atto640_ctrls_init(priv, priv->mcu_ctrl_info);
 	if (err)
@@ -3396,6 +3616,7 @@ skip_poc:
 	{
 		dev_err(&client->dev, "Enumerate Ctrls atto640 OK\n");
 	}
+
 
 	priv->subdev->internal_ops = &atto640_subdev_internal_ops;
 	priv->subdev->flags |=

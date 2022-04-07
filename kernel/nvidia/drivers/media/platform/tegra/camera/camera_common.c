@@ -588,8 +588,7 @@ int camera_common_try_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
 	int err = 0;
 	int i;
 
-	dev_dbg(sd->dev, "%s: size %i x %i\n", __func__,
-		 mf->width, mf->height);
+	dev_err(sd->dev, "%s: size %i x %i\n", __func__,mf->width, mf->height);
 
 	/* check hdr enable ctrl */
 	hdr_control.id = TEGRA_CAMERA_CID_HDR_EN;
@@ -606,13 +605,14 @@ int camera_common_try_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
 
 	if (s_data->use_sensor_mode_id &&
 		s_data->sensor_mode_id >= 0 &&
-		s_data->sensor_mode_id < s_data->numfmts) {
-		dev_dbg(sd->dev, "%s: use_sensor_mode_id %d\n",
-				__func__, s_data->use_sensor_mode_id);
+		s_data->sensor_mode_id < s_data->numfmts)
+	{
+		dev_dbg(sd->dev, "%s: use_sensor_mode_id %d\n",__func__, s_data->use_sensor_mode_id);
 		s_data->mode = frmfmt[s_data->sensor_mode_id].mode;
 		s_data->mode_prop_idx = s_data->sensor_mode_id;
 		if (mf->width == frmfmt[s_data->sensor_mode_id].size.width &&
-		    mf->height == frmfmt[s_data->sensor_mode_id].size.height) {
+		    mf->height == frmfmt[s_data->sensor_mode_id].size.height)
+		{
 			s_data->fmt_width = mf->width;
 			s_data->fmt_height = mf->height;
 		}
@@ -625,11 +625,15 @@ int camera_common_try_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
 				__func__, mf->width, mf->height);
 			goto verify_code;
 		}
-	} else {
+	}
+	else
+	{
 		/* select mode based on format match first */
-		for (i = 0; i < s_data->numfmts; i++) {
+		for (i = 0; i < s_data->numfmts; i++)
+		{
 			if (mf->width == frmfmt[i].size.width &&
-				mf->height == frmfmt[i].size.height) {
+				mf->height == frmfmt[i].size.height)
+			{
 				s_data->mode = frmfmt[i].mode;
 				s_data->mode_prop_idx = i;
 				s_data->fmt_width = mf->width;
@@ -639,7 +643,8 @@ int camera_common_try_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
 		}
 		speculation_barrier(); /* break_spec_p#5_1 */
 
-		if (i == s_data->numfmts) {
+		if (i == s_data->numfmts)
+		{
 			mf->width = s_data->fmt_width;
 			mf->height = s_data->fmt_height;
 			dev_dbg(sd->dev,

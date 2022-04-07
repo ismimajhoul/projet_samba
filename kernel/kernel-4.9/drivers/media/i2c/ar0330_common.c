@@ -1254,13 +1254,14 @@ static int mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *stream_info
 			if(stream_info == NULL)
 			{
 				*frm_fmt_size = index;
-				printk("ar0330 index\n");
+				printk("ar0330 index:%d\n",index);
 			}
 			else
 			{
 				*frm_fmt_size = mode;
-				printk("ar0330 mode\n");
+				printk("ar0330 mode:%d\n",mode);
 			}
+			printk("break ar0330_mcu_list_fmts\n");
 			break;
 		}
 		else
@@ -1272,17 +1273,26 @@ static int mcu_list_fmts(struct i2c_client *client, ISP_STREAM_INFO *stream_info
 		    ((mc_ret_data[2] << 8) | mc_ret_data[3]) +
 		    HEADER_FOOTER_SIZE;
 		errcode = mc_ret_data[5];
-		if (errcode != ERRCODE_SUCCESS) {
+
+		printk("payload_len = %d",payload_len);
+
+		if (errcode != ERRCODE_SUCCESS)
+		{
 			pr_err
 			    (" %s(%d) Errcode - 0x%02x \n",
 			     __func__, __LINE__, errcode);
 			ret = -EIO;
 			goto exit;
 		}
+		else
+		{
+			printk("ERRCODE_SUCCESS\n");
+		}
 
 		memset(mc_ret_data, 0x00, payload_len);
 		err = ar0330_read(client, mc_ret_data, payload_len);
-		if (err != 0) {
+		if (err != 0)
+		{
 			dev_err(&client->dev," %s(%d) Error - %d \n",
 			       __func__, __LINE__, err);
 			ret = -1;
@@ -1560,13 +1570,14 @@ static int mcu_list_ctrls(struct i2c_client *client,
 	uint32_t payload_len = 0;
 	uint8_t errcode = ERRCODE_SUCCESS, orig_crc = 0, calc_crc = 0;
 	uint16_t index = 0;
-	int ret = 0, err = 0;
+	int ret = 0, err = 0, i = 0;
 
 	/* lock semaphore */
 	mutex_lock(&mcu_i2c_mutex);
 
 	/* Array of Ctrl Info */
-	while (1) {
+	while (1)
+	{
 		/* First Txn Payload length = 0 */
 		payload_len = 2;
 
@@ -1610,16 +1621,22 @@ static int mcu_list_ctrls(struct i2c_client *client,
 			goto exit;
 		}
 
-		if (((mc_ret_data[2] << 8) | mc_ret_data[3]) == 0) {
+		printk("mc_ret_data[2]=0x%x mc_ret_data[3]=0x%x\n",mc_ret_data[2],mc_ret_data[3]);
+		if (((mc_ret_data[2] << 8) | mc_ret_data[3]) == 0)
+		{
 			priv->num_ctrls = index;
+			printk("%s break while\n",__func__);
 			break;
 		}
+		else
+		{
+			printk("%s no break while\n",__func__);
+		}
 
-		payload_len =
-		    ((mc_ret_data[2] << 8) | mc_ret_data[3]) +
-		    HEADER_FOOTER_SIZE;
+		payload_len = ((mc_ret_data[2] << 8) | mc_ret_data[3]) + HEADER_FOOTER_SIZE;
 		errcode = mc_ret_data[5];
-		if (errcode != ERRCODE_SUCCESS) {
+		if (errcode != ERRCODE_SUCCESS)
+		{
 			dev_err(&client->dev,
 			    " %s(%d) Errcode - 0x%02x \n",
 			     __func__, __LINE__, errcode);
@@ -1629,7 +1646,8 @@ static int mcu_list_ctrls(struct i2c_client *client,
 
 		memset(mc_ret_data, 0x00, payload_len);
 		err = ar0330_read(client, mc_ret_data, payload_len);
-		if (err != 0) {
+		if (err != 0)
+		{
 			dev_err(&client->dev," %s(%d) Error - %d \n",
 			       __func__, __LINE__, err);
 			ret = -1;
@@ -1651,7 +1669,8 @@ static int mcu_list_ctrls(struct i2c_client *client,
 
 		/* Verify Errcode */
 		errcode = mc_ret_data[payload_len - 1];
-		if (errcode != ERRCODE_SUCCESS) {
+		if (errcode != ERRCODE_SUCCESS)
+		{
 			dev_err(&client->dev,
 			    " %s(%d) Errcode - 0x%02x \n",
 			     __func__, __LINE__, errcode);
@@ -1659,7 +1678,13 @@ static int mcu_list_ctrls(struct i2c_client *client,
 			goto exit;
 		}
 
-		if(mcu_cam_ctrl != NULL) {
+		for(i=0;i<23;i++)
+		{
+			printk("mc_ret_data[%d]=0x%x \n",i,mc_ret_data[i]);
+		}
+
+		if(mcu_cam_ctrl != NULL)
+		{
 
 			/* append ctrl info in array */
 			mcu_cam_ctrl[index].ctrl_id =
@@ -1667,7 +1692,8 @@ static int mcu_list_ctrls(struct i2c_client *client,
 				<< 8 | mc_ret_data[5];
 			mcu_cam_ctrl[index].ctrl_type = mc_ret_data[6];
 
-			switch (mcu_cam_ctrl[index].ctrl_type) {
+			switch (mcu_cam_ctrl[index].ctrl_type)
+			{
 				case CTRL_STANDARD:
 					mcu_cam_ctrl[index].ctrl_data.std.ctrl_min =
 						mc_ret_data[7] << 24 | mc_ret_data[8] << 16
@@ -1695,6 +1721,10 @@ static int mcu_list_ctrls(struct i2c_client *client,
 			}
 
 			priv->ctrldb[index] = mcu_cam_ctrl[index].ctrl_id;
+		}
+		else
+		{
+			printk("%s mcu_cam_ctrl is NULL\n",__func__);
 		}
 		index++;
 	}
@@ -3018,14 +3048,20 @@ skip_poc:
 	}
 
 	/*Query the number for Formats available from MCU */
-	if(mcu_list_fmts(client, NULL, &frm_fmt_size,priv) < 0) {
+	if(mcu_list_fmts(client, NULL, &frm_fmt_size,priv) < 0)
+	{
 		dev_err(&client->dev, "%s, Failed to init formats \n", __func__);
 			disable_phy(client, priv, priv->phy);
 		return -EFAULT;
 	}
+	else
+	{
+		printk("ar0330 frm_fmt_size: %d",frm_fmt_size);
+	}
 
 	priv->mcu_ctrl_info = devm_kzalloc(&client->dev, sizeof(ISP_CTRL_INFO) * priv->num_ctrls, GFP_KERNEL);
-	if(!priv->mcu_ctrl_info) {
+	if(!priv->mcu_ctrl_info)
+	{
 		dev_err(&client->dev, "Unable to allocate memory \n");
 			disable_phy(client, priv, priv->phy);
 		return -ENOMEM;

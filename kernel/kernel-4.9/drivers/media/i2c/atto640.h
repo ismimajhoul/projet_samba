@@ -248,7 +248,7 @@ struct atto640 {
 
 /* Mutex for I2C lock */
 DEFINE_MUTEX(atto640_mcu_i2c_mutex);
-static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy);
+//static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy);
 static int atto640_disable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy);
 static int atto640_g_volatile_ctrl(struct v4l2_ctrl *ctrl);
 static int atto640_s_ctrl(struct v4l2_ctrl *ctrl);
@@ -273,8 +273,8 @@ static int atto640_mcu_set_ctrl(struct i2c_client *client, uint32_t ctrl_id,
 			uint8_t ctrl_type, int32_t curr_val);
 static int atto640_mcu_get_ctrl(struct i2c_client *client, uint32_t ctrl_id,
 			uint8_t * ctrl_type, int32_t * curr_val);
-static int atto640_mcu_get_ctrl_ui(struct i2c_client *client,
-			   ISP_CTRL_INFO * mcu_ui_info, int index);
+//static int atto640_mcu_get_ctrl_ui(struct i2c_client *client,
+//			   ISP_CTRL_INFO * mcu_ui_info, int index);
 //static int atto640_mcu_fw_update(struct i2c_client *client, unsigned char *txt_fw_version);
 //static int atto640_mcu_jump_bload(struct i2c_client *client);
 static struct camera_common_pdata *atto640_parse_dt(struct i2c_client *client);
