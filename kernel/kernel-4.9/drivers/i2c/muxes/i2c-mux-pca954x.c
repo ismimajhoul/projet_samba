@@ -122,6 +122,9 @@ static const struct i2c_device_id pca954x_id[] = {
 	{ "pca9548", pca_9548 },
 	{ }
 };
+
+static unsigned int cpt_regval = 0;
+
 MODULE_DEVICE_TABLE(i2c, pca954x_id);
 
 #ifdef CONFIG_OF
@@ -158,7 +161,9 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
 
 		if (ret >= 0 && ret != 1)
 			ret = -EREMOTEIO;
-	} else {
+	}
+	else
+	{
 		union i2c_smbus_data data;
 		ret = adap->algo->smbus_xfer(adap, client->addr,
 					     client->flags,
@@ -176,6 +181,7 @@ static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
 	const struct chip_desc *chip = data->chip;
 	u8 regval;
 	int ret = 0;
+	cpt_regval++;
 
 	/* we make switches look like muxes, not sure how to be smarter */
 	if (chip->muxtype == pca954x_ismux)
@@ -184,9 +190,19 @@ static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
 		regval = 1 << chan;
 
 	/* Only select the channel if its different from the last channel */
-	if (data->last_chan != regval) {
+	if (data->last_chan != regval)
+	{
 		ret = pca954x_reg_write(muxc->parent, client, regval);
 		data->last_chan = ret < 0 ? 0 : regval;
+		if((cpt_regval%11)==0)
+			dev_err(&client->dev, "select chan its different from the last channel 0x%x  regval= %x\n",
+				    data->last_chan,regval);
+	}
+	else
+	{
+		if((cpt_regval%11)==0)
+		dev_err(&client->dev, "+++select chan its not different from the last channel 0x%x  regval= %x\n",
+				data->last_chan,regval);
 	}
 
 	return ret;

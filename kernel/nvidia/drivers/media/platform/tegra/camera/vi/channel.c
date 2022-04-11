@@ -637,13 +637,13 @@ int tegra_channel_error_recover(struct tegra_channel *chan, bool queue_error)
 		goto done;
 	}
 
-	dev_warn(vi->dev, "err_rec: attempting to reset the capture channel\n");
+	printk("err_rec: attempting to reset the capture channel\n");
 
 	err = vi->fops->vi_error_recover(chan, queue_error);
 	if (!err)
-		dev_warn(vi->dev,
-			"err_rec: successfully reset the capture channel\n");
-
+	{
+		printk("err_rec: successfully reset the capture channel\n");
+	}
 done:
 	return err;
 }

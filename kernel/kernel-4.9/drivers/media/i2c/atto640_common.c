@@ -260,7 +260,6 @@ static int atto640_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config
 	case MEDIA_BUS_FMT_UYVY8_1X16:
 		priv->format_fourcc = V4L2_PIX_FMT_UYVY;
 		break;
-
 	default:
 		/* Not Implemented */
 		if (format->which != V4L2_SUBDEV_FORMAT_TRY)
@@ -2880,12 +2879,12 @@ static int atto640_mcu_fw_update(struct i2c_client *client, unsigned char *mcu_f
 }
 #endif
 
-#if 0
+
 static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy)
 {
 	uint8_t linken = 0;
 	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);
-	printk(" LINKEN  = 0x%02x \n", linken);
+	printk(" LINKEN  = 0x%02x atto640\n", linken);
 	
 	if(phy == PHY_A)
 		linken |= 0x01;
@@ -2896,16 +2895,16 @@ static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, u
 
 	linken = 0;
 	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);
-	printk(" Changed LINKEN to = 0x%02x \n", linken);					
+	printk(" Changed LINKEN to = 0x%02x atto640\n", linken);
 	return 0;
 }
-#endif
+
 
 static int atto640_disable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy)
 {
 	uint8_t linken = 0;
 	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);
-	printk(" LINKEN  = 0x%02x \n", linken);
+	printk(" LINKEN  = 0x%02x atto640\n", linken);
 	
 	if(phy == PHY_A)
 		linken &= ~0x01;
@@ -2916,7 +2915,7 @@ static int atto640_disable_phy(struct i2c_client *client, struct atto640 *priv, 
 
 	linken = 0;
 	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0F00, &linken);
-	printk(" Changed LINKEN to = 0x%02x \n", linken);					
+	printk(" Changed LINKEN to = 0x%02x atto640\n", linken);
 	return 0;
 }
 
@@ -3103,7 +3102,9 @@ skip_poc:
 		if(priv->phy == PHY_A)
 		{
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
+			msleep(100);
 			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
@@ -3123,21 +3124,19 @@ skip_poc:
 
 			msleep(100);	
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
-#if 0
+
 			/* Change Serializer slave address */
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR2 << 1);
-
-			if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0)
+			if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x83) < 0)
 			{
-				printk(" Error Accessing PHYA serializer 0x%x\n",SER_ADDR2);
+				printk(" Error Accessing PHYA serializer 0x%x atto640\n",SER_ADDR2);
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
-				//return -EIO;
+				return -EIO;
 			}
 			else
 			{
-				printk(" OK Accessing PHYA serializer 0x%x\n",SER_ADDR2);
+				printk(" OK Accessing PHYA serializer 0x%x atto640\n",SER_ADDR2);
 			}
-#endif
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		}
 		else if (priv->phy == PHY_B)
@@ -3145,7 +3144,7 @@ skip_poc:
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
-
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
@@ -3163,43 +3162,44 @@ skip_poc:
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C0D, 0x00);
-			
-#if 0
+
 			/* Change Serializer slave address */
-			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
-			if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0)
+			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
+			if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x83) < 0)
 			{
-				printk(" Error Accessing PHYB serializer 0x%x\n",SER_ADDR3);
+				printk(" Error Accessing PHYB serializer 0x%x atto640\n",SER_ADDR3);
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 				return -EIO;
 			}
 			else
 			{
-				printk(" OK Accessing PHYB serializer 0x%x\n",SER_ADDR3);
+				printk(" OK Accessing PHYB serializer 0x%x atto640\n",SER_ADDR3);
 			}
-#endif
-
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
+		}
+		else
+		{
+			printk(" Error Accessing PHYUNKNOWN serializer \n");
 		}
 
 
 		/* Link configuration */
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0320, 0x2F);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0323, 0x2F);
-
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x044A, 0xC8);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x048A, 0xC8);
-
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0313, 0x82);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0314, 0x10);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0316, 0x5E);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0317, 0x0E);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0319, 0x10);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x031D, 0xEF);
-
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B96, 0x9B);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C96, 0x9B);
-		
+
+#if 0
+////////////////////////////////////////////////////////////////////////////////
+		// ajout ATTO
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B06, 0xE8);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C06, 0xE8);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01DA, 0x18);
@@ -3215,7 +3215,40 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0411, 0x01);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0412, 0x01);
 
-		// ajout ATTO
+		//
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0001, 0x01);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0002, 0xF3);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0006, 0x10);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0011, 0x05);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0042, 0x80);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0043, 0x80);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0044, 0xC0);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0045, 0x80);
+
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0100, 0x32);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0103, 0x87);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0106, 0x02);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0108, 0x02);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x010A, 0x40);
+
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C0, 0x0);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C1, 0x1);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C2, 0x2);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C3, 0x3);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C4, 0x4);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C5, 0x5);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C6, 0x6);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C7, 0x7);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C8, 0x8);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01C9, 0x29);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01CA, 0x2A);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01CB, 0x2B);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01CC, 0x2C);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01CD, 0x2D);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01CE, 0x2E);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01CF, 0x2F);
+
+
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D0, 0x30);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D1, 0x31);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D2, 0x32);
@@ -3228,22 +3261,60 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D9, 0x19);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01DA, 0x58);
 
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01FA, 0x58);
 
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0313, 0x82);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0314, 0x10);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0316, 0xAA);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0317, 0xAA);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0318, 0xAA);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0319, 0x48);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x031A, 0x20);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x031D, 0x2F);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0323, 0x2F);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0326, 0x2F);
+
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0332, 0x30);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0338, 0x00);
+
+
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040B, 0x07);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040D, 0x1E);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040E, 0x1E);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040F, 0x00);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0410, 0x00);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0411, 0x01);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0412, 0x01);
+
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B05, 0x29);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B06, 0x69);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B07, 0x04);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B08, 0x31);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x04);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0F, 0x01);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D7, 0x37);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D8, 0x1A);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01D9, 0x19);
+		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B96, 0x2A);
+
+////////////////////////////////////////////////////////////////////////////////
+#endif
 
 	}
 
-#if 0
+
 	/* i2c address translated */
 	if(priv->phy == PHY_A)
 	{
 		if(atto640_enable_phy(client, priv, PHY_A) < 0)
 		{
-			printk("Error Enabling PHYA \n");
+			printk("Error Enabling PHYA atto640\n");
 			//return -EIO;
 		}
 		else
 		{
-			printk("Enabling PHYA OK\n");
+			printk("Enabling PHYA OK atto640\n");
 		}
 
 		printk(" Translating i2c address for PHYA... \n");
@@ -3264,13 +3335,13 @@ skip_poc:
 		}
 
 		msleep(100);	
-		printk("MCU address modification - PHYA \n");
+		printk("MCU address modification - PHYA atto640\n");
 		priv->ser_addr = SER_ADDR2;
 		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x0F, MCU_ADDR2 << 1);
 		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
-		atto640_serdes_read_8b_reg(client, SER_ADDR2, 0xD,&val_read);
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0CCA, &val_deser);
+		printk("read serializer atto640 id and addr PHY A\n");
 	}
 	else if(priv->phy == PHY_B)
 	{
@@ -3300,16 +3371,17 @@ skip_poc:
 			printk(" Accessing PHYB serializer 0x%x OK atto640\n",SER_ADDR3);
 		}
 		msleep(100);			
-		printk("MCU address modification - PHYB \n");
+		printk("MCU address modification - PHYB atto640\n");
 		priv->ser_addr = SER_ADDR3;
 		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x0F, MCU_ADDR3 << 1);
 		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
-		atto640_serdes_read_8b_reg(client, SER_ADDR3, 0xD,&val_read);
+		printk("read serializer atto640 id and addr PHYB\n");
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
 	}
-#endif
 	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
+
+
 
 
 #if 0
@@ -3351,13 +3423,17 @@ skip_poc:
 			return -EINVAL;
 		}				
 		
-		for( loop = 0; loop < 10; loop++) {
+		for( loop = 0; loop < 10; loop++)
+		{
 			err = atto640_mcu_fw_update(client, NULL);
-			if(err < 0) {
+			if(err < 0)
+			{
 				dev_err(&client->dev, "%s(%d) Error updating firmware... Retry.. \n\n", __func__, __LINE__);
 				
 				continue;
-			} else {
+			}
+			else
+			{
 				dev_err (&client->dev, "Firmware Updated Successfully\n");
 				break;	
 			}

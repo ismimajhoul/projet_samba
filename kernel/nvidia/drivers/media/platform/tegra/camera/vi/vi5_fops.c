@@ -439,6 +439,7 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 	}
 
 	buf->vb2_state = VB2_BUF_STATE_DONE;
+	printk("frame received without err\n");
 
 	/* Read SOF from capture descriptor */
 	ts = ns_to_timespec((s64)descr->status.sof_timestamp);

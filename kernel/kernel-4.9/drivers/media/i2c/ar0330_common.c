@@ -2742,6 +2742,7 @@ static int ar0330_probe(struct i2c_client *client,
 	struct camera_common_data *common_data;
 	struct device_node *node = client->dev.of_node;
 	struct ar0330 *priv;
+	uint8_t val_read = 0;
 
 	unsigned char fw_version[32] = {0}, txt_fw_version[32] = {0};
 	int ret, frm_fmt_size = 0, poc_enable = 0, loop;
@@ -2794,12 +2795,15 @@ skip_poc:
 	}
 
 	err = of_property_read_string(node, "phy-id", &str);
-	if (!err) {
+	if (!err)
+	{
 		if (!strcmp(str, "A"))
 			priv->phy = PHY_A;
 		else
 			priv->phy = PHY_B;
-	} else {
+	}
+	else
+	{
 		return -EFAULT;	
 	}
 	
@@ -2820,7 +2824,8 @@ skip_poc:
 	if (err)
 		return err;
 
-	if(priv->phy == PHY_A || priv->phy == PHY_B) {
+	if(priv->phy == PHY_A || priv->phy == PHY_B)
+	{
 		serdes_write_16b_reg(client, priv->des_addr, 0x0B07, 0x0C);
 		serdes_write_16b_reg(client, priv->des_addr, 0x0C07, 0x0C);
 		msleep(10);
@@ -2830,8 +2835,10 @@ skip_poc:
 		serdes_write_16b_reg(client, priv->des_addr, 0x0F06, 0x56);
 		
 		/* Address translate */
-		if(priv->phy == PHY_A) {
+		if(priv->phy == PHY_A)
+		{
 			serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
+			serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
 			serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
 			serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
@@ -2839,14 +2846,17 @@ skip_poc:
 			/* Change Serializer slave address */
 			serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR2 << 1);
 
-			if(serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0) {
-				printk(" Error Accessing PHYA serializer \n");
+			if(serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0)
+			{
+				printk(" Error Accessing PHYA serializer ar0330\n");
 				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);			
 				return -EIO;
 			}
 			
 			serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
-		} else if (priv->phy == PHY_B) {
+		}
+		else if (priv->phy == PHY_B)
+		{
 			serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 			serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
@@ -2856,12 +2866,17 @@ skip_poc:
 			/* Change Serializer slave address */
 			serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
 
-			if(serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0) {
+			if(serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0)
+			{
 				printk(" Error Accessing PHYB serializer \n");
 				serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);			
 				return -EIO;
 			}			
 			serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);			
+		}
+		else
+		{
+			printk(" Error Accessing PHYUNKNOWN serializer \n");
 		}
 
 
@@ -2900,8 +2915,10 @@ skip_poc:
 
 
 	/* i2c address translated */
-	if(priv->phy == PHY_A) {
-		if(enable_phy(client, priv, PHY_A) < 0) {
+	if(priv->phy == PHY_A)
+	{
+		if(enable_phy(client, priv, PHY_A) < 0)
+		{
 			printk("Error Enabling PHYA \n");
 			return -EIO;
 		}
@@ -2911,7 +2928,8 @@ skip_poc:
 		serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 
 		/* MCU RESET */
-		if(serdes_write_8b_reg(client, SER_ADDR2, 0x0D, 0x8F) < 0) {
+		if(serdes_write_8b_reg(client, SER_ADDR2, 0x0D, 0x8F) < 0)
+		{
 				printk(" Error Accessing PHYA serializer \n");
 				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);		
 				disable_phy(client, priv, PHY_A);
@@ -2924,8 +2942,11 @@ skip_poc:
 		serdes_write_8b_reg(client, SER_ADDR2, 0x0F, MCU_ADDR2 << 1);
 		serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));				
 		serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);		
-	} else if(priv->phy == PHY_B) {
-		if(enable_phy(client, priv, PHY_B) < 0) {
+	}
+	else if(priv->phy == PHY_B)
+	{
+		if(enable_phy(client, priv, PHY_B) < 0)
+		{
 			printk("Error Enabling PHYB \n");
 			return -EIO;
 		}		
@@ -2934,7 +2955,8 @@ skip_poc:
 		priv->ser_addr = SER_ADDR3;
 		serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 		/* MCU RESET */
-		if(serdes_write_8b_reg(client, SER_ADDR3, 0x0D, 0x8F) < 0) {
+		if(serdes_write_8b_reg(client, SER_ADDR3, 0x0D, 0x8F) < 0)
+		{
 				printk(" Error Accessing PHYA serializer \n");
 				serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);		
 				disable_phy(client, priv, PHY_B);
