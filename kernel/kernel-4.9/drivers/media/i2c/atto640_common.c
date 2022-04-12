@@ -3129,7 +3129,7 @@ skip_poc:
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR2 << 1);
 			if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x83) < 0)
 			{
-				printk(" Error Accessing PHYA serializer 0x%x atto640\n",SER_ADDR2);
+				printk(" Error Accessing PHYA serialized 0x%x atto640\n",SER_ADDR2);
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 				return -EIO;
 			}
@@ -3310,14 +3310,14 @@ skip_poc:
 		if(atto640_enable_phy(client, priv, PHY_A) < 0)
 		{
 			printk("Error Enabling PHYA atto640\n");
-			//return -EIO;
+			return -EIO;
 		}
 		else
 		{
 			printk("Enabling PHYA OK atto640\n");
 		}
 
-		printk(" Translating i2c address for PHYA... \n");
+		printk(" Translating i2c address for PHYA... atto640\n");
 		priv->ser_addr = SER_ADDR2;
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 
@@ -3327,7 +3327,7 @@ skip_poc:
 				printk(" Error Accessing PHYA serializer 0x%x atto640\n",SER_ADDR2);
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 				atto640_disable_phy(client, priv, PHY_A);
-				//return -EIO;
+				return -EIO;
 		}
 		else
 		{
@@ -3348,7 +3348,7 @@ skip_poc:
 		if(atto640_enable_phy(client, priv, PHY_B) < 0)
 		{
 			printk("Error Enabling PHYB atto640\n");
-			//return -EIO;
+			return -EIO;
 		}
 		else
 		{
@@ -3364,7 +3364,7 @@ skip_poc:
 				printk(" Error Accessing PHYB serializer:0x%x KO atto640\n",SER_ADDR3);
 				atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 				atto640_disable_phy(client, priv, PHY_B);
-				//return -EIO;
+				return -EIO;
 		}
 		else
 		{

@@ -2852,6 +2852,10 @@ skip_poc:
 				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);			
 				return -EIO;
 			}
+			else
+			{
+				printk(" OK Accessing PHYA serializer 0x%x ar0330\n",SER_ADDR2);
+			}
 			
 			serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		}
@@ -2868,10 +2872,14 @@ skip_poc:
 
 			if(serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0)
 			{
-				printk(" Error Accessing PHYB serializer \n");
+				printk(" Error Accessing PHYB serializer ar0330:0x%x\n",SER_ADDR3);
 				serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);			
 				return -EIO;
-			}			
+			}
+			else
+			{
+				printk(" OK Accessing PHYB serializer 0x%x ar0330\n",SER_ADDR3);
+			}
 			serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);			
 		}
 		else
@@ -2923,7 +2931,7 @@ skip_poc:
 			return -EIO;
 		}
 
-		printk(" Translating i2c address for PHYA... \n");
+		printk(" Translating i2c address for PHYA...ar0330 \n");
 		priv->ser_addr = SER_ADDR2;
 		serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 
@@ -2951,7 +2959,7 @@ skip_poc:
 			return -EIO;
 		}		
 
-		printk(" Translating i2c address for PHYB... \n");
+		printk(" Translating i2c address for PHYB... ar0330\n");
 		priv->ser_addr = SER_ADDR3;
 		serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 		/* MCU RESET */
@@ -2963,7 +2971,7 @@ skip_poc:
 				return -EIO;
 		}
 		msleep(100);			
-		printk("MCU address modification - PHYB \n");
+		printk("MCU address modification - PHYB ar0330\n");
 		priv->ser_addr = SER_ADDR3;
 		serdes_write_8b_reg(client, SER_ADDR3, 0x0F, MCU_ADDR3 << 1);
 		serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));				
@@ -2971,10 +2979,13 @@ skip_poc:
 	}			
 
 	ret = mcu_get_fw_version(client, fw_version, txt_fw_version);
-	if (ret != 0) {
+	if (ret != 0)
+	{
 
-		if(ret > 0) {
-			if((err = mcu_jump_bload(client)) < 0) {
+		if(ret > 0)
+		{
+			if((err = mcu_jump_bload(client)) < 0)
+			{
 				dev_err(&client->dev," Cannot go into bootloader mode\n");
 				disable_phy(client, priv, priv->phy);
 				return -EIO;
@@ -2984,19 +2995,24 @@ skip_poc:
 
 		dev_err(&client->dev," Trying to Detect Bootloader mode\n");
 
-		for(loop = 0;loop < 10; loop++) {
+		for(loop = 0;loop < 10; loop++)
+		{
 			err = mcu_bload_get_version(client);
-			if (err < 0) {
+			if (err < 0)
+			{
 				/* Trial and Error for 1 second (100ms * 10) */
 				msleep(1);
 				continue;
-			} else {
+			}
+			else
+			{
 				dev_err(&client->dev," Get Bload Version Success\n");
 				break;
 			}
 		}
 
-		if(loop == 10) {
+		if(loop == 10)
+		{
 			dev_err(&client->dev, "Error updating firmware \n");
 			disable_phy(client, priv, priv->phy);
 			return -EINVAL;
@@ -3004,17 +3020,21 @@ skip_poc:
 		
 		for( loop = 0; loop < 10; loop++) {
 			err = mcu_fw_update(client, NULL);
-			if(err < 0) {
+			if(err < 0)
+			{
 				dev_err(&client->dev, "%s(%d) Error updating firmware... Retry.. \n\n", __func__, __LINE__);
 				
 				continue;
-			} else {
+			}
+			else
+			{
 				dev_err (&client->dev, "Firmware Updated Successfully\n");
 				break;	
 			}
 
 		}
-		if( loop == 10) {
+		if( loop == 10)
+		{
 			dev_err( &client->dev, "Error Updating Firmware\n");
 			disable_phy(client, priv, priv->phy);
 			return -EFAULT;
