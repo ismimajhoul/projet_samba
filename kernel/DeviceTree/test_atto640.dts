@@ -2622,7 +2622,7 @@
 
 				ar0330_a@43 {
 					status = "okay";
-					compatible = "nvidia,atto640";
+					compatible = "nvidia,ar0330";
 					reg = <0x43>;
 					sensor_model = "ar0330";
 					avdd-reg = "vana";

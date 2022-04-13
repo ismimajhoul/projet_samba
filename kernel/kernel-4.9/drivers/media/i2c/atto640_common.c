@@ -26,12 +26,12 @@
 #include <linux/of_gpio.h>
 #include <media/camera_common.h>
 
+
 #include "../../../../nvidia/drivers/media/platform/tegra/camera/camera_gpio.h"
 
 #include "atto640.h"
 #include <media/serdes_atto640.h>
 #include <media/mcu_firmware_atto640.h>
-
 #include <media/max9296.h>
 
 #define DEBUG_PRINTK
@@ -45,6 +45,58 @@ static const struct v4l2_ctrl_ops atto640_ctrl_ops = {
 	.g_volatile_ctrl = atto640_g_volatile_ctrl,
 	.s_ctrl = atto640_s_ctrl,
 };
+
+static int atto640_i2c_read(struct atto640 *priv,unsigned int reg)
+{
+	int status;
+	unsigned short save_addr;
+	save_addr = priv->i2c_client->addr;
+	priv->i2c_client->addr = SER_ADDR1;
+	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
+	status = i2c_smbus_read_byte_data(priv->i2c_client,reg);
+	usleep_range(800000, 900000);
+	usleep_range(800000, 900000);
+	if(status<0)
+	{
+		printk("%s i2c addr:0x%x failed KO status addr =0x%x value = 0x%x \n",
+				__func__,priv->i2c_client->addr,reg,status);
+	}
+	else
+	{
+		printk("%s i2c addr:0x%x OK status addr =0x%x value = 0x%x \n",
+				__func__,priv->i2c_client->addr,reg,status);
+	}
+	priv->i2c_client->addr = save_addr;
+	return status;
+}
+EXPORT_SYMBOL(atto640_i2c_read);
+
+static int atto640_i2cclient_read(struct i2c_client *client,unsigned int reg)
+{
+	int status;
+	unsigned short save_addr;
+	save_addr = client->addr;
+	client->addr = SER_ADDR1;
+	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
+	status = i2c_smbus_read_byte_data(client,reg);
+	usleep_range(800000, 900000);
+	usleep_range(800000, 900000);
+	if(status<0)
+	{
+		printk("%s i2c addr:0x%x failed KO status addr =0x%x value = 0x%x \n",
+				__func__,client->addr,reg,status);
+	}
+	else
+	{
+		printk("%s i2c addr:0x%x OK status addr =0x%x value = 0x%x \n",
+				__func__,client->addr,reg,status);
+	}
+	client->addr = save_addr;
+	return status;
+}
+EXPORT_SYMBOL(atto640_i2cclient_read);
+
+
 
 static int atto640_power_on(struct camera_common_data *s_data)
 {
@@ -3104,7 +3156,13 @@ skip_poc:
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 			msleep(100);
 			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
-			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
+			atto640_i2c_read(priv,0x1E);
+			atto640_i2cclient_read(client,0x1E);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
+			//serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
+			//serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
+#if 0
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
@@ -3121,7 +3179,7 @@ skip_poc:
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
-
+#endif
 			msleep(100);	
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
 
@@ -3144,7 +3202,11 @@ skip_poc:
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
-			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
+			atto640_i2c_read(priv,0x1E);
+			atto640_i2cclient_read(client,0x1E);
+			//serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
+			//serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
@@ -3211,7 +3273,7 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040D, 0x1E);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040E, 0x1E);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040F, 0x00);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0410, 0x00);
+		atto640_serdes_write_16b_reg(client, priv->desdev_addr, 0x0410, 0x00);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0411, 0x01);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0412, 0x01);
 
@@ -3278,7 +3340,7 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0338, 0x00);
 
 
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040B, 0x07);
+		atto640_serdes_write_16b_reg(client, priv->desdev_addr, 0x040B, 0x07);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040D, 0x1E);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040E, 0x1E);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040F, 0x00);
@@ -3337,8 +3399,8 @@ skip_poc:
 		msleep(100);	
 		printk("MCU address modification - PHYA atto640\n");
 		priv->ser_addr = SER_ADDR2;
-		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x0F, MCU_ADDR2 << 1);
-		atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));
+		//atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x0F, MCU_ADDR2 << 1);
+		//atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0CCA, &val_deser);
 		printk("read serializer atto640 id and addr PHY A\n");
@@ -3373,8 +3435,8 @@ skip_poc:
 		msleep(100);			
 		printk("MCU address modification - PHYB atto640\n");
 		priv->ser_addr = SER_ADDR3;
-		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x0F, MCU_ADDR3 << 1);
-		atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));
+		//atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x0F, MCU_ADDR3 << 1);
+		//atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 		printk("read serializer atto640 id and addr PHYB\n");
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);

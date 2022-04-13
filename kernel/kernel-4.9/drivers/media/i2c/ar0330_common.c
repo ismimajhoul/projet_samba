@@ -30,7 +30,6 @@
 
 #include "ar0330.h"
 #include <media/serdes.h>
-
 #include <media/mcu_firmware.h>
 
 #define DEBUG_PRINTK
@@ -2755,10 +2754,12 @@ static int ar0330_probe(struct i2c_client *client,
 		return -EINVAL;
 
 	poc_enable = of_get_named_gpio(node, "poc-gpio", 0);
-	if(poc_enable > 0) {
+	if(poc_enable > 0)
+	{
 		debug_printk("poc_enable = %d \n", poc_enable);		
 		err = gpio_request(poc_enable,"poc-en");
-		if (err < 0) {
+		if (err < 0)
+		{
 			dev_err(&client->dev,"%s[%d]:GPIO POC Fail, err:%d",__func__,__LINE__, err);
 			goto skip_poc;
 		}		
@@ -2789,7 +2790,8 @@ skip_poc:
 
 
 	priv->pdata = ar0330_parse_dt(client);
-	if (!priv->pdata) {
+	if (!priv->pdata)
+	{
 		dev_err(&client->dev, "unable to get platform data\n");
 		return -EFAULT;
 	}
@@ -2837,8 +2839,9 @@ skip_poc:
 		/* Address translate */
 		if(priv->phy == PHY_A)
 		{
-			serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 			serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
+			serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
+			serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 			serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	
 			serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
@@ -2861,6 +2864,8 @@ skip_poc:
 		}
 		else if (priv->phy == PHY_B)
 		{
+			serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
+			serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
 			serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
 			serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
 			msleep(100);	

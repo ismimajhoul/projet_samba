@@ -93,7 +93,8 @@ struct max9271_device {
  * serializer.
  */
 void max9271_wake_up(struct max9271_device *dev);
-
+int max9271_read_i2c(struct i2c_client* client, u8 reg);
+int max9271_write_i2c(struct i2c_client* client, u8 reg, u8 val);
 /**
  * max9271_set_serial_link() - Enable/disable serial link
  * @dev: The max9271 device

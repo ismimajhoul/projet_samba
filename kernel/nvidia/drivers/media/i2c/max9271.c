@@ -38,6 +38,46 @@ static int max9271_read(struct max9271_device *dev, u8 reg)
 	return ret;
 }
 
+int max9271_read_i2c(struct i2c_client* client, u8 reg)
+{
+	int ret;
+	printk("MAX9271 max9271_read I2C\n");
+
+	printk("%s(0x%02x)\n", __func__, reg);
+	client->addr = 0x40;
+	ret = i2c_smbus_read_byte_data(client, reg);
+	if (ret < 0)
+		printk("%s: register 0x%02x read failed (%d)\n",
+			__func__, reg, ret);
+	else
+	{
+		printk("%s: register 0x%02x read OK value (0x%x)\n",
+			__func__, reg, ret);
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(max9271_read_i2c);
+
+int max9271_write_i2c(struct i2c_client* client, u8 reg, u8 val)
+{
+	int ret;
+	printk("MAX9271 max9271_write I2C\n");
+
+	printk("%s(0x%02x, 0x%02x)\n", __func__, reg, val);
+
+	ret = i2c_smbus_write_byte_data(client, reg, val);
+	if (ret < 0)
+		printk("%s: register 0x%02x write failed (%d)\n",
+			__func__, reg, ret);
+	else
+		printk("%s: register 0x%02x write OK (%d)\n",
+			__func__, reg, ret);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(max9271_write_i2c);
+
 static int max9271_write(struct max9271_device *dev, u8 reg, u8 val)
 {
 	int ret;
@@ -53,6 +93,7 @@ static int max9271_write(struct max9271_device *dev, u8 reg, u8 val)
 
 	return ret;
 }
+
 
 /*
  * max9271_pclk_detect() - Detect valid pixel clock from image sensor

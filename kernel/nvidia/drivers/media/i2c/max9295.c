@@ -564,7 +564,7 @@ int samba_max9271_set_serial_link(struct device *ser, bool enable)
 	struct samba_max9271 *priv = dev_get_drvdata(ser); 
 	u8 val = MAX9271_REVCCEN | MAX9271_FWDCCEN;
 
-	dev_err(ser, "samba Set serial link max9271 \n");
+	printk("samba Set serial link max9271 \n");
 
 	if (enable)
 	{

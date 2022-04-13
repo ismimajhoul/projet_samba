@@ -248,6 +248,8 @@ struct atto640 {
 
 /* Mutex for I2C lock */
 DEFINE_MUTEX(atto640_mcu_i2c_mutex);
+static int atto640_i2cclient_read(struct i2c_client *client,unsigned int reg);
+static int atto640_i2c_read(struct atto640 *priv,unsigned int reg);
 static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy);
 static int atto640_disable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy);
 static int atto640_g_volatile_ctrl(struct v4l2_ctrl *ctrl);
