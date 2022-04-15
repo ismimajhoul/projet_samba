@@ -100,10 +100,13 @@ int max9296_write_reg(struct device *dev,u16 addr, u8 val)
 
 	err = regmap_write(priv->regmap, addr, val);
 	if (err)
+	{
 		dev_err(dev,
 		"%s:i2c write failed KO, 0x%x = %x\n",
 		__func__, addr, val);
-	else{
+	}
+	else
+	{
 		dev_err(dev,
 		"%s:i2c write OK, 0x%x = %x\n",
 		__func__, addr, val);
@@ -368,8 +371,8 @@ static int max9296_write_link(struct device *dev, u32 link)
 	}
 	else if (link == GMSL_SERDES_CSI_LINK_B)
 	{
-		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x02);
-		//max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x22);
+		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x02);
+		max9296_write_reg(dev, MAX9296_CTRL0_ADDR, 0x22);
 		dev_err(dev, "%s: gmsl link B selected but not set\n", __func__);
 	}
 	else

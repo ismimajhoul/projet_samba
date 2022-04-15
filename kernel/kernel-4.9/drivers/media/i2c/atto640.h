@@ -228,6 +228,7 @@ struct atto640 {
 	uint8_t ser_addr;
 	uint8_t des_addr;
 	uint8_t mcu_addr;
+	uint8_t atto_addr;
 
 	uint16_t frate_index;
 	uint32_t format_fourcc;
@@ -248,8 +249,15 @@ struct atto640 {
 
 /* Mutex for I2C lock */
 DEFINE_MUTEX(atto640_mcu_i2c_mutex);
-static int atto640_i2cclient_read(struct i2c_client *client,unsigned int reg);
-static int atto640_i2c_read(struct atto640 *priv,unsigned int reg);
+
+//sensor
+void atto640_init(struct i2c_client *client,struct atto640 *priv);
+int I2C_Ulis_WriteReg (unsigned short reg, unsigned char data,struct camera_common_data *s_data);
+int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct camera_common_data *s_data);
+void atto640_reset(struct i2c_client *client,struct atto640 *priv,unsigned char val);
+
+//static int atto640_i2cclient_read(struct i2c_client *client,unsigned int reg);
+//static int atto640_i2c_read(struct atto640 *priv,unsigned int reg);
 static int atto640_enable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy);
 static int atto640_disable_phy(struct i2c_client *client, struct atto640 *priv, uint8_t phy);
 static int atto640_g_volatile_ctrl(struct v4l2_ctrl *ctrl);

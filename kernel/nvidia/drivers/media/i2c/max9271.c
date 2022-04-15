@@ -41,20 +41,28 @@ static int max9271_read(struct max9271_device *dev, u8 reg)
 int max9271_read_i2c(struct i2c_client* client, u8 reg)
 {
 	int ret;
-	printk("MAX9271 max9271_read I2C\n");
+	unsigned short save_i2c_addr;
 
-	printk("%s(0x%02x)\n", __func__, reg);
+	dev_err(&client->dev,"%s(0x%02x)\n", __func__, reg);
+
+	save_i2c_addr = client->addr;
 	client->addr = 0x40;
 	ret = i2c_smbus_read_byte_data(client, reg);
 	if (ret < 0)
-		printk("%s: register 0x%02x read failed (%d)\n",
-			__func__, reg, ret);
+	{
+		//printk("%s: register 0x%02x read failed (%d)\n",
+		//	__func__, reg, ret);
+		dev_err(&client->dev,
+					"%s: register 0x%02x read failed (%d)\n",
+					__func__, reg, ret);
+	}
 	else
 	{
-		printk("%s: register 0x%02x read OK value (0x%x)\n",
-			__func__, reg, ret);
+		dev_err(&client->dev,
+				"%s: register 0x%02x read OK value (0x%x)\n",
+			    __func__, reg, ret);
 	}
-
+	client->addr = save_i2c_addr;
 	return ret;
 }
 EXPORT_SYMBOL_GPL(max9271_read_i2c);
@@ -62,18 +70,25 @@ EXPORT_SYMBOL_GPL(max9271_read_i2c);
 int max9271_write_i2c(struct i2c_client* client, u8 reg, u8 val)
 {
 	int ret;
-	printk("MAX9271 max9271_write I2C\n");
+	unsigned short save_i2c_addr;
 
-	printk("%s(0x%02x, 0x%02x)\n", __func__, reg, val);
+	save_i2c_addr = client->addr;
+	client->addr = 0x40;
+
+	dev_err(&client->dev,"%s(0x%02x, 0x%02x)\n", __func__, reg, val);
 
 	ret = i2c_smbus_write_byte_data(client, reg, val);
 	if (ret < 0)
-		printk("%s: register 0x%02x write failed (%d)\n",
+	{
+		dev_err(&client->dev,"%s: register 0x%02x write failed (%d)\n",
 			__func__, reg, ret);
+	}
 	else
-		printk("%s: register 0x%02x write OK (%d)\n",
+	{
+		dev_err(&client->dev,"%s: register 0x%02x write OK (%d)\n",
 			__func__, reg, ret);
-
+	}
+	client->addr = save_i2c_addr;
 	return ret;
 }
 EXPORT_SYMBOL_GPL(max9271_write_i2c);

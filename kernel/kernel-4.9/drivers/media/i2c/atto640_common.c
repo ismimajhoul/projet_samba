@@ -33,6 +33,7 @@
 #include <media/serdes_atto640.h>
 #include <media/mcu_firmware_atto640.h>
 #include <media/max9296.h>
+#include <media/max9271.h>
 
 #define DEBUG_PRINTK
 #ifndef DEBUG_PRINTK
@@ -46,55 +47,7 @@ static const struct v4l2_ctrl_ops atto640_ctrl_ops = {
 	.s_ctrl = atto640_s_ctrl,
 };
 
-static int atto640_i2c_read(struct atto640 *priv,unsigned int reg)
-{
-	int status;
-	unsigned short save_addr;
-	save_addr = priv->i2c_client->addr;
-	priv->i2c_client->addr = SER_ADDR1;
-	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
-	status = i2c_smbus_read_byte_data(priv->i2c_client,reg);
-	usleep_range(800000, 900000);
-	usleep_range(800000, 900000);
-	if(status<0)
-	{
-		printk("%s i2c addr:0x%x failed KO status addr =0x%x value = 0x%x \n",
-				__func__,priv->i2c_client->addr,reg,status);
-	}
-	else
-	{
-		printk("%s i2c addr:0x%x OK status addr =0x%x value = 0x%x \n",
-				__func__,priv->i2c_client->addr,reg,status);
-	}
-	priv->i2c_client->addr = save_addr;
-	return status;
-}
-EXPORT_SYMBOL(atto640_i2c_read);
 
-static int atto640_i2cclient_read(struct i2c_client *client,unsigned int reg)
-{
-	int status;
-	unsigned short save_addr;
-	save_addr = client->addr;
-	client->addr = SER_ADDR1;
-	//status = i2c_smbus_read_byte_data(priv->i2c_client,priv->i2c_client->addr<< 1);
-	status = i2c_smbus_read_byte_data(client,reg);
-	usleep_range(800000, 900000);
-	usleep_range(800000, 900000);
-	if(status<0)
-	{
-		printk("%s i2c addr:0x%x failed KO status addr =0x%x value = 0x%x \n",
-				__func__,client->addr,reg,status);
-	}
-	else
-	{
-		printk("%s i2c addr:0x%x OK status addr =0x%x value = 0x%x \n",
-				__func__,client->addr,reg,status);
-	}
-	client->addr = save_addr;
-	return status;
-}
-EXPORT_SYMBOL(atto640_i2cclient_read);
 
 
 
@@ -2335,7 +2288,8 @@ unsigned short int atto640_mcu_bload_calc_crc16(unsigned char *buf, int len)
 	if (!buf || !(buf + len))
 		return 0;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		crc ^= buf[i];
 	}
 
@@ -3035,9 +2989,109 @@ static int max9296_probe_test(struct i2c_client *client)
 }
 #endif
 
+/*
+*
+ * max9271_pclk_detect() - Detect valid pixel clock from image sensor
+ *
+ * Wait up to 10ms for a valid pixel clock.
+ *
+ * Returns 0 for success, < 0 for pixel clock not properly detected
+ */
+static int atto640_pclk_detect(struct i2c_client *client)
+{
+	unsigned int i;
+	int ret;
+	uint8_t val_read = 0;
+
+	for (i = 0; i < 100; i++)
+	{
+		ret = atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x15,&val_read);
+		if (ret < 0)
+		{
+			dev_err(&client->dev, "unable to read register 15 PCLKDET KO\n");
+			return ret;
+		}
+
+		if (ret & MAX9271_PCLKDET)
+		{
+
+			dev_err(&client->dev, "OK MAX9271_PCLKDET\n");
+			return 0;
+		}
+
+		else
+		{
+			dev_err(&client->dev, "ON GOING\n");
+		}
+
+		usleep_range(50, 100);
+	}
+
+	dev_err(&client->dev, "Unable to detect valid pixel clock\n");
+
+	return -EIO;
+}
 
 
 
+int atto640_set_serial_link(struct i2c_client *client,bool enable)
+{
+	int ret;
+	u8 val = MAX9271_REVCCEN | MAX9271_FWDCCEN;
+	printk("Set serial link max9271 \n");
+
+	if (enable)
+	{
+		ret = atto640_pclk_detect(client);
+		if (ret)
+			return ret;
+
+		val |= MAX9271_SEREN;
+		printk("samba Set serial link max9271 set SEREN\n");
+	}
+	else
+	{
+		val |= MAX9271_CLINKEN;
+		printk("Set serial link max9271 set CLKINKEN\n");
+	}
+
+	/*
+	 * The serializer temporarily disables the reverse control channel for
+	 * 350µs after starting/stopping the forward serial link, but the
+	 * deserializer synchronization time isn't clearly documented.
+	 *
+	 * According to the serializer datasheet we should wait 3ms, while
+	 * according to the deserializer datasheet we should wait 5ms.
+	 *
+	 * Short delays here appear to show bit-errors in the writes following.
+	 * Therefore a conservative delay seems best here.
+	 */
+
+	ret = atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, val);
+	if (ret < 0)
+	{
+		printk("samba Set serial link max9271 error\n");
+		return ret;
+	}
+	else
+	{
+		printk("samba Set serial link max9271 error\n");
+	}
+	usleep_range(5000, 8000);
+	return 0;
+}
+EXPORT_SYMBOL_GPL(atto640_set_serial_link);
+
+void read_serializer_regs(struct i2c_client *client)
+{
+	uint8_t val_read = 0;
+	u8 reg;
+
+	for(reg = 0;reg < 0x1F ; reg++)
+	{
+		atto640_serdes_read_8b_reg(client, SER_ADDR1, reg,&val_read);
+	}
+}
 
 
 static int atto640_probe(struct i2c_client *client,
@@ -3047,6 +3101,7 @@ static int atto640_probe(struct i2c_client *client,
 	struct device_node *node = client->dev.of_node;
 	struct atto640 *priv;
 	uint8_t val_read = 0;
+	int i;
 
 	//unsigned char fw_version_atto640[32] = {0}, txt_fw_version_atto640[32] = {0};
 	int frm_fmt_size = 0, poc_enable = 0;
@@ -3119,8 +3174,10 @@ skip_poc:
 		return -EFAULT;	
 	}
 	
-	priv->ser_addr = SER_ADDR1;
-	priv->des_addr = DES_ADDR1;
+	priv->ser_addr  = SER_ADDR1;
+	priv->des_addr  = DES_ADDR1;
+	priv->atto_addr = ATTO_ADDR;
+
 	priv->i2c_client = client;
 	priv->s_data = common_data;
 	priv->subdev = &common_data->subdev;
@@ -3135,13 +3192,12 @@ skip_poc:
 	err = atto640_power_on(common_data);
 	if (err)
 		return err;
-// Test max9296
-	//max9296_probe_test(client);
-	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0, &val_read);
-	atto640_serdes_read_16b_reg(client, priv->des_addr, 0xd, &val_read);
 
 	if(priv->phy == PHY_A || priv->phy == PHY_B)
 	{
+		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
+		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
+
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B07, 0x0C);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C07, 0x0C);
 		msleep(10);
@@ -3153,24 +3209,55 @@ skip_poc:
 		/* Address translate */
 		if(priv->phy == PHY_A)
 		{
-			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
+			//
+			atto640_serdes_write_16b_reg(client, priv->des_addr,0x0010,0x01);
+			atto640_serdes_write_16b_reg(client, priv->des_addr,0x0010,0x21);
+			/* delay to settle link */
 			msleep(100);
-			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
-			atto640_i2c_read(priv,0x1E);
-			atto640_i2cclient_read(client,0x1E);
+			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x000D, &val_deser);
+			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0000, &val_deser);
+			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0010, &val_deser);
+
+			read_serializer_regs(client);
+
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
 			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x15,&val_read);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x04,&val_read);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
 			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
-			//serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
-			//serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
-#if 0
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x15,&val_read);
+			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x04,&val_read);
+
+			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
+
+			// sensor atto320 Init
+			atto640_init(client,priv);
+			//dev_err(&client->dev, "%s: gmsl link A selected\n",__func__);
+			// init sensor
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x41,0x20);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x47,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x48,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x49,0x01);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x4A,0x03F);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x43,0x00);
+
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x44,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x45,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x46,0xEF);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x41,0x20);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x5C,0x01);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x5C,0x05);
+
+			// init ser
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
+
+			atto640_set_serial_link(client,1);
+
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x05, 0x80);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x06, 0x50);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x07, 0x6);
-
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x08, 0x0);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x09, 0x0);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0A, 0x0);
@@ -3179,10 +3266,15 @@ skip_poc:
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
-#endif
-			msleep(100);	
+			msleep(1000);
+
+			msleep(1000);
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
 
+			for(i=0;i<10;i++)
+				read_serializer_regs(client);
+
+#if 0
 			/* Change Serializer slave address */
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR2 << 1);
 			if(atto640_serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x83) < 0)
@@ -3195,26 +3287,49 @@ skip_poc:
 			{
 				printk(" OK Accessing PHYA serializer 0x%x atto640\n",SER_ADDR2);
 			}
+#endif
+
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		}
 		else if (priv->phy == PHY_B)
 		{
+			atto640_serdes_write_16b_reg(client, priv->des_addr,0x10,0x02);
+			atto640_serdes_write_16b_reg(client, priv->des_addr,0x10,0x22);
+			/* delay to settle link */
+			msleep(100);
+			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x000D, &val_deser);
+			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0000, &val_deser);
+			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0010, &val_deser);
+			read_serializer_regs(client);
+
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
-			//atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x43);
-			msleep(100);	
-			atto640_i2c_read(priv,0x1E);
-			atto640_i2cclient_read(client,0x1E);
-			//serdes_read_8b_reg(client, SER_ADDR1, 0x00,&val_read);
-			//serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
-			atto640_serdes_read_8b_reg(client, SER_ADDR1, 0x1E,&val_read);
+
+			// sensor atto320 Init
+			atto640_init(client,priv);
+			//dev_err(&client->dev, "%s: gmsl link B selected\n", __func__);
+
+			// init sensor
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x41,0x20);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x47,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x48,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x49,0x01);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x4A,0x03F);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x43,0x00);
+
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x44,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x45,0x00);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x46,0xEF);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x41,0x20);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x5C,0x01);
+			atto640_serdes_write_16b_reg(client, priv->atto_addr,0x5C,0x05);
+
+			// Init ser
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
+			atto640_set_serial_link(client,1);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x05, 0x80);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x06, 0x50);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x07, 0x6);
-
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x08, 0x0);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x09, 0x0);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0A, 0x0);
@@ -3223,8 +3338,16 @@ skip_poc:
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
+			msleep(1000);
+
+
+			msleep(1000);
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C0D, 0x00);
 
+			for(i=0;i<10;i++)
+				read_serializer_regs(client);
+
+#if 0
 			/* Change Serializer slave address */
 			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x00, SER_ADDR3 << 1);
 			if(atto640_serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x83) < 0)
@@ -3237,6 +3360,7 @@ skip_poc:
 			{
 				printk(" OK Accessing PHYB serializer 0x%x atto640\n",SER_ADDR3);
 			}
+#endif
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 		}
 		else
@@ -3378,7 +3502,7 @@ skip_poc:
 		{
 			printk("Enabling PHYA OK atto640\n");
 		}
-
+#if 0
 		printk(" Translating i2c address for PHYA... atto640\n");
 		priv->ser_addr = SER_ADDR2;
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
@@ -3404,6 +3528,8 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0CCA, &val_deser);
 		printk("read serializer atto640 id and addr PHY A\n");
+#endif
+
 	}
 	else if(priv->phy == PHY_B)
 	{
@@ -3416,7 +3542,7 @@ skip_poc:
 		{
 			printk("Enabling PHYB OK atto640\n");
 		}
-
+#if 0
 		printk(" Translating i2c address for PHYB... atto640\n");
 		priv->ser_addr = SER_ADDR3;
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
@@ -3440,6 +3566,7 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
 		printk("read serializer atto640 id and addr PHYB\n");
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
+#endif
 	}
 	atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
 
@@ -3831,6 +3958,261 @@ static int atto640_remove(struct i2c_client *client)
 	FREE_SAFE(&client->dev, priv);
 	return 0;
 }
+
+#if 0
+static int prog_gsk (unsigned short val,struct camera_common_data *s_data)
+  {
+    int ret = 0;
+    if (val < 1024) // gsk sur 10 bits
+      {
+        ret = I2C_Ulis_WriteReg (0x4C, (unsigned char)(val>>8),s_data);
+        if (ret <0) return ret;
+
+        ret = I2C_Ulis_WriteReg (0x4D, (unsigned char)(val & 0xFF),s_data);
+        if (ret <0) return ret;
+
+        //global_det_infos.gsk = val;
+      }
+    return ret;
+  }
+
+
+// reset detecteur (specifique par module)
+static int prog_gfid (unsigned short val,struct camera_common_data *s_data)
+  {
+    int ret = 0;
+    if (val < 256) // gfid sur 8 bits
+      {
+        ret = I2C_Ulis_WriteReg (0x4B, (unsigned char)val,s_data);
+        //if (ret >=0) global_det_infos.gfid = val;
+      }
+    return ret;
+  }
+
+//
+// ecritures de base
+//
+static int prog_i2cdiff (unsigned char val,struct camera_common_data *s_data)
+{
+    unsigned short reg = 0x5C;
+    unsigned char readval;
+    int ret = 0;
+
+    if ((ret = sensor_read_reg(s_data,reg,&readval)) < 0) return ret;
+
+    if (val)
+      {
+        val = readval | 1;
+      }
+    else
+      {
+        val = readval & 0xFE;
+      }
+
+    ret = I2C_Ulis_WriteReg (reg, (unsigned char)val,s_data);
+    return ret;
+}
+
+
+
+short atto_gfid (unsigned short val,struct camera_common_data *s_data)
+  {
+    unsigned char readval;
+    short retval;
+    int ok=0;
+
+    // lecture
+    if ((ok = sensor_read_reg(s_data,0x4B,&readval)) < 0) return (short)ok;
+    retval = (short)readval;
+
+    // ecriture
+    if (val < 256) // gfid sur 8 bits
+      {
+        if ((ok = prog_i2cdiff(0,s_data)) < 0) return (short)ok;
+        if ((ok = prog_gfid (val,s_data)) < 0) return (short)ok;
+        if ((ok = prog_i2cdiff(1,s_data)) < 0) return (short)ok;
+      }
+    return retval;
+  }
+
+short atto_gsk (unsigned short val,struct camera_common_data *s_data)
+  {
+    unsigned char readvalmsb, readvallsb;
+    short retval;
+    int ok;
+
+    // lecture
+    if ((ok = sensor_read_reg(s_data,0x4C,&readvalmsb)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(s_data,0x4D,&readvallsb)) < 0) return (short)ok;
+    retval = (short)( ((readvalmsb & 0x03) << 8) | readvallsb);
+
+    // ecriture
+    if (val < 1024) // gsk sur 10 bits
+      {
+        if ((ok = prog_i2cdiff(0,s_data)) < 0) return (short)ok;
+        if ((ok = prog_gsk (val,s_data))  < 0) return (short)ok;
+        if ((ok = prog_i2cdiff(1,s_data)) < 0) return (short)ok;
+      }
+    return retval;
+  }
+
+short atto_gain (unsigned short val,struct camera_common_data *s_data)
+  {
+    unsigned char readval;
+    short retval;
+    unsigned short reg = 0x40;
+    int ok;
+
+    // lecture
+    if ((ok = sensor_read_reg(s_data,reg,&readval)) < 0) return (short)ok;
+    retval = (short)((readval & 0x70)>>4);
+
+    // ecriture
+    if (val < 8) // gain sur 3 bits
+      {
+        ok = I2C_Ulis_WriteReg (reg, (unsigned char)( (readval & 0x8F) | (val << 4) ),s_data);
+        if (ok < 0) return (short) ok;
+        //global_det_infos.gain = val;
+      }
+    return retval;
+  }
+
+short atto_tint (unsigned short val,struct camera_common_data *s_data)
+  {
+    unsigned char readvalmsb, readvallsb;
+    short retval;
+    int ok;
+
+    // lecture
+    if ((ok = sensor_read_reg(s_data,0x4F,&readvalmsb)) < 0) return (short)ok;
+    if ((ok = sensor_read_reg(s_data,0x50,&readvallsb)) < 0) return (short)ok;
+
+    retval = (short)( ((readvalmsb & 0x3F) << 8) + readvallsb);
+
+    // ecriture
+    if (val < 16384) // gsk sur 14 bits
+      {
+        if ((ok = I2C_Ulis_WriteReg (0x4F, (unsigned char)(val>>8),s_data))< 0) return (short)ok;
+        if ((ok = I2C_Ulis_WriteReg (0x50, (unsigned char)(val & 0xFF),s_data)) < 0) return (short)ok;
+        //global_det_infos.tint = val;
+      }
+
+    return retval;
+  }
+
+int atto_polars (unsigned short gain, unsigned short gfid, unsigned short gsk,struct camera_common_data *s_data)
+  {
+    int ok = 0;
+    if ((ok = atto_gain (gain,s_data)) < 0) return ok;
+    if ((ok = prog_i2cdiff(0,s_data))  < 0) return ok;
+    if ((ok = prog_gfid (gfid,s_data)) < 0) return ok;
+    if ((ok = prog_gsk  (gsk,s_data))  < 0) return ok;
+    if ((ok = prog_i2cdiff(1,s_data))  < 0) return ok;
+    return ok;
+  }
+#endif
+
+#if 0
+int I2C_Ulis_WriteReg (unsigned short reg, unsigned char data,struct camera_common_data *s_data)
+{
+	int ok = 0;
+	//ok = sensor_write_reg_for_test(dser_dev,reg,data);
+	ok = sensor_write_reg(s_data,reg,data);
+    //if (ok < 0) I2C_ErrLastData = reg;
+	usleep_range(100, 200); // 100 us
+    return ok;
+}
+#endif
+
+
+void atto640_reset(struct i2c_client *client,struct atto640 *priv,unsigned char val)
+{
+    val = (val != 0) ? 0xC2 : 0xC0;
+    //mwrite (2, 0x40, 0x0F, val);
+    atto640_serdes_write_8b_reg(client, priv->ser_addr, 0x0F, val);
+}
+
+void atto640_init(struct i2c_client *client,struct atto640 *priv)
+ {
+    // etape 4
+    atto640_reset (client,priv,0);
+    atto640_reset (client,priv,1);
+#if 0
+    // etape 6
+    I2C_Ulis_WriteReg (0x41, 0x20,s_data);
+    //I2C_Ulis_WriteReg (0x5B, 0x33);
+
+    // Default polarisation "nominal quick start"
+    atto_gfid (0x92,s_data);
+    atto_tint (154,s_data);
+    atto_gain (5,s_data);
+
+    // lecture valeurs courantes (au cas ou l'ecriture aurait fait ko)
+    //global_det_infos.tint = atto_tint ((unsigned short)-1);
+    //global_det_infos.gain = atto_gain ((unsigned short)-1);
+    //global_det_infos.gfid = atto_gfid ((unsigned short)-1);
+    //global_det_infos.gsk  = atto_gsk  ((unsigned short)-1);
+
+    //Xmin
+    I2C_Ulis_WriteReg (0x47, 0x00,s_data);
+    I2C_Ulis_WriteReg (0x48, 0x00,s_data);
+
+    //Xmax
+    I2C_Ulis_WriteReg (0x49, 0x01,s_data);
+    I2C_Ulis_WriteReg (0x4A, 0x3F,s_data);
+
+    //Ymin
+    I2C_Ulis_WriteReg (0x43, 0x00,s_data);
+    I2C_Ulis_WriteReg (0x44, 0x00,s_data);
+
+    //Ymax
+    I2C_Ulis_WriteReg (0x45, 0x00,s_data);
+    I2C_Ulis_WriteReg (0x46, 239,s_data);
+
+#if 0
+    // polarisations
+    if (zps_read_ulong ("gfid", &gfid))
+      {
+        printf ("gfid: %d\n", gfid);
+        atto_gfid ((unsigned short)gfid);
+      }
+
+    if (zps_read_ulong ("gsk", &gsk))
+      {
+        printf ("gsk : %d\n", gsk);
+        atto_gsk ((unsigned short)gsk);
+      }
+
+    if (zps_read_ulong ("tint", &tint))
+      {
+        printf ("tint: %d\n", tint);
+        atto_tint ((unsigned short)tint);
+      }
+
+    if (zps_read_ulong ("gms", &gain))
+      {
+        printf ("gain: %d\n", gain);
+        atto_gain ((unsigned short)gain,dser_dev);
+      }
+#endif
+
+    // etape 8
+    I2C_Ulis_WriteReg (0x41, 0x20,s_data);
+
+    //Interframe 1
+    //I2C_Ulis_WriteReg (0x56, 10);
+
+    // etape 9
+    I2C_Ulis_WriteReg (0x5C, 0x01,s_data);
+
+    // etape 10
+    I2C_Ulis_WriteReg (0x5C, 0x05,s_data);
+#endif
+
+ }
+
+
+
 
 static const struct i2c_device_id atto640_id[] = {
 	{"atto640", 0},

@@ -54,7 +54,7 @@
 #define DES_ADDR1 0x48
 #define SER_ADDR2 0x41
 #define SER_ADDR3 0x50
-
+#define AR0330_NUM_CONTROLS 30
 
 
 const struct of_device_id fromimx390_to_ar0330_of_match[] = {
@@ -196,7 +196,7 @@ static int imx390_write_table(struct imx390 *priv,
 
 static struct mutex serdes_lock__;
 
-#if 0
+
 static int imx390_gmsl_serdes_setup(struct imx390 *priv)
 {
 	int err = 0;
@@ -216,7 +216,8 @@ static int imx390_gmsl_serdes_setup(struct imx390 *priv)
 
 	/* setup serdes addressing and control pipeline */
 	err = max9296_setup_link(priv->dser_dev, &priv->i2c_client->dev);
-	if (err) {
+	if (err)
+	{
 		dev_err(dev, "gmsl deserializer link config failed\n");
 		goto error;
 	}
@@ -230,7 +231,8 @@ static int imx390_gmsl_serdes_setup(struct imx390 *priv)
 		dev_err(dev, "gmsl serializer setup failed\n");
 
 	des_err = max9296_setup_control(priv->dser_dev, &priv->i2c_client->dev);
-	if (des_err) {
+	if (des_err)
+	{
 		dev_err(dev, "gmsl deserializer setup failed\n");
 		/* overwrite err only if deser setup also failed */
 		err = des_err;
@@ -240,7 +242,7 @@ error:
 	mutex_unlock(&serdes_lock__);
 	return err;
 }
-#endif
+
 
 static void imx390_gmsl_serdes_reset(struct imx390 *priv)
 {
@@ -788,7 +790,7 @@ error:
 	return err;
 }
 
-
+#if 0
 static struct camera_common_pdata *fromimx390_to_ar0330_parse_dt(struct i2c_client *client)
 {
 	struct device_node *node = client->dev.of_node;
@@ -888,21 +890,452 @@ static struct camera_common_pdata *fromimx390_to_ar0330_parse_dt(struct i2c_clie
 	return NULL;
 }
 
+int from_enable_phy(struct device *dev, struct imx390 *priv, uint8_t phy)
+{
+	//uint8_t linken = 0;
+	unsigned int linken = 0;
+	max9296_read_reg(dev,0x0F00, &linken);
+	printk(" LINKEN  = 0x%x \n", linken);
 
+	if(phy == PHY_A)
+		linken |= 0x01;
+	else if(phy == PHY_B)
+		linken |= 0x02;
+	max9296_write_reg(dev,0x0F00, (unsigned char) linken);
+
+	linken = 0;
+	max9296_read_reg(dev,0x0F00, &linken);
+	printk(" Changed LINKEN to = 0x%02x \n", linken);
+	return 0;
+}
+
+int from_disable_phy(struct device *dev, struct imx390 *priv, uint8_t phy)
+{
+	unsigned int linken = 0;
+	max9296_read_reg(dev,0x0F00, &linken);
+	printk(" LINKEN  = 0x%02x \n", linken);
+
+	if(phy == PHY_A)
+		linken &= ~0x01;
+	else if(phy == PHY_B)
+		linken &= ~0x02;
+
+	max9296_write_reg(dev,0x0F00, (unsigned char) linken);
+
+	linken = 0;
+	max9296_read_reg(dev,0x0F00, &linken);
+	printk(" Changed LINKEN to = 0x%02x \n", linken);
+	return 0;
+}
+#endif
 
 
 static int fromimx390_to_ar0330_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
-	
+#if 0
 	struct device *dev = &client->dev;
 	struct device_node *node = dev->of_node;
 	struct tegracam_device *tc_dev;
 	struct imx390 *priv;
 	int err;
+
+	// Intro driver ar0330
+	//unsigned char fw_version[32] = {0};
+	//unsigned char txt_fw_version[32] = {0};
+	//int ret;
+	//int loop,frm_fmt_size = 0;
+	//uint16_t sensor_id = 0;
 	const char *str;
+	struct camera_common_data *common_data;
 
 	printk("fromimx390_to_ar0330 probing v4l2 sensor.\n");
+
+	if (!IS_ENABLED(CONFIG_OF) || !node)
+		return -EINVAL;
+
+	priv =
+	    devm_kzalloc(&client->dev,
+			 sizeof(struct imx390) +
+			 sizeof(struct v4l2_ctrl *) * AR0330_NUM_CONTROLS,
+			 GFP_KERNEL);
+
+	//priv = devm_kzalloc(dev, sizeof(struct imx390), GFP_KERNEL);
+	if (!priv)
+	{
+		dev_err(dev, "unable to allocate memory!\n");
+		return -ENOMEM;
+	}
+
+	tc_dev = devm_kzalloc(dev,
+			sizeof(struct tegracam_device), GFP_KERNEL);
+	if (!tc_dev)
+		return -ENOMEM;
+
+	priv->i2c_client = tc_dev->client = client;
+	tc_dev->dev = dev;
+	strncpy(tc_dev->name, "imx390", sizeof(tc_dev->name));
+	tc_dev->dev_regmap_config = &sensor_regmap_config;
+	tc_dev->sensor_ops = &imx390_common_ops;
+	tc_dev->v4l2sd_internal_ops = &imx390_subdev_internal_ops;
+	tc_dev->tcctrl_ops = &imx390_ctrl_ops;
+
+	err = tegracam_device_register(tc_dev);
+	if (err)
+	{
+		dev_err(dev, "tegra camera driver registration failed\n");
+		return err;
+	}
+
+	priv->tc_dev = tc_dev;
+	priv->s_data = tc_dev->s_data;
+	priv->subdev = &tc_dev->s_data->subdev;
+
+	tegracam_set_privdata(tc_dev, (void *)priv);
+
+	err = imx390_board_setup(priv);
+	if (err)
+	{
+		dev_err(dev, "board setup failed\n");
+		return err;
+	}
+
+	/* Pair sensor to serializer dev */
+	err = max9295_sdev_pair(priv->ser_dev, &priv->g_ctx);
+	if (err)
+	{
+		dev_err(&client->dev, "gmsl ser pairing failed\n");
+		return err;
+	}
+
+	/* Register sensor to deserializer dev */
+	err = max9296_sdev_register(priv->dser_dev, &priv->g_ctx);
+	if (err)
+	{
+		dev_err(&client->dev, "gmsl deserializer register failed\n");
+		return err;
+	}
+
+
+	err = imx390_gmsl_serdes_setup(priv);
+	if (err) {
+		dev_err(&client->dev,
+			"%s gmsl serdes setup failed\n", __func__);
+		return err;
+	}
+
+	err = tegracam_v4l2subdev_register(tc_dev, true);
+	if (err) {
+		dev_err(dev, "tegra camera subdev registration failed\n");
+		return err;
+	}
+
+	dev_info(&client->dev, "Detected IMX390 sensor\n");
+
+
+
+
+
+#if 0
+	poc_enable = of_get_named_gpio(node, "poc-gpio", 0);
+	if(poc_enable > 0)
+	{
+		debug_printk("poc_enable = %d \n", poc_enable);
+		err = gpio_request(poc_enable,"poc-en");
+		if (err < 0)
+		{
+			dev_err(&client->dev,"%s[%d]:GPIO POC Fail, err:%d",__func__,__LINE__, err);
+			goto skip_poc;
+		}
+		toggle_gpio(poc_enable, 1);
+		msleep(500);
+		toggle_gpio(poc_enable, 0);
+		msleep(500);
+		toggle_gpio(poc_enable, 1);
+		msleep(500);
+		serdes_write_16b_reg(client, DES_ADDR1, 0x0010, 0x80);
+		msleep(200);
+	}
+
+skip_poc:
+#endif
+	common_data =
+	    devm_kzalloc(&client->dev,
+			 sizeof(struct camera_common_data), GFP_KERNEL);
+	if (!common_data)
+		return -ENOMEM;
+
+	priv->pdata = fromimx390_to_ar0330_parse_dt(client);
+	if (!priv->pdata)
+	{
+		dev_err(&client->dev, "unable to get platform data\n");
+		return -EFAULT;
+	}
+
+	err = of_property_read_string(node, "phy-id", &str);
+	if (!err)
+	{
+		if (!strcmp(str, "A"))
+		{
+			priv->phy = PHY_A;
+			printk("PHYA PARSED\n");
+		}
+		else if (!strcmp(str, "B"))
+		{
+			priv->phy = PHY_B;
+			printk("PHYB PARSED\n");
+		}
+		else
+		{
+			printk("PHY UNKNOWN PARSED\n");
+		}
+	}
+	else
+	{
+		printk("NO PHY PARSED\n");
+		return -EFAULT;
+	}
+
+	priv->ser_addr = SER_ADDR1;
+	priv->des_addr = DES_ADDR1;
+	priv->i2c_client = client;
+	priv->s_data = common_data;
+	priv->subdev = &common_data->subdev;
+	priv->subdev->dev = &client->dev;
+	priv->s_data->dev = &client->dev;
+	common_data->priv = (void *)priv;
+
+	//err = ar0330_power_get(priv);
+	//if (err)
+	//	return err;
+
+	//err = ar0330_power_on(common_data);
+	//if (err)
+	//	return err;
+
+
+
+	if(priv->phy == PHY_A || priv->phy == PHY_B)
+	{
+		printk("start init max9296\n");
+		max9296_write_reg(priv->dser_dev, 0x0B07,  0x0C);
+		max9296_write_reg(priv->dser_dev, 0x0C07,  0x0C);
+		msleep(10);
+		max9296_write_reg( priv->dser_dev, 0x0B0D, 0x80);
+		max9296_write_reg( priv->dser_dev, 0x0C0D,  0x80);
+		max9296_write_reg( priv->dser_dev, 0x0F05, 0x26);
+		max9296_write_reg(priv->dser_dev, 0x0F06,  0x56);
+
+		/* Address translate */
+		if(priv->phy == PHY_A)
+		{
+			printk("init max9296 PHY_A\n");
+			max9271_read_i2c(priv->i2c_client, 0x00);
+			max9271_read_i2c(priv->i2c_client, 0x1E);
+			max9296_write_reg(priv->dser_dev, 0x0C04, 0x00);
+			max9271_write_i2c(priv->i2c_client, 0x04, 0x43);
+			msleep(100);
+			max9296_write_reg( priv->dser_dev, 0x0B0D, 0x00);
+
+			/* Change Serializer slave address */
+			max9271_write_i2c(priv->i2c_client, 0x00, SER_ADDR2 << 1);
+#if 0
+			if(serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0)
+			{
+				printk(" Error Accessing PHYA serializer ar0330\n");
+				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
+				return -EIO;
+			}
+			else
+			{
+				printk(" OK Accessing PHYA serializer 0x%x ar0330\n",SER_ADDR2);
+			}
+#endif
+			max9296_write_reg(priv->dser_dev, 0x0C04, 0x03);
+		}
+		else if (priv->phy == PHY_B)
+		{
+			printk("init max9296 PHY_B\n");
+			max9271_read_i2c(priv->i2c_client, 0x00);
+			max9271_read_i2c(priv->i2c_client, 0x1E);
+			max9296_write_reg(priv->dser_dev, 0x0B04, 0x00);
+			max9271_write_i2c(priv->i2c_client, 0x04, 0x43);
+			msleep(100);
+
+			max9296_write_reg( priv->dser_dev, 0x0C0D, 0x00);
+
+			/* Change Serializer slave address */
+			max9271_write_i2c(priv->i2c_client, 0x00, SER_ADDR3 << 1);
+#if 0
+			if(serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0)
+			{
+				printk(" Error Accessing PHYB serializer ar0330:0x%x\n",SER_ADDR3);
+				max9296_write_reg(priv->dser_dev, 0x0B04, 0x03);
+				return -EIO;
+			}
+			else
+			{
+				printk(" OK Accessing PHYB serializer 0x%x ar0330\n",SER_ADDR3);
+			}
+#endif
+			max9296_write_reg( priv->dser_dev, 0x0B04, 0x03);
+		}
+		else
+		{
+			printk(" Error Accessing PHYUNKNOWN serializer \n");
+		}
+
+		/* Link configuration */
+		printk("start link configuration\n);");
+		max9296_write_reg( priv->dser_dev, 0x0320, 0x2F);
+		max9296_write_reg( priv->dser_dev, 0x0323, 0x2F);
+
+		max9296_write_reg( priv->dser_dev, 0x044A, 0xC8);
+		max9296_write_reg( priv->dser_dev, 0x048A, 0xC8);
+
+		max9296_write_reg( priv->dser_dev, 0x0313, 0x82);
+		max9296_write_reg( priv->dser_dev, 0x0314, 0x10);
+		max9296_write_reg( priv->dser_dev, 0x0316, 0x5E);
+		max9296_write_reg( priv->dser_dev, 0x0317, 0x0E);
+		max9296_write_reg( priv->dser_dev, 0x0319, 0x10);
+		max9296_write_reg( priv->dser_dev, 0x031D, 0xEF);
+
+		max9296_write_reg( priv->dser_dev, 0x0B96, 0x9B);
+		max9296_write_reg( priv->dser_dev, 0x0C96, 0x9B);
+
+		max9296_write_reg( priv->dser_dev, 0x0B06, 0xE8);
+		max9296_write_reg( priv->dser_dev, 0x0C06, 0xE8);
+		max9296_write_reg( priv->dser_dev, 0x01DA, 0x18);
+		max9296_write_reg( priv->dser_dev, 0x01FA, 0x18);
+		max9296_write_reg( priv->dser_dev, 0x0BA7, 0x45);
+		max9296_write_reg( priv->dser_dev, 0x0CA7, 0x45);
+		max9296_write_reg( priv->dser_dev, 0x040B, 0x07);
+		max9296_write_reg( priv->dser_dev, 0x042D, 0x15);
+		max9296_write_reg( priv->dser_dev, 0x040D, 0x1E);
+		max9296_write_reg( priv->dser_dev, 0x040E, 0x1E);
+		max9296_write_reg( priv->dser_dev, 0x040F, 0x00);
+		max9296_write_reg( priv->dser_dev, 0x0410, 0x00);
+		max9296_write_reg( priv->dser_dev, 0x0411, 0x01);
+		max9296_write_reg( priv->dser_dev, 0x0412, 0x01);
+	}
+
+	/* i2c address translated */
+	if(priv->phy == PHY_A)
+	{
+		if(from_enable_phy(priv->dser_dev, priv, PHY_A) < 0)
+		{
+			printk("Error Enabling PHYA \n");
+			return -EIO;
+		}
+#if 0
+		printk(" Translating i2c address for PHYA...ar0330 \n");
+		priv->ser_addr = SER_ADDR2;
+		serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
+
+		/* MCU RESET */
+		if(serdes_write_8b_reg(client, SER_ADDR2, 0x0D, 0x8F) < 0)
+		{
+				printk(" Error Accessing PHYA serializer \n");
+				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
+				disable_phy(client, priv, PHY_A);
+				return -EIO;
+		}
+
+		msleep(100);
+		printk("MCU address modification - PHYA \n");
+		priv->ser_addr = SER_ADDR2;
+		serdes_write_8b_reg(client, SER_ADDR2, 0x0F, MCU_ADDR2 << 1);
+		serdes_write_8b_reg(client, SER_ADDR2, 0x10, (MCU_ADDR1 << 1));
+#endif
+		max9296_write_reg( priv->dser_dev, 0x0C04, 0x03);
+	}
+	else if(priv->phy == PHY_B)
+	{
+		if(from_enable_phy(priv->dser_dev, priv, PHY_B) < 0)
+		{
+			printk("Error Enabling PHYB \n");
+			return -EIO;
+		}
+#if 0
+		printk(" Translating i2c address for PHYB... ar0330\n");
+		priv->ser_addr = SER_ADDR3;
+		serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x00);
+		/* MCU RESET */
+		if(serdes_write_8b_reg(client, SER_ADDR3, 0x0D, 0x8F) < 0)
+		{
+				printk(" Error Accessing PHYA serializer \n");
+				serdes_write_16b_reg(client, priv->des_addr, 0x0B04, 0x03);
+				disable_phy(client, priv, PHY_B);
+				return -EIO;
+		}
+		msleep(100);
+		printk("MCU address modification - PHYB ar0330\n");
+		priv->ser_addr = SER_ADDR3;
+		serdes_write_8b_reg(client, SER_ADDR3, 0x0F, MCU_ADDR3 << 1);
+		serdes_write_8b_reg(client, SER_ADDR3, 0x10, (MCU_ADDR1 << 1));
+#endif
+		max9296_write_reg( priv->dser_dev, 0x0B04, 0x03);
+	}
+
+
+
+
+
+
+#if 0
+	/* Pair sensor to serializer dev */
+	err = max9295_sdev_pair(priv->ser_dev, &priv->g_ctx);
+	if (err)
+	{
+		dev_err(&client->dev, "gmsl ser pairing failed\n");
+		return err;
+	}
+
+	/* Register sensor to deserializer dev */
+	err = max9296_sdev_register(priv->dser_dev, &priv->g_ctx);
+	if (err)
+	{
+		dev_err(&client->dev, "gmsl deserializer register failed\n");
+		return err;
+	}
+
+	/*
+	 * gmsl serdes setup
+	 *
+	 * Sensor power on/off should be the right place for serdes
+	 * setup/resprintk("init max9296 PHY_A\n");et. But the problem is, the total required delay
+	 * in serdes setup/reset exceeds the frame wait timeout, looks to
+	 * be related to multiple channel open and close sequence
+	 * issue (#BUG 200477330).
+	 * Once this bug is fixed, these may be moved to power on/off.
+	 * The delays in serdes is as per guidelines and can't be reduced,
+	 * so it is placed in probe/remove, though for that, deserializer
+	 * would be powered on always post boot, until 1.2v is supplied
+	 * to deserializer from CVB.
+	 */
+	err = imx390_gmsl_serdes_setup(priv);
+	if (err) {
+		dev_err(&client->dev,
+			"%s gmsl serdes setup failed\n", __func__);
+		return err;
+	}
+
+	err = tegracam_v4l2subdev_register(tc_dev, true);
+	if (err) {
+		dev_err(dev, "tegra camera subdev registration failed\n");
+		return err;
+	}
+
+	dev_info(&client->dev, "Detected IMX390 sensor\n");
+#endif
+#endif
+	struct device *dev = &client->dev;
+	struct device_node *node = dev->of_node;
+	struct tegracam_device *tc_dev;
+	struct imx390 *priv;
+	int err;
+	dev_err(dev, "prob je rentre la !\n");
+	dev_info(dev, "probing v4l2 sensor.\n");
 
 	if (!IS_ENABLED(CONFIG_OF) || !node)
 		return -EINVAL;
@@ -946,157 +1379,6 @@ static int fromimx390_to_ar0330_probe(struct i2c_client *client,
 		return err;
 	}
 
-
-	priv->pdata = fromimx390_to_ar0330_parse_dt(client);
-	if (!priv->pdata)
-	{
-		dev_err(&client->dev, "unable to get platform data\n");
-		return -EFAULT;
-	}
-
-	err = of_property_read_string(node, "phy-id", &str);
-	if (!err)
-	{
-		if (!strcmp(str, "A"))
-		{
-			priv->phy = PHY_A;
-			printk("PHYA PARSED\n");
-		}
-		else if (!strcmp(str, "B"))
-		{
-			priv->phy = PHY_B;
-			printk("PHYB PARSED\n");
-		}
-		else
-		{
-			printk("PHY UNKNOWN PARSED\n");
-		}
-	}
-	else
-	{
-		printk("NO PHY PARSED\n");
-		return -EFAULT;
-	}
-
-	priv->ser_addr = SER_ADDR1;
-	priv->des_addr = DES_ADDR1;
-	priv->i2c_client = client;
-	priv->s_data = common_data;
-	priv->subdev = &common_data->subdev;
-	priv->subdev->dev = &client->dev;
-	priv->s_data->dev = &client->dev;
-	common_data->priv = (void *)priv;
-
-	//err = ar0330_power_get(priv);
-	if (err)
-		return err;
-
-	//err = ar0330_power_on(common_data);
-	if (err)
-		return err;
-
-	if(priv->phy == PHY_A || priv->phy == PHY_B)
-	{
-		max9296_write_reg(priv->dser_dev, 0x0B07,  0x0C);
-		max9296_write_reg(priv->dser_dev, 0x0C07,  0x0C);
-		msleep(10);
-		max9296_write_reg( priv->dser_dev, 0x0B0D, 0x80);
-		max9296_write_reg( priv->dser_dev, 0x0C0D,  0x80);
-		max9296_write_reg( priv->dser_dev, 0x0F05, 0x26);
-		max9296_write_reg(priv->dser_dev, 0x0F06,  0x56);
-
-		/* Address translate */
-		if(priv->phy == PHY_A)
-		{
-			max9271_read_i2c(priv->i2c_client, 0x00);
-			max9271_read_i2c(priv->i2c_client, 0x1E);
-			max9296_write_reg(priv->dser_dev, 0x0C04, 0x00);
-			max9271_write_i2c(priv->i2c_client, 0x04, 0x43);
-			msleep(100);
-			max9296_write_reg( priv->dser_dev, 0x0B0D, 0x00);
-
-			/* Change Serializer slave address */
-			max9271_write_i2c(priv->i2c_client, 0x00, SER_ADDR2 << 1);
-#if 0
-			if(serdes_write_8b_reg(client, SER_ADDR2, 0x04, 0x43) < 0)
-			{
-				printk(" Error Accessing PHYA serializer ar0330\n");
-				serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
-				return -EIO;
-			}
-			else
-			{
-				printk(" OK Accessing PHYA serializer 0x%x ar0330\n",SER_ADDR2);
-			}
-#endif
-			max9296_write_reg(priv->dser_dev, 0x0C04, 0x03);
-		}
-		else if (priv->phy == PHY_B)
-		{
-			max9271_read_i2c(priv->i2c_client, 0x00);
-			max9271_read_i2c(priv->i2c_client, 0x1E);
-			max9296_write_reg(priv->dser_dev, 0x0B04, 0x00);
-			max9271_write_i2c(priv->i2c_client, 0x04, 0x43);
-			msleep(100);
-
-			max9296_write_reg( priv->dser_dev, 0x0C0D, 0x00);
-
-			/* Change Serializer slave address */
-			max9271_write_i2c(priv->i2c_client, 0x00, SER_ADDR3 << 1);
-#if 0
-			if(serdes_write_8b_reg(client, SER_ADDR3, 0x04, 0x43) < 0)
-			{
-				printk(" Error Accessing PHYB serializer ar0330:0x%x\n",SER_ADDR3);
-				max9296_write_reg(priv->dser_dev, 0x0B04, 0x03);
-				return -EIO;
-			}
-			else
-			{
-				printk(" OK Accessing PHYB serializer 0x%x ar0330\n",SER_ADDR3);
-			}
-#endif
-			max9296_write_reg( priv->dser_dev, 0x0B04, 0x03);
-		}
-		else
-		{
-			printk(" Error Accessing PHYUNKNOWN serializer \n");
-		}
-		/* Link configuration */
-		max9296_write_reg( priv->dser_dev, 0x0320, 0x2F);
-		max9296_write_reg( priv->dser_dev, 0x0323, 0x2F);
-
-		max9296_write_reg( priv->dser_dev, 0x044A, 0xC8);
-		max9296_write_reg( priv->dser_dev, 0x048A, 0xC8);
-
-		max9296_write_reg( priv->dser_dev, 0x0313, 0x82);
-		max9296_write_reg( priv->dser_dev, 0x0314, 0x10);
-		max9296_write_reg( priv->dser_dev, 0x0316, 0x5E);
-		max9296_write_reg( priv->dser_dev, 0x0317, 0x0E);
-		max9296_write_reg( priv->dser_dev, 0x0319, 0x10);
-		max9296_write_reg( priv->dser_dev, 0x031D, 0xEF);
-
-		max9296_write_reg( priv->dser_dev, 0x0B96, 0x9B);
-		max9296_write_reg( priv->dser_dev, 0x0C96, 0x9B);
-
-		max9296_write_reg( priv->dser_dev, 0x0B06, 0xE8);
-		max9296_write_reg( priv->dser_dev, 0x0C06, 0xE8);
-		max9296_write_reg( priv->dser_dev, 0x01DA, 0x18);
-		max9296_write_reg( priv->dser_dev, 0x01FA, 0x18);
-		max9296_write_reg( priv->dser_dev, 0x0BA7, 0x45);
-		max9296_write_reg( priv->dser_dev, 0x0CA7, 0x45);
-		max9296_write_reg( priv->dser_dev, 0x040B, 0x07);
-		max9296_write_reg( priv->dser_dev, 0x042D, 0x15);
-		max9296_write_reg( priv->dser_dev, 0x040D, 0x1E);
-		max9296_write_reg( priv->dser_dev, 0x040E, 0x1E);
-		max9296_write_reg( priv->dser_dev, 0x040F, 0x00);
-		max9296_write_reg( priv->dser_dev, 0x0410, 0x00);
-		max9296_write_reg( priv->dser_dev, 0x0411, 0x01);
-		max9296_write_reg( priv->dser_dev, 0x0412, 0x01);
-	}
-
-
-
-#if 0
 	/* Pair sensor to serializer dev */
 	err = max9295_sdev_pair(priv->ser_dev, &priv->g_ctx);
 	if (err)
@@ -1141,7 +1423,6 @@ static int fromimx390_to_ar0330_probe(struct i2c_client *client,
 	}
 
 	dev_info(&client->dev, "Detected IMX390 sensor\n");
-#endif
 
 	return 0;
 }

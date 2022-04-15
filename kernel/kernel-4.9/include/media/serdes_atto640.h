@@ -21,6 +21,8 @@
 #define SER_ADDR2 0x41
 #define SER_ADDR3 0x50
 
+#define ATTO_ADDR 0x12
+
 int atto640_serdes_write_i2c(struct i2c_client *client, u16 sladdr,  u8 * val, u32 count);
 int atto640_serdes_read_i2c(struct i2c_client *client, u16 sladdr, u8 * val, u32 count);
 s32 atto640_serdes_read_8b_reg(struct i2c_client *client, u16 sladdr, u8 reg, u8 * val);
