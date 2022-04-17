@@ -1,0 +1,13 @@
+deser 0000 90 1000
+deser 0002 1C 1000
+deser 0003 00 2000
+deser 000B 00 1000
+deser 000C 00 1000
+deser 000D 6E 1000
+deser 000E 42 1000
+deser 000F C2 1000
+ser   00   00 1000
+ser   1E   09 1000
+ser   1F   00 1000
+*
+

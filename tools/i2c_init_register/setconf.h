@@ -67,7 +67,7 @@
 #define I2CSER                      (0x50)
 #define I2CPLL                      (0x69)
 #define I2CMLX                      (0x67)
-#define I2CSEN                      (0x12)
+#define I2CSENSOR                      (0x12)
 
 
 /*****************************************************************************/

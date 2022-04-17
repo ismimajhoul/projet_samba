@@ -77,7 +77,8 @@ static uint8_t gEnableTraces = ALTRAN_I2C_TRACES_ENABLED;
 
 struct data_config
 {
-    uint16_t reg;
+    char 	 device_i2c[32];
+	uint16_t reg;
     uint16_t value;
     uint16_t tempo;
 };
@@ -85,6 +86,7 @@ struct data_config
 struct data_config atto_sensor_array_config[1024];
 struct data_config atto_ser_array_config[1024];
 struct data_config atto_deser_array_config[1024];
+struct data_config device_i2c_array_config[1024];
 
 #if 0
 struct data_config atto_sensor_array_config[] =
@@ -151,7 +153,7 @@ struct data_config *array_config;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-int parseFiledata(char * devicetype,struct data_config array_config[1024])
+int parseFiledata(struct data_config array_config[1024])
 {
    FILE *fp1;   
    char filename[100];
@@ -159,20 +161,23 @@ int parseFiledata(char * devicetype,struct data_config array_config[1024])
    char c;
    int i = 0;
    int j = 0;
-   sprintf(filename,"%s.%s",devicetype,"data");
+   sprintf(filename,"%s","camera.data");
    fp1 = fopen(filename,"r");
    if(fp1==NULL)
    {
-	printf("cannot open file: %s \n",filename);
+	   printf("cannot open file: %s \n",filename);
    }
    else
    {
-	printf("parsing file: %s \n",filename);
+	   printf("parsing file: %s \n",filename);
    }
 
 
    do 
    {
+	  c = fscanf(fp1,"%s",oneword); /* got one word from the file */
+	  strcpy(array_config[i].device_i2c,oneword);
+	  printf("device i2c=%s\n",array_config[i].device_i2c);
       c = fscanf(fp1,"%s",oneword); /* got one word from the file */
       array_config[i].reg = (uint16_t) strtol(oneword,NULL,16);
       printf("register=%x\n",array_config[i].reg);
@@ -681,7 +686,7 @@ uint8_t openI2Cdevice(int* fd,int bus)
     char filename[80];
     // ouvre le device associe au bus I2C
     sprintf( filename,"/dev/i2c-%d", bus);
-    printf("\nopenI2Cdevice filename: %s\n",filename);
+    printf("\n openI2Cdevice filename: %s\n",filename);
 
     //*fd = open("/dev/i2c-0", O_RDWR);
     *fd = open(filename, O_FSYNC|O_RDWR);
@@ -1057,14 +1062,16 @@ int main(int argc,char* argv[])
                          &listOfOps, &listOfMask, &listOfNewValues,
                          &listOfTimerMS, &howManyCommands);;
 
+    //array_config = device_i2c_array_config;
+    nb_elem = parseFiledata(device_i2c_array_config);
 
-
+/*
     if(strcmp(argv[1],"deser")==0)
     {
     	array_config = &atto_deser_array_config[0];
     	nb_elem= ARRAY_SIZE(atto_deser_array_config);
     	device_conf = I2CDESER;
-	nb_elem = parseFiledata("deser",atto_deser_array_config);
+    	nb_elem = parseFiledata("deser",atto_deser_array_config);
         printf("nombre d'elements extraits du fichier deser.data\n");
     	//printf("sizeof array: %ld\n",sizeof(atto_deser_array_config));
     	//printf("sizeof((x)[0]: %ld\n",sizeof((atto_deser_array_config[0])));
@@ -1073,8 +1080,8 @@ int main(int argc,char* argv[])
     {
     	array_config = &atto_ser_array_config[0];
     	nb_elem= ARRAY_SIZE(atto_ser_array_config);
-	device_conf = I2CSER;
-	nb_elem = parseFiledata("ser",atto_ser_array_config);
+    	device_conf = I2CSER;
+    	nb_elem = parseFiledata("ser",atto_ser_array_config);
     	printf("sizeof array: %ld\n",sizeof(atto_ser_array_config));
     	printf("sizeof((x)[0]: %ld\n",sizeof((atto_ser_array_config[0])));
     }
@@ -1082,9 +1089,9 @@ int main(int argc,char* argv[])
     {
     	array_config = &atto_sensor_array_config[0];
     	nb_elem= ARRAY_SIZE(atto_sensor_array_config);
-    	printf("I2CSEN : 0x%x \n",I2CSEN);
-    	device_conf = I2CSEN;
-	nb_elem = parseFiledata("sensor",atto_sensor_array_config);
+    	printf("I2CSENSOR : 0x%x \n",I2CSENSOR);
+    	device_conf = I2CSENSOR;
+    	nb_elem = parseFiledata("sensor",atto_sensor_array_config);
     	printf("debug : 0x%x \n",device_conf);
     	printf("sizeof array: %ld\n",sizeof(atto_sensor_array_config));
     	printf("sizeof((x)[0]: %ld\n",sizeof((atto_sensor_array_config[0])));
@@ -1094,6 +1101,7 @@ int main(int argc,char* argv[])
     	printf("*** %s unknown config *** \n",argv[1]);
     	return 0;
     }
+*/
 
     
     howManyCommands = nb_elem;
@@ -1102,10 +1110,10 @@ int main(int argc,char* argv[])
     printf("\n register list\n");
     for(int i = 0;i<nb_elem;i++)
     {
-    	 listOfRegister[i] 	= array_config[i].reg;
+    	 listOfRegister[i] 	= device_i2c_array_config[i].reg;
     	 listOfOps[i] 		= 0x0;
          listOfDev[i] 		= device_conf; 
-         if (strcmp(argv[1],"ser")==0)
+         if (strcmp(device_i2c_array_config[i].device_i2c,"ser")==0)
         	 addressLength[i] 	= _8B;
          else
         	 addressLength[i] 	= _16B;
@@ -1120,9 +1128,9 @@ int main(int argc,char* argv[])
     printf("\n register list\n");
     for(int i = 0;i<nb_elem;i++)
     {
-    	 listOfRegister[i] = array_config[i].reg;
+    	 listOfRegister[i] = device_i2c_array_config[i].reg;
     	 printf("listOfRegister[%d]= 0x%x\n",i,listOfRegister[i]);
- 	 listOfNewValues[i] = array_config[i].value;
+    	 listOfNewValues[i] = device_i2c_array_config[i].value;
     	 printf("listOfNewValues[%d]= 0x%x\n",i,listOfNewValues[i]);
          printf("addressLength[%d]= %d\n",i,addressLength[i]);
     }
@@ -1143,8 +1151,8 @@ int main(int argc,char* argv[])
      * and in integrity it is a HWI call to have an
      * abstraction number */
     printf("channel:%d\n",channel);
-    errorSeen |= openI2Cdevice(&fd,30 + channel - 4);
-
+    //errorSeen |= openI2Cdevice(&fd,30 + channel - 4);
+    errorSeen |= openI2Cdevice(&fd,0);
 
     for(;;)
     {
@@ -1153,15 +1161,15 @@ int main(int argc,char* argv[])
                                           addressLength, listOfDev,
                                           listOfOps, listOfMask, listOfNewValues,
                                           listOfTimerMS, howManyCommands);
-	if(argc==4)
-        {
-    	    if (strcmp(argv[3],"surv")!=0) break;
-	}
-	else if(argc==3)
+	if(argc==3)
         {
     	    if (strcmp(argv[2],"surv")!=0) break;
 	}
 	else if(argc==2)
+        {
+    	    if (strcmp(argv[1],"surv")!=0) break;
+	}
+	else if(argc==1)
 	{
 	    break;
 	}
