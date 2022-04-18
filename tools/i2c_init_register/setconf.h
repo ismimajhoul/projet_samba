@@ -64,10 +64,10 @@
 #define I2CDESER                    (0x48)
 #define I2CD2                       (0x2c)
 #define I2CS2                       (0x0c)
-#define I2CSER                      (0x50)
+#define I2CSER                      (0x40)
 #define I2CPLL                      (0x69)
 #define I2CMLX                      (0x67)
-#define I2CSENSOR                      (0x12)
+#define I2CSENSOR                   (0x12)
 
 
 /*****************************************************************************/

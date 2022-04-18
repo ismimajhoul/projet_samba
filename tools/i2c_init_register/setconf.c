@@ -56,6 +56,9 @@
 #define CMD_SIZE	255
 char cmdI2C[CMD_SIZE],path[5*CMD_SIZE];
 int trace = 1;
+
+static uint8_t oldDeviceID = 0x00;
+
 int executeCmdI2C(char* cmdToExecute)
 {
 	FILE *fp;
@@ -372,7 +375,7 @@ int i2cbusWrite16BRegister( int device,
 
     if(gEnableTraces)
     {
-        fprintf(stderr, "\n[    ] send %.04x at %.04x (mask %.04x) ",
+        fprintf(stderr, "%s \n [    ] send %.04x at %.04x (mask %.04x) ",__func__,
                 iValue, iRegisterAddress, iMask);
     }
 
@@ -422,11 +425,11 @@ int i2cbusWrite16BRegister( int device,
     {
         if(gEnableTraces)
         {
-            fprintf(stderr, "\r[ KO ] send %.04x at %.04x (mask %.04x) ",
+            fprintf(stderr, "%s \r w [ KO ] send %.04x at %.04x (mask %.04x) ",__func__,
                     iValue, iRegisterAddress, iMask);
         }
 
-        fprintf(stderr, " %s:%s:%d: WRegister err Reg 0x%.04x: Expected "
+        fprintf(stderr, "%s:%s:%d: W Register err Reg 0x%.04x: Expected "
                         "(print reversed) [0x%.04x] seen (print reversed) "
                         "[0x%.04x] ",
                 __FILE__, __func__, __LINE__,
@@ -436,7 +439,7 @@ int i2cbusWrite16BRegister( int device,
     {
         if(gEnableTraces)
         {
-            fprintf(stderr, "\r[ OK ] send %.04x at %.04x (mask %.04x) ",
+            fprintf(stderr, "%s \r[ OK ] send %.04x at %.04x (mask %.04x) ",__func__,
                     iValue, iRegisterAddress, iMask);
         }
     }
@@ -510,7 +513,7 @@ uint8_t i2cbusReadRegister( int device,
 
     if(gEnableTraces)
     {
-        fprintf(stderr, "\n[ -- ] received value [0x%.02x] from register [0x%.04x]",
+        fprintf(stderr, "\n%s [ -- ] received value [0x%.02x] from register [0x%.04x]",__func__,
                         *received, iRegisterAddress);
     }
 
@@ -574,7 +577,7 @@ int i2cbusWriteRegister(int device,
 
     if(gEnableTraces)
     {
-        fprintf(stderr, "\n[    ] send %.02x at %.04x (mask %.02x)",
+        fprintf(stderr, "\n %s w [    ] send %.02x at %.04x (mask %.02x)",__func__,
                 iValue, iRegisterAddress, iMask);
     }
 
@@ -610,7 +613,7 @@ int i2cbusWriteRegister(int device,
     {
         if(gEnableTraces)
         {
-            fprintf(stderr, "\r[ KO ] send %.02x at %.04x (mask %.02x)",
+            fprintf(stderr, "\r %s [ KO ] send %.02x at %.04x (mask %.02x)",__func__,
                     iValue, iRegisterAddress, iMask);
         }
 
@@ -623,7 +626,7 @@ int i2cbusWriteRegister(int device,
     {
         if(gEnableTraces)
         {
-            fprintf(stderr, "\r[ OK ] send %.02x at %.04x (mask %.02x)",
+            fprintf(stderr, "\r %s [ OK ] send %.02x at %.04x (mask %.02x)",__func__,
                     iValue, iRegisterAddress, iMask);
         }
     }
@@ -728,22 +731,26 @@ void closeI2Cdevice(int fd)
 uint8_t linuxChangePeripheralSelector(int fd, uint8_t deviceID)
 {
     int errorSeen;
-    static uint8_t oldDeviceID = 0x00;
+
 
     errorSeen = 0x00;
 
     if(oldDeviceID != deviceID)
     {
-        printf("device I2C address: 0x[%x] \n", deviceID);
+        printf("%s set device I2C address: 0x[%x] \n",__func__, deviceID);
         errorSeen = (ioctl(fd, I2C_SLAVE, deviceID) < 0) ? 1 : 0;
         if(gEnableTraces)
         {
-            //fprintf(stderr, "\n       %.02x -> %.02x", oldDeviceID, deviceID);
+            fprintf(stderr, "\n %s      %.02x -> %.02x",__func__, oldDeviceID, deviceID);
         }
         if(!errorSeen)
         {
             oldDeviceID = deviceID;
         }
+    }
+    else
+    {
+    	printf("%s same device I2C address: 0x[%x] \n",__func__, deviceID);
     }
 
     return errorSeen;
@@ -774,79 +781,73 @@ uint8_t doReadOrWrite(  int fd,
                         uint16_t listOfNewValues,
                         uint16_t listOfTimerMS)
 {
-    static uint8_t currentDevice = 0x00;
+    printf("%s\n",__func__);
+
+	static uint8_t currentDevice = 0x00;
     uint8_t errorSeen = 0x00;
     int writeError = 0x00;
 
 //#ifdef _ALTRAN_I2C_DRIVER_TARGET_LINUX
 
-    /* Linux specific */
-    errorSeen = linuxChangePeripheralSelector( fd, listOfDev );
+	do
+	{
+		/* Linux specific */
+		errorSeen = linuxChangePeripheralSelector( fd, listOfDev );
+		/* read or write on register with 8,10,16 bit addr are done
+		 * by the same function */
+		if(!errorSeen)
+		{
+			if(dataLength == _8B)
+			{
+				printf("\n%s 8 bits operations\n",__func__);
+				if(!listOfOps)    i2cbusReadRegister(   fd,
+														addressLength,
+														listOfRegister);
 
-    if(!errorSeen)
-    {
-        do
-        {
-            currentDevice =  listOfDev;
+				if( listOfOps)
+				{
+					writeError =
+								  i2cbusWriteRegister( fd,
+														addressLength,
+														listOfRegister,
+														(listOfNewValues & 0xff),
+														(listOfMask & 0xff))
+								  ?
+								  (writeError + 1) : 0;}
+				}
+			/* Data size of 16B is handled by another function */
+			else if(dataLength == _16B)
+			{
+				printf("\n%s 16 bits operations\n",__func__);
+				if(!listOfOps)    i2cbusRead16BRegister(    fd,
+															listOfDev,
+															addressLength,
+															listOfRegister);
 
-            /* read or write on register with 8,10,16 bit addr are done
-             * by the same function */
-            if(dataLength == _8B)
-            {
-		printf("\n8 bits operations\n");
-                if(!listOfOps)    i2cbusReadRegister(   fd,
-                                                        addressLength,
-                                                        listOfRegister);
+				if( listOfOps)    {writeError =
+								  i2cbusWrite16BRegister(   fd,
+															listOfDev,
+															addressLength,
+															listOfRegister,
+															listOfNewValues,
+															listOfMask)
+								  ?
+								  (writeError + 1) : 0;}
+			}
 
-                if( listOfOps)    
-                {
-                    writeError =
-                                  i2cbusWriteRegister( fd,
-                                                        addressLength,
-                                                        listOfRegister,
-                                                        (listOfNewValues & 0xff),
-                                                        (listOfMask & 0xff))
-                                  ?
-                                  (writeError + 1) : 0;}
-                }
-            /* Data size of 16B is handled by another function */
-            else if(dataLength == _16B)
-            {
-		printf("\n16 bits operations\n");
-                if(!listOfOps)    i2cbusRead16BRegister(    fd,
-                                                            listOfDev,
-                                                            addressLength,
-                                                            listOfRegister);
-
-                if( listOfOps)    {writeError =
-                                  i2cbusWrite16BRegister(   fd,
-                                                            listOfDev,
-                                                            addressLength,
-                                                            listOfRegister,
-                                                            listOfNewValues,
-                                                            listOfMask)
-                                  ?
-                                  (writeError + 1) : 0;}
-            }
-
-            /* Some request needs time to be executed
-             * because some hardware reconfiguration is needed */
-            usleep(1000 * listOfTimerMS);
-        }while(writeError < I2C_MAX_WRITE_RETRIES && writeError != 0);
-
-        writeError = 0;
-    }
-    else
-    {
-        fprintf(stderr, "%s:%s:%d: Error, unknown data register size\n",
-                __FILE__, __func__, __LINE__);
-        /*  This error is to notify the device switch error. So,
-            we cannot use it in this case */
-        /* errorSeen |= 1; */
-    }
-
-//#endif
-    //printf("\n end of doReadOrWrite \n");
+			/* Some request needs time to be executed
+			 * because some hardware reconfiguration is needed */
+			usleep(1000 * listOfTimerMS);
+		}
+		else
+		{
+			fprintf(stderr, "%s:%s:%d: Error, unknown data register size\n",
+					__FILE__, __func__, __LINE__);
+			/*  This error is to notify the device switch error. So,
+				we cannot use it in this case */
+			/* errorSeen |= 1; */
+		}
+	}while(writeError < I2C_MAX_WRITE_RETRIES && writeError != 0);
 
     return errorSeen;
 }
@@ -936,7 +937,7 @@ uint8_t doAllReadWriteOperations (  int fd,
 
     errorSeen = 0x00;
 
-
+    printf("%s\n",__func__);
 
     /* Send all commands to devices. One by one */
     for(i=0; i<howManyCommands; i++)
@@ -1036,8 +1037,8 @@ int main(int argc,char* argv[])
     uint16_t*            listOfNewValues;
     uint16_t*            listOfTimerMS;
     size_t               howManyCommands;
-    uint8_t 		device_conf;
-    int 		channel;
+    uint8_t 			device_conf;
+    int 				channel;
 
     int nb_elem;
     if(argc < 2)
@@ -1047,7 +1048,7 @@ int main(int argc,char* argv[])
     }
     else
     {
-	printf("nb parameter: %d\n",argc);
+    	printf("nb parameter: %d\n",argc);
     }
 
     channel = selectchannel();
@@ -1064,8 +1065,7 @@ int main(int argc,char* argv[])
 
     //array_config = device_i2c_array_config;
     nb_elem = parseFiledata(device_i2c_array_config);
-
-/*
+ /*
     if(strcmp(argv[1],"deser")==0)
     {
     	array_config = &atto_deser_array_config[0];
@@ -1111,18 +1111,28 @@ int main(int argc,char* argv[])
     for(int i = 0;i<nb_elem;i++)
     {
     	 listOfRegister[i] 	= device_i2c_array_config[i].reg;
-    	 listOfOps[i] 		= 0x0;
-         listOfDev[i] 		= device_conf; 
+    	 listOfOps[i] 		= (unsigned char) atoi(argv[1]);
+
          if (strcmp(device_i2c_array_config[i].device_i2c,"ser")==0)
+         {
+        	 listOfDev[i] 		= I2CSER;
         	 addressLength[i] 	= _8B;
-         else
+         }
+         else if (strcmp(device_i2c_array_config[i].device_i2c,"deser")==0)
+         {
+        	 listOfDev[i] 		= I2CDESER;
         	 addressLength[i] 	= _16B;
+         }
+         else if (strcmp(device_i2c_array_config[i].device_i2c,"sensor")==0)
+	     {
+	         listOfDev[i] 		= I2CSENSOR;
+	         addressLength[i] 	= _16B;
+	     }
 
          dataLength[i] 	= _8B;
          listOfTimerMS[i] 	= 0x50;
          listOfMask[i] 		= 0xffff;
     	 //printf("listOfRegister[%d]= 0x%x\n",i,listOfRegister[i]);
-         
     }
     
     printf("\n register list\n");
@@ -1133,16 +1143,9 @@ int main(int argc,char* argv[])
     	 listOfNewValues[i] = device_i2c_array_config[i].value;
     	 printf("listOfNewValues[%d]= 0x%x\n",i,listOfNewValues[i]);
          printf("addressLength[%d]= %d\n",i,addressLength[i]);
+         printf("listOfOps[%d]= %d\n",i,listOfOps[i]);
     }
 
-    for(int i = 0;i<nb_elem;i++)                                    
-    {                                                               
-         if(argc > 2)
-        	 listOfOps[i] = (unsigned char) atoi(argv[2]);
-         else
-        	 listOfOps[i] = 0;
-         printf("listOfOps[%d]= %d\n",i,listOfOps[i]);
-    }  
     
     /* For integrity, call physical init */
     errorSeen |= initI2CDevice();
@@ -1156,23 +1159,15 @@ int main(int argc,char* argv[])
 
     for(;;)
     {
-    /* Do all operation listed in the .h file */
-    	errorSeen |= doAllReadWriteOperations(fd, listOfRegister, dataLength,
-                                          addressLength, listOfDev,
-                                          listOfOps, listOfMask, listOfNewValues,
-                                          listOfTimerMS, howManyCommands);
-	if(argc==3)
-        {
-    	    if (strcmp(argv[2],"surv")!=0) break;
-	}
-	else if(argc==2)
-        {
-    	    if (strcmp(argv[1],"surv")!=0) break;
-	}
-	else if(argc==1)
-	{
-	    break;
-	}
+		/* Do all operation listed in the .h file */
+			errorSeen |= doAllReadWriteOperations(fd, listOfRegister, dataLength,
+											  addressLength, listOfDev,
+											  listOfOps, listOfMask, listOfNewValues,
+											  listOfTimerMS, howManyCommands);
+		if(argc==2)
+		{
+				if (strcmp(argv[1],"surv")!=0) break;
+		}
     }
     /* Dump all registers for debug purposes */
     /* errorSeen |= dumpAllReg(fd); */
