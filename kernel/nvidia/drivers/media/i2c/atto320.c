@@ -185,9 +185,20 @@ static int sensor_read_reg(struct camera_common_data *s_data,u16 addr, u8 *val)
 {
 	int err = 0;
 	u32 reg_val = 0;
+	struct device *dev = s_data->dev;
 
 	err = regmap_read(s_data->regmap, addr, &reg_val);
 	*val = reg_val & 0xFF;
+	if (err)
+	{
+		dev_err(dev, "%s:i2c read failed, reg 0x%x = %x\n",
+			__func__, addr, *val);
+	}
+	else
+	{
+		dev_err(dev, "%s:i2c read OK, reg 0x%x = %x\n",
+					__func__, addr, *val);
+	}
 
 	return err;
 }
@@ -199,9 +210,15 @@ static int sensor_write_reg(struct camera_common_data *s_data,u16 addr, u8 val)
 
 	err = regmap_write(s_data->regmap, addr, val);
 	if (err)
-		dev_err(dev, "%s:i2c write failed, 0x%x = %x\n",
+	{
+		dev_err(dev, "%s:i2c write failed, reg 0x%x = %x\n",
 			__func__, addr, val);
-
+	}
+	else
+	{
+		dev_err(dev, "%s:i2c write OK, reg 0x%x = %x\n",
+					__func__, addr, val);
+	}
 	return err;
 }
 
@@ -321,7 +338,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 		return -EINVAL;
 
 	devatto = &priv->i2c_client->dev;
-	dev_err(devatto, "gmsl serdes setup \n");
+	dev_err(devatto, "%s init serdes\n",__func__);
 	mutex_lock(&serdes_lock__);
 
 	/* For now no separate power on required for serializer device */
@@ -349,6 +366,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	//if (err)
 	//	dev_err(dev, "gmsl serializer setup link failed\n");
 	// read max9271 ID
+	samba_max9271_wake_up(priv->ser_dev,0x00,priv->linkID);
 	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
 	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
 	samba_max9271_wake_up(priv->ser_dev,0x4,priv->linkID);
@@ -358,6 +376,7 @@ static int atto320_gmsl_serdes_setup(struct atto320 *priv)
 	// Init max9271 registers
 	InitSerdes(priv->dser_dev,priv->ser_dev);
 	// read max971 registers after init sensor
+	samba_max9271_wake_up(priv->ser_dev,0x00,priv->linkID);
 	samba_max9271_wake_up(priv->ser_dev,0x1E,priv->linkID);
 	samba_max9271_wake_up(priv->ser_dev,0x15,priv->linkID);
 	samba_max9271_wake_up(priv->ser_dev,0x4,priv->linkID);
@@ -768,11 +787,11 @@ static int atto320_board_setup(struct atto320 *priv)
 	err = of_property_read_u32(node, "reg", &priv->g_ctx.sdev_reg);
 	if (err < 0)
 	{
-		dev_err(dev, "reg not found\n");
+		dev_err(dev, "%s reg not found\n",__func__);
 		goto error;
 	}
 	else
-		dev_err(dev, "atto320 sensor reg i2c addr: 0x%x\n",priv->g_ctx.sdev_reg);
+		dev_err(dev, "%s atto320 sensor reg i2c addr: 0x%x\n",__func__,priv->g_ctx.sdev_reg);
 
 
 	err = of_property_read_u32(node, "def-addr",
@@ -1077,7 +1096,7 @@ static int atto320_probe(struct i2c_client *client,
 	struct atto320 *priv;
 	int err;
 
-	dev_info(dev, "atto320 probing v4l2 sensor.\n");
+	dev_info(dev, "atto320 probing atto320 driver\n");
 	
 
 	if (!IS_ENABLED(CONFIG_OF) || !node)
@@ -1117,7 +1136,8 @@ static int atto320_probe(struct i2c_client *client,
 	}
 #endif
 	err = tegracam_device_register(tc_dev);
-	if (err) {
+	if (err)
+	{
 		dev_err(dev, "tegra camera driver registration failed\n");
 		return err;
 	}
@@ -1147,9 +1167,14 @@ static int atto320_probe(struct i2c_client *client,
 
 	/* Register sensor to deserializer dev */
 	err = max9296_sdev_register(priv->dser_dev, &priv->g_ctx);
-	if (err) {
-		dev_err(&client->dev, "gmsl deserializer register failed  \"max9296_sdev_register\" \n");
-		//return err;
+	if (err)
+	{
+		dev_err(&client->dev, "%s gmsl deserializer register failed \n",__func__);
+		return err;
+	}
+	else
+	{
+		dev_err(&client->dev, "%s gmsl deserializer register OK\n",__func__);
 	}
 
 	//max9296_samba_portage_9272(priv->dser_dev);
@@ -1202,12 +1227,20 @@ static int atto320_probe(struct i2c_client *client,
 			"%s gmsl serdes setup failed\n", __func__);
 		return err;
 	}
+	else
+	{
+		dev_err(&client->dev,"%s gmsl serdes setup OK\n", __func__);
+	}
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err)
 	{
 		dev_err(dev, "tegra camera subdev registration failed\n");
 		return err;
+	}
+	else
+	{
+		dev_err(dev, "tegra camera subdev registration OK\n");
 	}
 
 	dev_info(&client->dev, "Detected ATTO320 sensor\n");
@@ -1320,6 +1353,7 @@ short atto_gfid (unsigned short val,struct camera_common_data *s_data)
     short retval;
     int ok=0;
 
+    printk("%s",__func__);
     // lecture
     if ((ok = sensor_read_reg(s_data,0x4B,&readval)) < 0) return (short)ok;
     retval = (short)readval;
@@ -1362,6 +1396,7 @@ short atto_gain (unsigned short val,struct camera_common_data *s_data)
     unsigned short reg = 0x40;
     int ok;
 
+    printk("%s",__func__);
     // lecture
     if ((ok = sensor_read_reg(s_data,reg,&readval)) < 0) return (short)ok;
     retval = (short)((readval & 0x70)>>4);
@@ -1382,6 +1417,7 @@ short atto_tint (unsigned short val,struct camera_common_data *s_data)
     short retval;
     int ok;
 
+    printk("%s",__func__);
     // lecture
     if ((ok = sensor_read_reg(s_data,0x4F,&readvalmsb)) < 0) return (short)ok;
     if ((ok = sensor_read_reg(s_data,0x50,&readvallsb)) < 0) return (short)ok;
@@ -1415,6 +1451,7 @@ int atto_polars (unsigned short gain, unsigned short gfid, unsigned short gsk,st
 int I2C_Ulis_WriteReg (unsigned short reg, unsigned char data,struct camera_common_data *s_data)
 {
 	int ok = 0;
+	printk("%s",__func__);
 	//ok = sensor_write_reg_for_test(dser_dev,reg,data);
 	ok = sensor_write_reg(s_data,reg,data);
     //if (ok < 0) I2C_ErrLastData = reg;
@@ -1444,6 +1481,7 @@ int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct camera_co
     return ok;
 */
 	int ok=0;
+	printk("%s",__func__);
 	ok = sensor_read_reg(s_data,reg,result);
 	return ok;
 }
@@ -1451,7 +1489,8 @@ int I2C_Ulis_ReadReg (unsigned short reg, unsigned char* result,struct camera_co
 
 void atto_reset(unsigned char val,struct samba_max9271 *priv)
 {
-    val = (val != 0) ? 0xC2 : 0xC0;
+    printk("%s",__func__);
+	val = (val != 0) ? 0xC2 : 0xC0;
     //mwrite (2, 0x40, 0x0F, val);
     samba_max9271_write(priv->i2c_client,0x0F,val);
 }
@@ -1465,6 +1504,7 @@ void atto_init(struct device *ser_dev,struct camera_common_data *s_data)
 	//struct device *dev = tc_dev->dev;
 	//int err;
 
+	dev_err(ser_dev, "%s\n",__func__);
 
     // etape 4
     atto_reset (0,priv_ser);

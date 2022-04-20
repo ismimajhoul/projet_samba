@@ -845,6 +845,10 @@ int max9295_sdev_pair(struct device *dev, struct gmsl_link_ctx *g_ctx)
 		dev_err(dev, "%s: invalid input params\n", __func__);
 		return -EINVAL;
 	}
+	else
+	{
+		dev_err(dev, "%s: input params valid\n", __func__);
+	}
 
 	priv = dev_get_drvdata(dev);
 	mutex_lock(&priv->lock);

@@ -3113,10 +3113,10 @@ static int atto640_probe(struct i2c_client *client,
 	u8  val_deser;
 	int err = 0;
 	
+	dev_err(&client->dev, "%s: welcome from atto640\n",__func__);
+
 	if (!(IS_ENABLED(CONFIG_OF)) || !node)
 		return -EINVAL;
-
-	dev_err(&client->dev, "welcome from atto640\n");
 
 	poc_enable = of_get_named_gpio(node, "poc-gpio", 0);
 	if(poc_enable > 0)
@@ -3134,8 +3134,13 @@ static int atto640_probe(struct i2c_client *client,
 		msleep(500);		
 		atto640_toggle_gpio(poc_enable, 1);
 		msleep(500);		
+		// activate chip reset
 		atto640_serdes_write_16b_reg(client, DES_ADDR1, 0x0010, 0x80);
 		msleep(200);
+	}
+	else
+	{
+		dev_err(&client->dev,"%s[%d] poc_enable <= 0\n",__func__,__LINE__);
 	}
 
 skip_poc:	
@@ -3143,7 +3148,14 @@ skip_poc:
 	    devm_kzalloc(&client->dev,
 			 sizeof(struct camera_common_data), GFP_KERNEL);
 	if (!common_data)
+	{
+		dev_err(&client->dev,"%s[%d] common data alloc error\n",__func__,__LINE__);
 		return -ENOMEM;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s[%d] common data alloc OK\n",__func__,__LINE__);
+	}
 
 	priv =
 	    devm_kzalloc(&client->dev,
@@ -3151,23 +3163,40 @@ skip_poc:
 			 sizeof(struct v4l2_ctrl *) * ATTO640_NUM_CONTROLS,
 			 GFP_KERNEL);
 	if (!priv)
+	{
+		dev_err(&client->dev,"%s[%d] priv alloc error\n",__func__,__LINE__);
 		return -ENOMEM;
+	}
+	else
+	{
+		dev_err(&client->dev,"%s[%d] priv alloc OK\n",__func__,__LINE__);
+	}
 
 
 	priv->pdata = atto640_parse_dt(client);
 	if (!priv->pdata)
 	{
-		dev_err(&client->dev, "unable to get platform data\n");
+		dev_err(&client->dev, "%s:unable to get platform data\n",__func__);
 		return -EFAULT;
+	}
+	else
+	{
+		dev_err(&client->dev, "%s:got platform data\n",__func__);
 	}
 
 	err = of_property_read_string(node, "phy-id", &str);
 	if (!err)
 	{
 		if (!strcmp(str, "A"))
+		{
 			priv->phy = PHY_A;
+			dev_err(&client->dev, "%s property PHY_A OK\n",__func__);
+		}
 		else
+		{
 			priv->phy = PHY_B;
+			dev_err(&client->dev, "%s property PHY_B OK\n",__func__);
+		}
 	}
 	else
 	{
@@ -3195,9 +3224,13 @@ skip_poc:
 
 	if(priv->phy == PHY_A || priv->phy == PHY_B)
 	{
+		// read lock_g1 (gmsl1) register
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCB, &val_deser);
+		// read video data activity register
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
 
+		// enable high band width mode enable HS/VS encoding 1bit parity
+		// single rate output normal data rate output bus width 22/24 bits
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B07, 0x0C);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C07, 0x0C);
 		msleep(10);

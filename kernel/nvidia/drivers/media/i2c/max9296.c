@@ -236,21 +236,35 @@ static int max9296_get_sdev_idx(struct device *dev,
 	int i;
 	int err = 0;
 
+	dev_err(dev, "%s\n", __func__);
 	mutex_lock(&priv->lock);
+
 	for (i = 0; i < priv->max_src; i++)
 	{
 		if (priv->sources[i].g_ctx->s_dev == s_dev)
 			break;
 	}
+
 	if (i == priv->max_src)
 	{
-		dev_err(dev, "no sdev found\n");
+		dev_err(dev, "%s i==max_src\n",__func__);
 		err = -EINVAL;
 		goto ret;
 	}
+	else
+	{
+		dev_err(dev, "%s i!=max_src\n",__func__);
+	}
 
 	if (idx)
+	{
 		*idx = i;
+		dev_err(dev, "%s idx\n",__func__);
+	}
+	else
+	{
+		dev_err(dev, "%s !idx\n",__func__);
+	}
 
 ret:
 	mutex_unlock(&priv->lock);
@@ -302,28 +316,47 @@ int max9296_power_on(struct device *dev)
 	int err = 0;
 
 	mutex_lock(&priv->lock);
-	if (priv->pw_ref == 0) {
+	if (priv->pw_ref == 0)
+	{
 		usleep_range(1, 2);
 		if (priv->reset_gpio)
+		{
 			gpio_set_value(priv->reset_gpio, 0);
-
+			dev_err(dev, "%s set value reset_gpio\n",__func__);
+		}
+		else
+		{
+			dev_err(dev, "%s don't set value reset_gpio\n",__func__);
+		}
 		usleep_range(30, 50);
 
 
-		if (priv->vdd_cam_1v2) {
+		if (priv->vdd_cam_1v2)
+		{
 			err = regulator_enable(priv->vdd_cam_1v2);
+			dev_err(dev, "%s enable regulator\n",__func__);
 			if (unlikely(err))
 				goto ret;
+		}
+		else
+		{
+			dev_err(dev, "%s don't enable regulator\n",__func__);
 		}
 
 		usleep_range(30, 50);
 
 		/*exit reset mode: XCLR */
-		if (priv->reset_gpio) {
+		if (priv->reset_gpio)
+		{
 			gpio_set_value(priv->reset_gpio, 0);
 			usleep_range(30, 50);
 			gpio_set_value(priv->reset_gpio, 1);
 			usleep_range(30, 50);
+			dev_err(dev, "%s exit reset mode reset_gpio\n",__func__);
+		}
+		else
+		{
+			dev_err(dev, "%s don't exit reset mode reset_gpio\n",__func__);
 		}
 
 		/* delay to settle reset */
@@ -404,6 +437,8 @@ int max9296_setup_link(struct device *dev, struct device *s_dev)
 	int err = 0;
 	int i;
 
+	dev_err(dev, "%s\n", __func__);
+
 	err = max9296_get_sdev_idx(dev, s_dev, &i);
 	if (err)
 		return err;
@@ -417,10 +452,11 @@ int max9296_setup_link(struct device *dev, struct device *s_dev)
 			goto ret;
 
 		priv->link_setup = true;
+		dev_err(dev, "! splitter_enabled link setup true\n");
 	}
 	else
 	{
-		dev_err(dev, "splitter mode not enable \n");
+		dev_err(dev, "splitter_enabled \n");
 	}
 
 ret:
@@ -550,6 +586,10 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 		dev_err(dev, "%s: invalid input params\n", __func__);
 		return -EINVAL;
 	}
+	else
+	{
+		dev_err(dev, "%s: input params OK\n", __func__);
+	}
 
 	priv = dev_get_drvdata(dev);
 
@@ -561,6 +601,10 @@ int max9296_sdev_register(struct device *dev, struct gmsl_link_ctx *g_ctx)
 			"%s: MAX9296 inputs size exhausted\n", __func__);
 		err = -ENOMEM;
 		goto error;
+	}
+	else
+	{
+		dev_err(dev,"%s: OK MAX9296 inputs size not exhausted\n", __func__);
 	}
 
 	/* Check csi mode compatibility */
