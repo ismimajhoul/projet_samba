@@ -2625,6 +2625,7 @@
 					compatible = "nvidia,atto640";
 					reg = <0x43>;
 					sensor_model = "atto640";
+					reset-gpios = <0x13 0x3b 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -2817,6 +2818,7 @@
 					compatible = "nvidia,atto640";
 					reg = <0x44>;
 					sensor_model = "ar0330";
+					reset-gpios = <0x13 0x3b 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3016,6 +3018,7 @@
 					compatible = "nvidia,ar0330";
 					reg = <0x43>;
 					sensor_model = "ar0330";
+					reset-gpios = <0x13 0x3e 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3208,6 +3211,7 @@
 					compatible = "nvidia,ar0330";
 					reg = <0x44>;
 					sensor_model = "ar0330";
+					reset-gpios = <0x13 0x3e 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3407,6 +3411,7 @@
 					compatible = "nvidia,ar0330";
 					reg = <0x43>;
 					sensor_model = "ar0330";
+					reset-gpios = <0x13 0x9e 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3599,6 +3604,7 @@
 					compatible = "nvidia,ar0330";
 					reg = <0x44>;
 					sensor_model = "ar0330";
+					reset-gpios = <0x13 0x9e 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3798,6 +3804,7 @@
 					compatible = "nvidia,ar0330";
 					reg = <0x43>;
 					sensor_model = "ar0330";
+					reset-gpios = <0x13 0x9d 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;
@@ -3990,6 +3997,7 @@
 					compatible = "nvidia,ar0330";
 					reg = <0x44>;
 					sensor_model = "ar0330";
+					reset-gpios = <0x13 0x9d 0x00>;
 					avdd-reg = "vana";
 					iovdd-reg = "vif";
 					clocks = <0x04 0x24 0x04 0x66>;

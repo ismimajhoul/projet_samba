@@ -243,8 +243,12 @@ struct atto640 {
 	struct camera_common_frmfmt *mcu_cam_frmfmt;
 	uint16_t prev_index;
 	uint8_t phy;
+	struct mutex lock;
+	int pw_ref;
+	int reset_gpio;
 
 	struct v4l2_ctrl *ctrls[];
+
 };
 
 /* Mutex for I2C lock */

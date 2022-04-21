@@ -582,10 +582,15 @@ static struct camera_common_pdata *atto640_parse_dt(struct i2c_client *client)
 #endif	
 
 	gpio = of_get_named_gpio(node, "reset-gpios", 0);
-	if (gpio < 0) {
+	if (gpio < 0)
+	{
 		/* reset-gpio is not absoluctly needed */
-		dev_dbg(&client->dev, "reset gpios not in DT\n");
+		dev_err(&client->dev, "reset gpios not in DT\n");
 		gpio = 0;
+	}
+	else
+	{
+		dev_err(&client->dev, "%s gpio >= 0\n",__func__);
 	}
 	board_priv_pdata->reset_gpio = (unsigned int)gpio;
 
@@ -595,10 +600,12 @@ static struct camera_common_pdata *atto640_parse_dt(struct i2c_client *client)
 	err =
 	    of_property_read_string(node, "avdd-reg",
 				    &board_priv_pdata->regulators.avdd);
-	if (err) {
+	if (err)
+	{
 		dev_err(&client->dev, "avdd-reg not in DT\n");
 		goto error;
 	}
+
 	err =
 	    of_property_read_string(node, "iovdd-reg",
 				    &board_priv_pdata->regulators.iovdd);
@@ -3093,6 +3100,50 @@ void read_serializer_regs(struct i2c_client *client)
 	}
 }
 
+int atto640_max9296_power_on(struct atto640 *priv)
+{
+	int err = 0;
+
+	mutex_lock(&priv->lock);
+	if (priv->pw_ref == 0)
+	{
+		usleep_range(1, 2);
+		if (priv->reset_gpio)
+		{
+			gpio_set_value(priv->reset_gpio, 0);
+			dev_err(&priv->i2c_client->dev, "%s set value reset_gpio\n",__func__);
+		}
+		else
+		{
+			dev_err(&priv->i2c_client->dev, "%s don't set value reset_gpio\n",__func__);
+		}
+		usleep_range(30, 50);
+
+		/*exit reset mode: XCLR */
+		if (priv->reset_gpio)
+		{
+			gpio_set_value(priv->reset_gpio, 0);
+			usleep_range(30, 50);
+			gpio_set_value(priv->reset_gpio, 1);
+			usleep_range(30, 50);
+			dev_err(&priv->i2c_client->dev, "%s exit reset mode reset_gpio\n",__func__);
+		}
+		else
+		{
+			dev_err(&priv->i2c_client->dev, "%s don't exit reset mode reset_gpio\n",__func__);
+		}
+
+		/* delay to settle reset */
+		msleep(20);
+	}
+
+	priv->pw_ref++;
+	mutex_unlock(&priv->lock);
+	return err;
+}
+EXPORT_SYMBOL(atto640_max9296_power_on);
+
+
 
 static int atto640_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
@@ -3213,6 +3264,7 @@ skip_poc:
 	priv->subdev->dev = &client->dev;
 	priv->s_data->dev = &client->dev;
 	common_data->priv = (void *)priv;
+	priv->reset_gpio = priv->pdata->reset_gpio;
 
 	err = atto640_power_get(priv);
 	if (err)
@@ -3221,6 +3273,10 @@ skip_poc:
 	err = atto640_power_on(common_data);
 	if (err)
 		return err;
+
+	/* For now no separate power on required for serializer device */
+	//max9296_power_on(priv->dser_dev);
+	atto640_max9296_power_on(priv);
 
 	if(priv->phy == PHY_A || priv->phy == PHY_B)
 	{

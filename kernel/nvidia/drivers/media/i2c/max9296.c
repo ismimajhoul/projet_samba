@@ -1021,32 +1021,39 @@ static int max9296_parse_dt(struct max9296 *priv,
 	}
 
 	err = of_property_read_u32(node, "max-src", &value);
-	if (err < 0) {
+	if (err < 0)
+	{
 		dev_err(&client->dev, "No max-src info\n");
 		return err;
 	}
 	priv->max_src = value;
 
 	priv->reset_gpio = of_get_named_gpio(node, "reset-gpios", 0);
-	if (priv->reset_gpio < 0) {
+	if (priv->reset_gpio < 0)
+	{
 		dev_err(&client->dev, "reset-gpios not found %d\n", err);
 		return err;
 	}
-	else{
+	else
+	{
 		dev_err(&client->dev, "value priv->reset_gpio = 0x%x\n", priv->reset_gpio);
 	}
 
 	/* digital 1.2v */
-	if (of_get_property(node, "vdd_cam_1v2-supply", NULL)) {
+	if (of_get_property(node, "vdd_cam_1v2-supply", NULL))
+	{
 		priv->vdd_cam_1v2 = regulator_get(&client->dev, "vdd_cam_1v2");
-		if (IS_ERR(priv->vdd_cam_1v2)) {
+		if (IS_ERR(priv->vdd_cam_1v2))
+		{
 			dev_err(&client->dev,
 				"vdd_cam_1v2 regulator get failed\n");
 			err = PTR_ERR(priv->vdd_cam_1v2);
 			priv->vdd_cam_1v2 = NULL;
 			return err;
 		}
-	} else {
+	}
+	else
+	{
 		priv->vdd_cam_1v2 = NULL;
 	}
 
