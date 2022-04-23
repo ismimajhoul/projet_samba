@@ -3426,28 +3426,57 @@ skip_poc:
 		// MIPI TX2: MIPI TX 10 Enable VC extension - 4 lanes
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x048A, 0xC8);
 
+		// CSI output enable - no crc - data types:x22, x1E, x2E =>
+		// should be 0x72: x2D
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0313, 0x82);
+		// Virtual channel for pipeline Y and X
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0314, 0x10);
+
+		// should be 0x6D: 0x2D: RAW14
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0316, 0x5E);
+		//
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0317, 0x0E);
+
+		//
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0319, 0x10);
+
+		// Software override enable for BPP, VC and DT
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x031D, 0xEF);
+
+		// raw14 should be 0x8B
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B96, 0x9B);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C96, 0x9B);
 
+		// disable GPI skew compensation -Enable GPI retransmission - Use D18/D19 for HS/VS
+		// Enable I 2 C retransmission enable - Enable maximum retransmission limit
+		// Reverse channel high immunity mode enabled
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B06, 0xE8);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C06, 0xE8);
+
+		// CROSS DE: no invert bit - no force bit to zero
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01DA, 0x18);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01FA, 0x18);
+
+		// ???
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0BA7, 0x45);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0CA7, 0x45);
+
+		// MIPI_TX 0: MIPI TX11 - MAP SRC 0,1,2 and DST 0,1,2
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040B, 0x07);
+
+		// MIPI_TX45: MAP DPHY DEST => MAP SRC 0,1,2 to DPHY1
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x042D, 0x15);
+		// MIPI_TX13: MAP_SRC_0: 0xXX: VC and DT source for map 0
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040D, 0x1E);
+		// 0xXX: VC and DT destination for map 0
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040E, 0x1E);
+		// // 0xXX: VC and DT source for map 1
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040F, 0x00);
+		// 0xXX: VC and DT destination for map 1
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0410, 0x00);
+		// 0xXX: VC and DT source for map 2
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0411, 0x01);
+		// 0xXX: VC and DT destination for map 2
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0412, 0x01);
 
 
