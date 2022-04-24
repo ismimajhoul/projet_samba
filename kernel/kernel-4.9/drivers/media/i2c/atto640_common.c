@@ -3089,6 +3089,26 @@ int atto640_set_serial_link(struct i2c_client *client,bool enable)
 }
 EXPORT_SYMBOL_GPL(atto640_set_serial_link);
 
+void init_serializer_regs(struct i2c_client *client)
+{
+	// init serializer
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
+	atto640_set_serial_link(client,1);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x05, 0x80);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x06, 0x50);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x08, 0x0);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x09, 0x0);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0A, 0x0);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0B, 0x0);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0C, 0x0);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
+	atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
+}
+
+
 void read_serializer_regs(struct i2c_client *client)
 {
 	uint8_t val_read = 0;
@@ -3285,19 +3305,27 @@ skip_poc:
 		// read video data activity register
 		atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0BCA, &val_deser);
 
-		// enable high band width mode enable HS/VS encoding 1bit parity
-		// single rate output normal data rate output bus width 22/24 bits
+		// BWS=0, HIBW=1
+		// enable high band width mode enable
+		// enable HS/VS encoding
+		// use 1bit parity
+		// use single rate output
+		// use normal data rate output
+		// bus width 22/24 bits
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B07, 0x0C);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C07, 0x0C);
 		msleep(10);
 
-		// I2C_LOC_ACK Enable local acknowledge when forward channel is not available
+		// I2C_LOC_ACK:Enable local acknowledge when forward channel is not available
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x80);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C0D, 0x80);
-		// i2c to i2c slave time out 0b110: 32 ms - I2C standard mode speed
+
+		// I2C standard mode speed
+		// i2c to i2c slave time out 0b110: 32 ms
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0F05, 0x26);
 
-		//disable loop back - 0b101: 397Kbps - Set for I 2 C Fast or Fast-mode Plus speed master
+		//disable loop back
+		//0b101: 397Kbps - Set for I 2 C Fast or Fast-mode Plus speed master
 		//time out 0b110: 32ms
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0F06, 0x56);
 		
@@ -3313,31 +3341,24 @@ skip_poc:
 			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0000, &val_deser);
 			atto640_serdes_read_16b_reg(client, priv->des_addr, 0x0010, &val_deser);
 
-			// Initialized max9271 serializer
+			// Read max9271 serializer registers
 			read_serializer_regs(client);
-			//Outputs enabled - Set device normal operation - disable reverse forward control
+			//Outputs enabled
+			//Select Port0: SDA0_RX0, SCL0_TX0
+			//Set device normal operation
+			//disable reverse forward control
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x00);
 
-			// sensor atto320 Init
+			// sensor atto640 Init
 			atto640_init(client,priv);
 			//dev_err(&client->dev, "%s: gmsl link A selected\n",__func__);
 
-			// init serializer
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
-			atto640_set_serial_link(client,1);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x05, 0x80);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x06, 0x50);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x08, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x09, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0A, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0B, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0C, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
+			// Init serializer
+			init_serializer_regs(client);
 			msleep(1000);
+
+			//I2C to I2C Disable local acknowledge when forward channel is not available
+			//Allow infinite length vertical blanking
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B0D, 0x00);
 			read_serializer_regs(client);
 
@@ -3356,7 +3377,7 @@ skip_poc:
 			}
 #endif
 
-			// enable reverse forward control
+			// enable reverse/forward control channel receiver/transmitter
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C04, 0x03);
 		}
 		else if (priv->phy == PHY_B)
@@ -3373,21 +3394,7 @@ skip_poc:
 			// sensor atto320 Init
 			atto640_init(client,priv);
 			//dev_err(&client->dev, "%s: gmsl link B selected\n", __func__);
-			// Init ser
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x04, 0x83);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x02, 0x1c);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x03, 0x00);
-			atto640_set_serial_link(client,1);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x05, 0x80);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x06, 0x50);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x08, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x09, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0A, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0B, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0C, 0x0);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0D, 0x6E);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0E, 0x42);
-			atto640_serdes_write_8b_reg(client, SER_ADDR1, 0x0F, 0xC2);
+			init_serializer_regs(client);
 			msleep(1000);
 
 			atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C0D, 0x00);
@@ -3416,20 +3423,30 @@ skip_poc:
 
 
 		/* Link configuration */
-		// CSI PHY1 output freq multiles 100 MHZ disable freq fine tuning
+
+		// CSI PHY1 output freq multiples 100 MHZ
+		// disable freq fine tuning
+		// disable software override BPP VC DT pipe u pipe z
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0320, 0x2F);
-		// CSI PHY1 output freq multiles 100 MHZ disable freq fine tuning
+
+		// CSI PHY1 output freq multiples 100 MHZ
+		// Software overide for frequency fine tuning disabled
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0323, 0x2F);
 
-		// MIPI TX1: MIPI TX 10 Enable VC extension - 4 lanes
+		// MIPI TX1: MIPI TX 10
+		// Enable VC extension
+		// 4 lanes
+		// High bits of CSI2 transmit wake-up: 0xXX: Number of MIPI byte clocks
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x044A, 0xC8);
-		// MIPI TX2: MIPI TX 10 Enable VC extension - 4 lanes
+
+		// MIPI TX2: idem 0x44A
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x048A, 0xC8);
 
-		// CSI output enable - no crc - data types:x22, x1E, x2E =>
+		// CSI output enable - no crc
+		// data types:x22, x1E, x2E =>
 		// should be 0x72: x2D
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0313, 0x82);
-		// Virtual channel for pipeline Y and X
+		// Virtual channel for pipeline Y:1 and X:0
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0314, 0x10);
 
 		// should be 0x6D: 0x2D: RAW14
@@ -3440,7 +3457,7 @@ skip_poc:
 		//
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0319, 0x10);
 
-		// Software override enable for BPP, VC and DT
+		// idem 0x320 for PHY0
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x031D, 0xEF);
 
 		// raw14 should be 0x8B
