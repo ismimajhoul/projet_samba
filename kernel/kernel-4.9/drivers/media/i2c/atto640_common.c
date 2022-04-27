@@ -3424,13 +3424,13 @@ skip_poc:
 
 		/* Link configuration */
 
-		// CSI PHY1 output freq multiples 100 MHZ
+		// CSI PHY1 output freq multiples 100 MHZ (reset value)
 		// disable freq fine tuning
 		// disable software override BPP VC DT pipe u pipe z
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0320, 0x2F);
 
-		// CSI PHY1 output freq multiples 100 MHZ
-		// Software overide for frequency fine tuning disabled
+		// CSI PHY2 output freq multiples 100 MHZ (reset value)
+		// Software override for frequency fine tuning disabled
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0323, 0x2F);
 
 		// MIPI TX1: MIPI TX 10
@@ -3442,22 +3442,27 @@ skip_poc:
 		// MIPI TX2: idem 0x44A
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x048A, 0xC8);
 
-		// CSI output enable - no crc
-		// data types:x22, x1E, x2E =>
-		// should be 0x72: x2D
+		// CSI output enable
+		// no crc
+		// pipeline X: data types:x22, x1E, x2E => should be 0x72: x2D
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0313, 0x82);
-		// Virtual channel for pipeline Y:1 and X:0
+		// Virtual channel for pipeline Y: VC1 and pipelineX: VC0
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0314, 0x10);
 
-		// should be 0x6D: 0x2D: RAW14
+		// should be 0x6D: (0x2D: RAW14 - 0x5E is for YUV422)
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0316, 0x5E);
-		//
+		//0xX: High bits of software defined data type for pipeline Z
+		//0xX: Low bits of software defined data type for pipeline Y
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0317, 0x0E);
 
-		//
+		//0xX: High bits of software defined BPP for pipeline Z
+		//Software defined BPP for pipeline Y :data types:x22, x1E, x2E
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0319, 0x10);
 
 		// idem 0x320 for PHY0
+		//pipeline y: 0x1: Software overide for BPP, VC and DT enabled
+		//pipeline x: 0x1: Software overide for BPP, VC and DT enabled
+		//CSI PHY0 0x1: Software overide for frequency fine tuning disabled
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x031D, 0xEF);
 
 		// raw14 should be 0x8B
@@ -3470,7 +3475,9 @@ skip_poc:
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B06, 0xE8);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C06, 0xE8);
 
-		// CROSS DE: no invert bit - no force bit to zero
+		//CROSS DE: no invert bit
+		//no force bit to zero
+		//Maps selected internal signal to DE 0bXXXXX: Incoming bit position
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01DA, 0x18);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01FA, 0x18);
 
@@ -3483,7 +3490,10 @@ skip_poc:
 
 		// MIPI_TX45: MAP DPHY DEST => MAP SRC 0,1,2 to DPHY1
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x042D, 0x15);
+
 		// MIPI_TX13: MAP_SRC_0: 0xXX: VC and DT source for map 0
+		//The register is split into two decode segments:
+		//bit [7:6] VC - Virtual channel - bit [5:0] DT - Data type
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040D, 0x1E);
 		// 0xXX: VC and DT destination for map 0
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040E, 0x1E);
@@ -3500,23 +3510,6 @@ skip_poc:
 
 #if 0
 ////////////////////////////////////////////////////////////////////////////////
-		// ajout ATTO
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0B06, 0xE8);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0C06, 0xE8);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01DA, 0x18);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x01FA, 0x18);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0BA7, 0x45);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0CA7, 0x45);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040B, 0x07);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x042D, 0x15);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040D, 0x1E);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040E, 0x1E);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x040F, 0x00);
-		atto640_serdes_write_16b_reg(client, priv->desdev_addr, 0x0410, 0x00);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0411, 0x01);
-		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0412, 0x01);
-
-		//
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0001, 0x01);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0002, 0xF3);
 		atto640_serdes_write_16b_reg(client, priv->des_addr, 0x0006, 0x10);
